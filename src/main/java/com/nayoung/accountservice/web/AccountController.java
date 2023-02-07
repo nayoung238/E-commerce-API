@@ -17,8 +17,8 @@ public class AccountController {
 
     @PostMapping("/sign-up")
     public ResponseEntity<?> signup(@RequestBody SignUpRequest request) {
-        AccountResponse accountDto = accountService.createAccount(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(accountDto);
+        AccountResponse response = accountService.createAccount(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/account/{accountId}")
