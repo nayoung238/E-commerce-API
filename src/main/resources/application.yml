@@ -11,3 +11,10 @@ eureka:
 spring:
   application:
     name: api-gateway-service
+  cloud:
+    gateway:
+      routes:
+        - id: account-service
+          uri: lb://ACCOUNT-SERVICE
+          predicates:
+            - Path=/account-service/**
