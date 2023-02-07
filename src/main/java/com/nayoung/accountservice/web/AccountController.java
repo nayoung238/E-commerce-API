@@ -20,4 +20,10 @@ public class AccountController {
         AccountResponse accountDto = accountService.createAccount(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(accountDto);
     }
+
+    @GetMapping("/account/{accountId}")
+    public ResponseEntity<?> getAccountById(@PathVariable Long accountId) {
+        AccountResponse response = accountService.getAccountById(accountId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

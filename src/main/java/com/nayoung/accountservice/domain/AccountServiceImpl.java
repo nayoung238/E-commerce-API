@@ -19,4 +19,10 @@ public class AccountServiceImpl implements AccountService {
         Account savedAccount = accountRepository.save(account);
         return AccountResponse.fromAccountEntity(savedAccount);
     }
+
+    @Override
+    public AccountResponse getAccountById(Long id) {
+        Account account = accountRepository.findById(id).orElseThrow();
+        return AccountResponse.fromAccountEntity(account);
+    }
 }
