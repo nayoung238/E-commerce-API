@@ -9,10 +9,8 @@ account, item, order service 등 여러 Microservice의 포트 번호를 기억�
 
 Gateway의 포트 번호가 8080번, Item-Service의 포트 번호가 57814번일 경우 다음 2가지 방법으로 Item-Service에 접근할 수 있다.
 
-- http://localhost:8080/item-service
-- http://localhost:57814/iterm-service
-
-> microservice를 구별하기 위해 item-service라는 id까지 작성했는데, 생략하는 방법은 아래에 설명한다.
+- http://localhost:8080/items/23
+- http://localhost:57814/items/23
 
 <br>
 
@@ -36,10 +34,14 @@ spring:
           uri: lb://ACCOUNT-SERVICE
           predicates:
             - Path=/account-service/**
+          filters:
+            - RewritePath=/account-service/(?<segment>.*), /$\{segment}
         - id: item-service
           uri: lb://ITEM-SERVICE
           predicates:
             - Path=/item-service/**
+          filters:
+            - RewritePath=/item-service/(?<segment>.*), /$\{segment}
 ```
 
 ```application.yml``` 에 위와 같이 Microservice를 추가하면 된다.
