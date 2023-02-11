@@ -18,11 +18,17 @@ spring:
           uri: lb://ACCOUNT-SERVICE
           predicates:
             - Path=/account-service/**
+          filters:
+            - RewritePath=/account-service/(?<segment>.*), /$\{segment}
         - id: item-service
           uri: lb://ITEM-SERVICE
           predicates:
             - Path=/item-service/**
+          filters:
+            - RewritePath=/item-service/(?<segment>.*), /$\{segment}
         - id: order-service
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/order-service/**
+          filters:
+            - RewritePath=/order-service/(?<segment>.*), /$\{segment}
