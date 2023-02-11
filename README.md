@@ -24,7 +24,7 @@ Spring Cloud Gateway를 사용하면 Gateway의 포트 번호로 등록된 모�
 
 <br>
 
-## Route 동록
+## Route 등록
 
 ```yml
 # application.yml
@@ -43,3 +43,12 @@ spring:
 ```
 
 ```application.yml``` 에 위와 같이 Microservice를 추가하면 된다.
+
+<br>
+
+![png](/_img/eureka_instances.png)
+
+Eureka server와 Client로 등록한 Microservice, API Gateway가 instance로 등록된 것을 확인할 수 있다.
+<br>
+
+API Gateway는 8080번 포트 번호로 설정했고, 모든 Microservice는 Random 포트 번호로 설정했기 때문에 실행할 때마다 랜덤하게 할당된다. 포트 번호를 확인하고 싶다면 클릭하거나 마우스 커서를 올려 왼쪽 하단에서 확인할 수 있다.
