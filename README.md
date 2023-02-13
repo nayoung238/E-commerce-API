@@ -14,11 +14,14 @@ Gateway의 포트 번호가 8080번, Item-Service의 포트 번호가 57814번�
 
 <br>
 
-특정 Microservice를 Scale-out 하는 경우도 마찬가지다. 2개의 Item-Service를 실행하면 중복되지 않는 포트 번호를 사용해야 한다. 
-즉, 포트 번호를 일일이 확인하는 방법은 상당히 번거로울 것이다.
+특정 Microservice를 Scale-out 하는 경우도 마찬가지다. 2개의 Item-Service를 실행하면 중복되지 않는 포트 번호를 사용해야 하고, 포트 번호를 일일이 확인하는 과정은 상당히 번거로울 것이다.
 <br>
 
 Spring Cloud Gateway를 사용하면 Gateway의 포트 번호로 등록된 모든 마이크로서비스에 쉽게 접근할 수 있다.
+
+- ```http://localhost:8080/item-service/items/23```
+- ```http://localhost:8080/order-service/orders/7```
+- ```http://localhost:8080/account-service/account/9584```
 
 <br>
 
