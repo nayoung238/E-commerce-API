@@ -9,8 +9,8 @@ account, item, order service 등 여러 Microservice의 포트 번호를 기억�
 
 Gateway의 포트 번호가 8080번, Item-Service의 포트 번호가 57814번일 경우 다음 2가지 방법으로 Item-Service에 접근할 수 있다.
 
-- ```http://localhost:8080/items/23```
-- ```http://localhost:57814/items/23```
+- ```http://localhost:8080/item-service/items/23```
+- ```http://localhost:57814/item-service/items/23```
 
 <br>
 
