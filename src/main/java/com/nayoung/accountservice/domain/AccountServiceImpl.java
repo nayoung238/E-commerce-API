@@ -1,18 +1,11 @@
 package com.nayoung.accountservice.domain;
 
+import com.nayoung.accountservice.client.OrderServiceClient;
 import com.nayoung.accountservice.web.dto.AccountResponse;
-import com.nayoung.accountservice.web.dto.OrderResponse;
 import com.nayoung.accountservice.web.dto.SignUpRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.env.Environment;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,8 +13,7 @@ import java.util.List;
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
-    private final RestTemplate restTemplate;
-    private final Environment environment;
+    private final OrderServiceClient orderServiceClient;
 
     @Override
     public AccountResponse createAccount(SignUpRequest signUpRequest) {
@@ -35,13 +27,7 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountRepository.findById(id).orElseThrow();
         AccountResponse response = AccountResponse.fromAccountEntity(account);
 
-        String orderUrl = String.format(environment.getProperty("order_service.url"), id);
-        ResponseEntity<List<OrderResponse>> orderResponse =
-                restTemplate.exchange(orderUrl, HttpMethod.GET, null,
-                        new ParameterizedTypeReference<List<OrderResponse>>() {
-                        });
-
-        response.setOrders(orderResponse.getBody());
+        response.setOrders(orderServiceClient.getOrders(id));
         return response;
     }
 }
