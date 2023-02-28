@@ -1,6 +1,7 @@
 package com.nayoung.orderservice.web;
 
 import com.nayoung.orderservice.domain.OrderService;
+import com.nayoung.orderservice.messagequeue.KafkaProducer;
 import com.nayoung.orderservice.web.dto.OrderRequest;
 import com.nayoung.orderservice.web.dto.OrderResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +15,15 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderService orderService;
+    private final KafkaProducer kafkaProducer;
 
     @PostMapping("{accountId}/orders")
     public ResponseEntity<?> create(@PathVariable Long accountId, @RequestBody OrderRequest orderRequest) {
         orderRequest.setAccountId(accountId);
         OrderResponse response = orderService.create(orderRequest);
+
+        kafkaProducer.send("update-stock-topic", orderRequest);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
