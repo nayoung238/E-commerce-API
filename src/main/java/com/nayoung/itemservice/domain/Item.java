@@ -34,4 +34,8 @@ public class Item {
     public static Item fromItemCreationRequest(ItemCreationRequest itemCreationRequest) {
         return new Item(itemCreationRequest);
     }
+
+    public void updateStock(Long quantity) {
+        this.stock -= quantity;
+    }
 }
