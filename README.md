@@ -3,11 +3,17 @@
 ![](/_img/account_service_status_230224.png)
 
 - 사용자 정보를 가져올 때 해당 사용자가 주문한 모든 주문 정보를 가져오는 방식
-- Account-service와 Order-service를 연결하기 위해 **RestTemplate** 또는 **FeignClient** 방식을 이용
+- Account-service와 Order-service를 연결하기 위해 **FeignClient** 사용
+- Resilience4J-CircuitBreaker를 통한 장애 처리
+<br>
+
+- [Connection: RestTemplate](#resttemplate)
+- [Connection: FeignClient](#feignclient)
+- [장애 처리: Resilience4J-CircuitBreaker](#resilience4j-circuitbreaker)
 
 <br>
 
-## RestTemplate 방식
+## RestTemplate
 
 - commit: https://github.com/evelyn82ny/MSA-account-service/commit/066d2bf38adf4151bbae5e2a2155ea00cce27a6b
 
@@ -87,3 +93,29 @@ public class AccountServiceImpl implements AccountService {
 ```
 
 RestTemplate을 사용하지 않고 FeignClient를 사용해 Microserive를 연결한 결과, 사용자 정보를 가져올 때 모든 주문 정보를 정상적으로 가져왔다.
+
+<br>
+
+## Resilience4J-CircuitBreaker
+
+- commit: https://github.com/evelyn82ny/MSA-account-service/commit/4aea0318738b39f95fbe40d41ffc496759e17cec
+
+```java
+try {
+    responseList = orderServiceClient.getOrders(id);
+} catch (FeignException e) {
+    log.error(e.getMessage());
+}
+response.setOrders(responseList);
+```
+
+```order-service``` 의 문제로 사용자의 주문 정보를 가져오지 못하는 장애 상황을 대비해 ```try-catch``` 사용했는데, **Resilience4J-CircuitBreaker** 을 적용했다.
+
+```java
+CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
+List<OrderResponse> orders = circuitBreaker.run(() -> orderServiceClient.getOrders(id),
+                                                    throwable -> new ArrayList<>());
+
+response.setOrders(orders);
+```
+위와 같이 변경했으며, 관련 Config는 [Resilience4JConfig.java](https://github.com/evelyn82ny/MSA-account-service/blob/master/src/main/java/com/nayoung/accountservice/config/Resilience4JConfig.java) 에 작성했다.
