@@ -4,9 +4,10 @@ import com.nayoung.accountservice.client.OrderServiceClient;
 import com.nayoung.accountservice.web.dto.AccountResponse;
 import com.nayoung.accountservice.web.dto.OrderResponse;
 import com.nayoung.accountservice.web.dto.SignUpRequest;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
     private final OrderServiceClient orderServiceClient;
+    private final CircuitBreakerFactory circuitBreakerFactory;
 
     @Override
     public AccountResponse createAccount(SignUpRequest signUpRequest) {
@@ -32,13 +34,11 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountRepository.findById(id).orElseThrow();
         AccountResponse response = AccountResponse.fromAccountEntity(account);
 
-        List<OrderResponse> responseList = new ArrayList<>();
-        try {
-            responseList = orderServiceClient.getOrders(id);
-        } catch (FeignException e) {
-            log.error(e.getMessage());
-        }
-        response.setOrders(responseList);
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
+        List<OrderResponse> orders = circuitBreaker.run(() -> orderServiceClient.getOrders(id),
+                                                        throwable -> new ArrayList<>());
+
+        response.setOrders(orders);
         return response;
     }
 }
