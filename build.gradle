@@ -31,6 +31,9 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
 
+    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+    implementation 'org.springframework.cloud:spring-cloud-sleuth-zipkin'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
