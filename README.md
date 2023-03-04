@@ -123,7 +123,7 @@ response.setOrders(orders);
 
 ### GET: 사용자 정보 및 주문 정보
 
-![/_img/zipkin_account_and_order_result.png]
+![](/_img/zipkin_account_and_order_result.png)
 
 ### account-service
 
@@ -135,11 +135,13 @@ response.setOrders(orders);
 - INFO [order-service, **f58ef567290011f3**,f57c31766e7232d7] 90365 --- [o-auto-1-exec-2] c.n.orderservice.web.OrderController
 - INFO [order-service, **f58ef567290011f3**,f57c31766e7232d7] 90365 --- [o-auto-1-exec-2] c.n.o.domain.OrderServiceImpl
 
+같은 Trace를 사용하지만, 작업마다 Span이 다른 것을 확인할 수 있다.
+
 <br>
 
 ### GET: 사용자 정보 및 주문 정보 & order-service에서 오류 발생하는 경우
 
-![/_img/zipkin_account_and_order_error_result.png]
+![](/_img/zipkin_account_and_order_error_result.png)
 
 ### account-service
 
