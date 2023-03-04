@@ -84,7 +84,7 @@ public class OrderController {
 
 ### POST: 주문 생성 및 재고 감소
 
-![/_img/zipkin_order_and_item_result.png]
+![](/_img/zipkin_order_and_item_result.png)
 
 ### order-service
 
