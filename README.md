@@ -3,13 +3,10 @@
 ![](/_img/account_service_status_230224.png)
 
 - 사용자 정보를 가져올 때 해당 사용자가 주문한 모든 주문 정보를 가져오는 방식
-- Account-service와 Order-service를 연결하기 위해 **FeignClient** 사용
-- Resilience4J-CircuitBreaker를 통한 장애 처리
-<br>
-
-- [Connection: RestTemplate](#resttemplate)
-- [Connection: FeignClient](#feignclient)
-- [장애 처리: Resilience4J-CircuitBreaker](#resilience4j-circuitbreaker)
+- ```account-service```와 ```order-service``` 연결: [RestTemplate](#resttemplate) test
+- ```account-service```와 ```order-service``` 연결: [FeignClient](#feignclient) 사용
+- 장애 처리: [Resilience4J-CircuitBreaker](#resilience4j-circuitbreaker)
+- 분산 추적: [Zipkin](#zipkin)
 
 <br>
 
@@ -119,3 +116,37 @@ List<OrderResponse> orders = circuitBreaker.run(() -> orderServiceClient.getOrde
 response.setOrders(orders);
 ```
 위와 같이 변경했으며, 관련 Config는 [Resilience4JConfig.java](https://github.com/evelyn82ny/MSA-account-service/blob/master/src/main/java/com/nayoung/accountservice/config/Resilience4JConfig.java) 에 작성했다.
+
+<br>
+
+## zipkin
+
+### GET: 사용자 정보 및 주문 정보
+
+![/_img/zipkin_account_and_order_result.png]
+
+### account-service
+
+- INFO [account-service, **f58ef567290011f3**,f58ef567290011f3] 88990 --- [o-auto-1-exec-2] c.n.a.web.AccountController
+- INFO [account-service, **f58ef567290011f3**,f58ef567290011f3] 88990 --- [o-auto-1-exec-2] c.n.a.domain.AccountServiceImpl
+
+### order-service
+
+- INFO [order-service, **f58ef567290011f3**,f57c31766e7232d7] 90365 --- [o-auto-1-exec-2] c.n.orderservice.web.OrderController
+- INFO [order-service, **f58ef567290011f3**,f57c31766e7232d7] 90365 --- [o-auto-1-exec-2] c.n.o.domain.OrderServiceImpl
+
+<br>
+
+### GET: 사용자 정보 및 주문 정보 & order-service에서 오류 발생하는 경우
+
+![/_img/zipkin_account_and_order_error_result.png]
+
+### account-service
+
+- INFO [account-service, **3e54d58f93d7ffd6**,3e54d58f93d7ffd6] 56389 --- [o-auto-1-exec-4] c.n.a.web.AccountController
+- INFO [account-service, **3e54d58f93d7ffd6**,3e54d58f93d7ffd6] 56389 --- [o-auto-1-exec-4] c.n.a.domain.AccountServiceImpl
+
+### order-service
+
+- INFO [order-service, **3e54d58f93d7ffd6**,ea7fd2ee14df6be8] 67120 --- [o-auto-1-exec-2] c.n.orderservice.web.OrderController     :
+- ERROR [order-service, **3e54d58f93d7ffd6**,ea7fd2ee14df6be8] 67120 --- [o-auto-1-exec-2] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is java.lang.Exception: 장애 발생] with root cause
