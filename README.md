@@ -1,6 +1,6 @@
 ## MSA with Spring Cloud: Order-service
 
-![](/_img/architecture_230228.png)
+![](/_img/architecture_230326.png)
 
 - [Kafka Producer](#kafka-producer) 설정
 - 분산 추적: [Zipkin](#zipkin)
