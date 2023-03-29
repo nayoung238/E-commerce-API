@@ -22,6 +22,7 @@ public class OrderController {
         orderRequest.setAccountId(accountId);
         OrderResponse response = orderService.create(orderRequest);
 
+        orderRequest.setOrderId(response.getOrderId());
         kafkaProducer.send("update-stock-topic", orderRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
