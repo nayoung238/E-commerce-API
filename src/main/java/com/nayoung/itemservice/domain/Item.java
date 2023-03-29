@@ -1,5 +1,7 @@
 package com.nayoung.itemservice.domain;
 
+import com.nayoung.itemservice.exception.ExceptionCode;
+import com.nayoung.itemservice.exception.StockException;
 import com.nayoung.itemservice.web.dto.ItemCreationRequest;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -36,6 +38,9 @@ public class Item {
     }
 
     public void updateStock(Long quantity) {
-        this.stock -= quantity;
+        if(this.stock >= quantity)
+            this.stock -= quantity;
+        else
+            throw new StockException(ExceptionCode.INSUFFICIENT_STOCK_EXCEPTION);
     }
 }
