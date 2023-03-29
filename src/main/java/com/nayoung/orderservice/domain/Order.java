@@ -18,6 +18,9 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    private OrderStatus orderStatus;
+
     private Long itemId;
     private Long quantity;
     private Long unitPrice;
@@ -28,6 +31,8 @@ public class Order {
     private LocalDateTime createdAt;
 
     private Order(OrderRequest request) {
+        this.orderStatus = OrderStatus.ACCEPT;
+
         this.itemId = request.getItemId();
         this.quantity = request.getQuantity();
         this.unitPrice = request.getUnitPrice();
@@ -40,5 +45,9 @@ public class Order {
 
     protected static Order fromOrderRequest(OrderRequest orderRequest) {
         return new Order(orderRequest);
+    }
+
+    public void updateOrderStatus(OrderStatus status) {
+        this.orderStatus = status;
     }
 }
