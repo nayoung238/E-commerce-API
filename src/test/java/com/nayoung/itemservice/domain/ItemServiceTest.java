@@ -1,5 +1,6 @@
 package com.nayoung.itemservice.domain;
 
+import com.nayoung.itemservice.exception.StockException;
 import com.nayoung.itemservice.web.dto.ItemCreationRequest;
 import com.nayoung.itemservice.web.dto.ItemInfoUpdateRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +67,22 @@ public class ItemServiceTest {
         Item item = itemRepository.findById(1L).orElseThrow();
         Assertions.assertEquals(totalQuantity , item.getStock());
     }
+
+     @Test
+     @DisplayName("StockException 발생 확인 테스트")
+     public void stockExceptionTest() {
+        itemService.update(getItemInfoUpdateRequest());
+        Item item = itemRepository.findById(1L).orElseThrow();
+        Long count = item.getStock();
+
+        ExecutorService executorService = Executors.newFixedThreadPool(3);
+        CountDownLatch countDownLatch = new CountDownLatch(Math.toIntExact(count));
+
+        for(long i = 0; i < count; i++)
+            itemService.decreaseStock(1L, 1L);
+
+        Assertions.assertThrows(StockException.class, () -> itemService.decreaseStock(1L, 1L));
+     }
 
     private List<ItemInfoUpdateRequest> getIItemUpdateInfoList() {
         List<ItemInfoUpdateRequest> itemInfoUpdateRequestList = new ArrayList<>();
