@@ -3,6 +3,7 @@ package com.nayoung.itemservice.domain;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.StockException;
 import com.nayoung.itemservice.web.dto.ItemCreationRequest;
+import com.nayoung.itemservice.web.dto.ItemInfoUpdateRequest;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -42,5 +43,11 @@ public class Item {
             this.stock -= quantity;
         else
             throw new StockException(ExceptionCode.INSUFFICIENT_STOCK_EXCEPTION);
+    }
+
+    public void update(ItemInfoUpdateRequest request) {
+        this.name = request.getName();
+        this.price = request.getPrice();
+        this.stock += request.getAdditionalQuantity();
     }
 }
