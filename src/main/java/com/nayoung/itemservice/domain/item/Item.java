@@ -1,4 +1,4 @@
-package com.nayoung.itemservice.domain;
+package com.nayoung.itemservice.domain.item;
 
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.StockException;

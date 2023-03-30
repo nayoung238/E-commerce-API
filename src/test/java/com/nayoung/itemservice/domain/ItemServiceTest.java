@@ -1,5 +1,8 @@
 package com.nayoung.itemservice.domain;
 
+import com.nayoung.itemservice.domain.item.Item;
+import com.nayoung.itemservice.domain.item.ItemRepository;
+import com.nayoung.itemservice.domain.item.ItemService;
 import com.nayoung.itemservice.exception.StockException;
 import com.nayoung.itemservice.web.dto.ItemCreationRequest;
 import com.nayoung.itemservice.web.dto.ItemInfoUpdateRequest;

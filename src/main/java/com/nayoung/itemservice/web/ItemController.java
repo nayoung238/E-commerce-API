@@ -1,6 +1,6 @@
 package com.nayoung.itemservice.web;
 
-import com.nayoung.itemservice.domain.ItemService;
+import com.nayoung.itemservice.domain.item.ItemService;
 import com.nayoung.itemservice.web.dto.ItemCreationRequest;
 import com.nayoung.itemservice.web.dto.ItemResponse;
 import lombok.RequiredArgsConstructor;

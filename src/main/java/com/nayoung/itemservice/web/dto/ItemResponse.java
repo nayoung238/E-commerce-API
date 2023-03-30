@@ -1,6 +1,6 @@
 package com.nayoung.itemservice.web.dto;
 
-import com.nayoung.itemservice.domain.Item;
+import com.nayoung.itemservice.domain.item.Item;
 import lombok.Data;
 
 @Data

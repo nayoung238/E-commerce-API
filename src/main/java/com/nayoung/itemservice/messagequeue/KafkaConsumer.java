@@ -3,7 +3,7 @@ package com.nayoung.itemservice.messagequeue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nayoung.itemservice.domain.ItemService;
+import com.nayoung.itemservice.domain.item.ItemService;
 import com.nayoung.itemservice.exception.StockException;
 import com.nayoung.itemservice.web.dto.ItemStockUpdateResult;
 import lombok.RequiredArgsConstructor;

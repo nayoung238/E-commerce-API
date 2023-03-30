@@ -1,4 +1,4 @@
-package com.nayoung.itemservice.domain;
+package com.nayoung.itemservice.domain.item;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
