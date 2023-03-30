@@ -3,8 +3,7 @@ package com.nayoung.itemservice.messagequeue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nayoung.itemservice.domain.Item;
-import com.nayoung.itemservice.domain.ItemRepository;
+import com.nayoung.itemservice.domain.ItemService;
 import com.nayoung.itemservice.exception.StockException;
 import com.nayoung.itemservice.web.dto.ItemStockUpdateResult;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class KafkaConsumer {
 
-    private final ItemRepository itemRepository;
+    private final ItemService itemService;
     private final KafkaProducer kafkaProducer;
 
     @KafkaListener(topics = "update-stock-topic")
@@ -31,16 +30,15 @@ public class KafkaConsumer {
             e.printStackTrace();
         }
 
-        Item item = itemRepository.findById(Long.parseLong(String.valueOf(map.get("itemId")))).orElseThrow();
-        boolean isAvailableStockUpdate;
+        ItemStockUpdateResult itemStockUpdateResult = ItemStockUpdateResult.fromKafkaMessage(map);
         try {
-            item.updateStock(Long.parseLong(String.valueOf(map.get("quantity"))));
-            itemRepository.save(item);
-            isAvailableStockUpdate = true;
+            Long itemId = Long.parseLong(String.valueOf(map.get("itemId")));
+            Long quantity = Long.parseLong(String.valueOf(map.get("quantity")));
+            itemService.decreaseStock(itemId, quantity);
+            itemStockUpdateResult.setAvailable(true);
         } catch (StockException e) {
-            isAvailableStockUpdate = false;
+            itemStockUpdateResult.setAvailable(false);
         }
-        kafkaProducer.send("update-order-status-topic",
-                ItemStockUpdateResult.fromKafkaMessageAndItemEntity(isAvailableStockUpdate, map, item));
+        kafkaProducer.send("update-order-status-topic", itemStockUpdateResult);
     }
 }

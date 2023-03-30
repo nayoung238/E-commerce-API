@@ -38,7 +38,7 @@ public class Item {
         return new Item(itemCreationRequest);
     }
 
-    public void updateStock(Long quantity) {
+    public void decreaseStock(Long quantity) {
         if(this.stock >= quantity)
             this.stock -= quantity;
         else

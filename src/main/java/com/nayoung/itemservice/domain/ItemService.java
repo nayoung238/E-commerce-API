@@ -9,4 +9,5 @@ public interface ItemService {
     ItemResponse createItem(ItemCreationRequest itemCreationRequest);
     ItemResponse getItemById(Long id);
     ItemResponse update(ItemInfoUpdateRequest itemInfoUpdateRequest);
+    void decreaseStock(Long id, Long quantity);
 }

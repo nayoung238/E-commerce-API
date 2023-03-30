@@ -35,4 +35,11 @@ public class ItemServiceImpl implements ItemService {
         item.update(itemInfoUpdateRequest);
         return ItemResponse.fromItemEntity(item);
     }
+
+    @Override
+    @Transactional
+    public void decreaseStock(Long id, Long quantity) {
+        Item item = itemRepository.findByIdWithPessimisticLock(id).orElseThrow();
+        item.decreaseStock(quantity);
+    }
 }
