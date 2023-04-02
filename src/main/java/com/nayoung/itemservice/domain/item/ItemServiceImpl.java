@@ -1,6 +1,10 @@
 package com.nayoung.itemservice.domain.item;
 
+import com.nayoung.itemservice.domain.discount.DiscountCode;
+import com.nayoung.itemservice.exception.ExceptionCode;
+import com.nayoung.itemservice.exception.ItemException;
 import com.nayoung.itemservice.web.dto.ItemCreationRequest;
+import com.nayoung.itemservice.web.dto.ItemInfoRequest;
 import com.nayoung.itemservice.web.dto.ItemInfoUpdateRequest;
 import com.nayoung.itemservice.web.dto.ItemResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +27,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemResponse getItemById(Long id) {
-        Item item = itemRepository.findById(id).orElseThrow();
-        return ItemResponse.fromItemEntity(item);
+    public ItemResponse getItemById(ItemInfoRequest request) {
+        Item item = itemRepository.findById(request.getItemId())
+                .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+
+        DiscountCode discountCode = DiscountCode.getDiscountCode(request.getCustomerRating());
+        return ItemResponse.fromItemEntityAndApplyDiscount(item, discountCode.percentage);
     }
 
     @Override

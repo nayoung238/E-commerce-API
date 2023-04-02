@@ -2,6 +2,7 @@ package com.nayoung.itemservice.web;
 
 import com.nayoung.itemservice.domain.item.ItemService;
 import com.nayoung.itemservice.web.dto.ItemCreationRequest;
+import com.nayoung.itemservice.web.dto.ItemInfoRequest;
 import com.nayoung.itemservice.web.dto.ItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,9 +16,9 @@ public class ItemController {
 
     private final ItemService itemService;
 
-    @GetMapping("/items/{itemId}")
-    public ResponseEntity<?> getItem(@PathVariable Long itemId) {
-        ItemResponse response = itemService.getItemById(itemId);
+    @GetMapping("/items/")
+    public ResponseEntity<?> getItem(@RequestBody ItemInfoRequest request) {
+        ItemResponse response = itemService.getItemById(request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
