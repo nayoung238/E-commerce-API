@@ -4,13 +4,13 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class ItemInfoRequest {
+public class ItemInfoByItemIdRequest {
 
     private Long itemId;
     private String customerRating;
 
     @Builder
-    public ItemInfoRequest(Long itemId,  String customerRating) {
+    public ItemInfoByItemIdRequest(Long itemId, String customerRating) {
         this.itemId = itemId;
         this.customerRating = customerRating;
     }

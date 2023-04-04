@@ -32,6 +32,16 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    public ItemResponse findItemByItemId(ItemInfoByItemIdRequest request) {
+        DiscountCode customerDiscountCode = DiscountCode.getDiscountCode(request.getCustomerRating());
+        Item item = itemRepository.findById(request.getItemId())
+                .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+
+        return DiscountCode.applyDiscountByItemEntity(item, customerDiscountCode);
+    }
+
+
+    @Override
     public List<ItemResponse> findItemsByItemName(ItemInfoByShopLocationRequest request) {
         DiscountCode customerDiscountCode = DiscountCode.getDiscountCode(request.getCustomerRating());
         List<Shop> shops = shopService.findShops(request.getProvince(), request.getCity());
