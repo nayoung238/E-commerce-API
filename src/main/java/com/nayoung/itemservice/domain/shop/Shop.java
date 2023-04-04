@@ -18,11 +18,19 @@ public class Shop {
     @Embedded
     private Location location;
 
-    private Shop(Location location) {
+    @Column(unique = true)
+    private String name;
+
+    @Builder
+    private Shop(Location location, String name) {
         this.location = location;
+        this.name = name;
     }
 
-    public static Shop fromLocation(Location location) {
-        return new Shop(location);
+    public static Shop fromLocationAndName(Location location, String name) {
+        return Shop.builder()
+                .location(location)
+                .name(name)
+                .build();
     }
 }

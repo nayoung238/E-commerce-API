@@ -20,8 +20,15 @@ public class ShopServiceImpl implements ShopService {
     @Override
     public void create(ShopCreationRequest request) {
         Location location = new Location(request.getProvince(), request.getCity());
-        Shop shop = Shop.fromLocation(location);
+        if(isExistShopName(request.getName())) {
+            throw new ShopException(ExceptionCode.ALREADY_EXIST_SHOP_NAME);
+        }
+        Shop shop = Shop.fromLocationAndName(location, request.getName());
         shopRepository.save(shop);
+    }
+
+    private boolean isExistShopName(String name) {
+        return shopRepository.findByName(name).isPresent();
     }
 
     @Override
