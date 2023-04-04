@@ -1,11 +1,16 @@
 package com.nayoung.itemservice.domain;
 
+import com.nayoung.itemservice.domain.discount.DiscountCode;
+import com.nayoung.itemservice.domain.discount.DiscountService;
 import com.nayoung.itemservice.domain.item.Item;
 import com.nayoung.itemservice.domain.item.ItemRepository;
 import com.nayoung.itemservice.domain.item.ItemService;
+import com.nayoung.itemservice.domain.shop.Shop;
+import com.nayoung.itemservice.domain.shop.ShopRepository;
+import com.nayoung.itemservice.domain.shop.ShopService;
+import com.nayoung.itemservice.exception.ItemException;
 import com.nayoung.itemservice.exception.StockException;
-import com.nayoung.itemservice.web.dto.ItemCreationRequest;
-import com.nayoung.itemservice.web.dto.ItemInfoUpdateRequest;
+import com.nayoung.itemservice.web.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,22 +31,65 @@ public class ItemServiceTest {
     private ItemService itemService;
     @Autowired
     private ItemRepository itemRepository;
+    @Autowired
+    private ShopService shopService;
+    @Autowired
+    private ShopRepository shopRepository;
+    @Autowired
+    private DiscountService discountService;
 
     private static final int threadCount = 5;
 
+    private final String itemName = "apple";
+    private final Long itemPrice = 2000L;
+    private final Integer testItemDiscountPercentage = 7;
+
+    private final String SEOUL = "seoul";
+    private final String KYEONGGI = "kyeonggi";
+    private final String SUWON = "suwon";
+
+
     @BeforeEach
     public void beforeEach() {
-        ItemCreationRequest request = new ItemCreationRequest();
-        request.setName("apple");
-        request.setPrice(1300L);
-        request.setStock(0L);
-
-        itemService.createItem(request);
+        createItem();
     }
 
     @AfterEach
     public void afterEach() {
         itemRepository.deleteAll();
+        shopRepository.deleteAll();
+    }
+
+    @Test
+    @DisplayName("원하는 지역에서 할인 적용한 아이템 가져오기")
+    public void getItemsByShopLocationAndApplyDiscountTest() {
+        /*
+         test에서 사용하는 모든 item의 discountPercentage는 7(testItemDiscountPercentage)로 설정
+         customerRating이 GOLD일 경우 discountPercentage가 더 높은 GOLD.percentage(10) 가 적용됨
+         */
+        ItemInfoByShopLocationRequest request = ItemInfoByShopLocationRequest.builder()
+                .itemName(itemName).customerRating("GOLD")
+                .province(KYEONGGI).city(SUWON).build();
+
+        List<ItemResponse> responses = itemService.findItemsByItemName(request);
+        assert(responses.size() > 0);
+        Long exceptedPriceByGold = itemPrice * (100 - DiscountCode.GOLD.percentage) / 100;
+        Assertions.assertTrue(responses.stream()
+                .anyMatch(itemResponse -> Objects.equals(itemResponse.getDiscountedPrice(), exceptedPriceByGold)));
+
+        /*
+         test에서 사용하는 모든 item의 discountPercentage는 7(testItemDiscountPercentage)로 설정
+         customerRating이 SILVER일 경우 discountPercentage가 더 높은 testItemDiscountPercentage(7)가 적용됨
+         */
+        request = ItemInfoByShopLocationRequest.builder()
+                .itemName(itemName).customerRating("SILVER")
+                .province(SEOUL).city(SEOUL).build();
+
+        responses = itemService.findItemsByItemName(request);
+        assert(responses.size() > 0);
+        Long exceptedPriceBySilver = itemPrice * (100 - testItemDiscountPercentage) / 100;
+        Assertions.assertTrue(responses.stream()
+                .anyMatch(itemResponse -> Objects.equals(itemResponse.getDiscountedPrice(), exceptedPriceBySilver)));
     }
 
     @Test
@@ -86,6 +135,57 @@ public class ItemServiceTest {
 
         Assertions.assertThrows(StockException.class, () -> itemService.decreaseStock(1L, 1L));
      }
+
+    private void createItem() {
+        createShops();
+
+        List<Shop> seoulShops = shopService.findShops(SEOUL, SEOUL);
+        List<Shop> suwonShops = shopService.findShops(KYEONGGI, SUWON);
+        assert(seoulShops.size() > 0);
+        assert(suwonShops.size() > 0);
+
+        ItemCreationRequest request = ItemCreationRequest.builder()
+                .name(itemName).price(itemPrice).stock(100L)
+                .build();
+
+        for(int i = 0; i < 2; i++) {
+            Long randomId = seoulShops.get((int)(Math.random() * (seoulShops.size()))).getId();
+            request.setShopId(randomId);
+            try {
+                ItemResponse response = itemService.createItem(request);
+                DiscountCreationRequest discountCreationRequest = DiscountCreationRequest.builder()
+                        .itemId(response.getItemId()).discountPercentage(testItemDiscountPercentage).build();
+                discountService.applyDiscount(discountCreationRequest);
+            } catch(ItemException ignored) {}
+        }
+
+        for(int i = 0; i < 3; i++) {
+            Long randomId = suwonShops.get((int)(Math.random() * (suwonShops.size()))).getId();
+            request.setShopId(randomId);
+            try {
+                ItemResponse response = itemService.createItem(request);
+                DiscountCreationRequest discountCreationRequest = DiscountCreationRequest.builder()
+                        .itemId(response.getItemId()).discountPercentage(testItemDiscountPercentage).build();
+                discountService.applyDiscount(discountCreationRequest);
+            } catch(ItemException ignored) {}
+        }
+    }
+
+    private void createShops() {
+        for(int i = 0; i < 3; i++) {
+            ShopCreationRequest request = ShopCreationRequest.builder()
+                    .province(SEOUL).city(SEOUL)
+                    .name(SEOUL + i).build();
+            shopService.create(request);
+        }
+
+        for(int i = 0; i < 4; i++) {
+            ShopCreationRequest request = ShopCreationRequest.builder()
+                    .province(KYEONGGI).city(SUWON)
+                    .name(SUWON + i).build();
+            shopService.create(request);
+        }
+    }
 
     private List<ItemInfoUpdateRequest> getIItemUpdateInfoList() {
         List<ItemInfoUpdateRequest> itemInfoUpdateRequestList = new ArrayList<>();
