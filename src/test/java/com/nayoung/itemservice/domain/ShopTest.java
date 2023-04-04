@@ -6,9 +6,11 @@ import com.nayoung.itemservice.domain.shop.ShopService;
 import com.nayoung.itemservice.domain.shop.location.CityCode;
 import com.nayoung.itemservice.domain.shop.location.ProvinceCode;
 import com.nayoung.itemservice.exception.LocationException;
+import com.nayoung.itemservice.exception.ShopException;
 import com.nayoung.itemservice.web.dto.ShopCreationRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -66,5 +68,15 @@ public class ShopTest {
 
         shops = shopService.findShops(NONE, NONE);
         Assertions.assertEquals(shopRepository.findAll().size(), shops.size());
+    }
+
+    @Test
+    @DisplayName("상점 이름 중복 검사")
+    void duplicationTest() {
+        ShopCreationRequest request = ShopCreationRequest.builder()
+                .province(SEOUL).city(SEOUL).name("songpa-gu1").build();
+        shopService.create(request);
+
+        Assertions.assertThrows(ShopException.class, () -> shopService.create(request));
     }
 }
