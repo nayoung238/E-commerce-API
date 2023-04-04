@@ -1,5 +1,6 @@
 package com.nayoung.itemservice.domain.item;
 
+import com.nayoung.itemservice.domain.discount.DiscountCode;
 import com.nayoung.itemservice.domain.shop.Shop;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.StockException;
@@ -28,6 +29,7 @@ public class Item {
 
     private String name;
     private Long price;
+    private Integer discountPercentage;
     private Long stock;
 
     private Item (ItemCreationRequest itemCreationRequest, Shop shop) {
@@ -35,6 +37,7 @@ public class Item {
         this.name = itemCreationRequest.getName();
         this.price = itemCreationRequest.getPrice();
         this.stock = itemCreationRequest.getStock();
+        this.discountPercentage = DiscountCode.NONE.percentage;
     }
 
     public static Item fromItemCreationRequestAndShopEntity(ItemCreationRequest itemCreationRequest, Shop shop) {
@@ -52,5 +55,10 @@ public class Item {
         this.name = request.getName();
         this.price = request.getPrice();
         this.stock += request.getAdditionalQuantity();
+        this.discountPercentage = request.getDiscountPercentage();
+    }
+
+    public void setDiscountPercentage(int discountPercentage) {
+        this.discountPercentage = Math.min(discountPercentage, 100);
     }
 }
