@@ -1,12 +1,11 @@
 package com.nayoung.itemservice.domain.item;
 
 import com.nayoung.itemservice.domain.discount.DiscountCode;
+import com.nayoung.itemservice.domain.shop.Shop;
+import com.nayoung.itemservice.domain.shop.ShopService;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
-import com.nayoung.itemservice.web.dto.ItemCreationRequest;
-import com.nayoung.itemservice.web.dto.ItemInfoRequest;
-import com.nayoung.itemservice.web.dto.ItemInfoUpdateRequest;
-import com.nayoung.itemservice.web.dto.ItemResponse;
+import com.nayoung.itemservice.web.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,10 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
+    private final ShopService shopService;
 
     @Override
-    public ItemResponse createItem(ItemCreationRequest itemCreationRequest) {
-        Item item = Item.fromItemCreationRequest(itemCreationRequest);
+    public ItemResponse createItem(ItemCreationRequest request) {
+        Shop shop = shopService.findShopById(request.getShopId());
+        Item item = Item.fromItemCreationRequestAndShopEntity(request, shop);
         Item savedItem = itemRepository.save(item);
         return ItemResponse.fromItemEntity(savedItem);
     }

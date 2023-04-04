@@ -1,5 +1,6 @@
 package com.nayoung.itemservice.domain.item;
 
+import com.nayoung.itemservice.domain.shop.Shop;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.StockException;
 import com.nayoung.itemservice.web.dto.ItemCreationRequest;
@@ -9,10 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 @AllArgsConstructor
@@ -24,18 +22,23 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne
+    @JoinColumn(name = "shop_id")
+    private Shop shop;
+
     private String name;
     private Long price;
     private Long stock;
 
-    private Item (ItemCreationRequest itemCreationRequest) {
+    private Item (ItemCreationRequest itemCreationRequest, Shop shop) {
+        this.shop = shop;
         this.name = itemCreationRequest.getName();
         this.price = itemCreationRequest.getPrice();
         this.stock = itemCreationRequest.getStock();
     }
 
-    public static Item fromItemCreationRequest(ItemCreationRequest itemCreationRequest) {
-        return new Item(itemCreationRequest);
+    public static Item fromItemCreationRequestAndShopEntity(ItemCreationRequest itemCreationRequest, Shop shop) {
+        return new Item(itemCreationRequest, shop);
     }
 
     public void decreaseStock(Long quantity) {
