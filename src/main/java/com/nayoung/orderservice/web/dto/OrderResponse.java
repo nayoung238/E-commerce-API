@@ -24,6 +24,7 @@ public class OrderResponse {
         this.orderId = order.getId();
         this.orderStatus = order.getOrderStatus();
         this.orderItemResponses = orderItemResponses;
+        this.totalPrice = getTotalPrice(orderItemResponses);
         this.customerAccountId = order.getCustomerAccountId();
         this.createdAt = order.getCreatedAt();
     }
@@ -34,5 +35,12 @@ public class OrderResponse {
                 .collect(Collectors.toList());
 
         return new OrderResponse(order, orderItemResponses);
+    }
+
+    private Long getTotalPrice(List<OrderItemResponse> orderItemResponses) {
+        assert(!orderItemResponses.isEmpty());
+        return orderItemResponses.stream()
+                .map(OrderItemResponse::getPrice)
+                .reduce(Long::sum).get();
     }
 }
