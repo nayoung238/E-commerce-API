@@ -1,5 +1,5 @@
 package com.nayoung.orderservice.domain;
 
 public enum OrderStatus {
-    ACCEPT, SUCCESS, FAILED
+    ACCEPTED, SUCCEED, FAILED, WAITING
 }

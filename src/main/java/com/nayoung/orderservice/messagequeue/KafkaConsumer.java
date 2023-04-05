@@ -34,7 +34,7 @@ public class KafkaConsumer {
 
         boolean isAvailableStockUpdate = Boolean.parseBoolean(String.valueOf(map.get("available")));
         if(isAvailableStockUpdate) {
-            order.updateOrderStatus(OrderStatus.SUCCESS);
+            order.updateOrderStatus(OrderStatus.SUCCEED);
         }
         else {
             order.updateOrderStatus(OrderStatus.FAILED);
