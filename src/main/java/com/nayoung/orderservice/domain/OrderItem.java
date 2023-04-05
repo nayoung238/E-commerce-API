@@ -22,6 +22,8 @@ public class OrderItem {
     private Long quantity;
     private Long price;
     private Long shopId;
+
+    @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
     @JsonIgnore
