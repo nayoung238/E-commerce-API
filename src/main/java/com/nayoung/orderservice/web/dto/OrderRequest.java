@@ -1,16 +1,28 @@
 package com.nayoung.orderservice.web.dto;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
 
-@Data
+import java.util.List;
+
+@Getter
 public class OrderRequest {
 
     private Long orderId;
+    private Long customerAccountId;
+    private List<OrderItemRequest> orderItems;
 
-    private Long itemId;
-    private Long quantity;
-    private Long unitPrice;
-    private Long totalPrice;
+    @Builder
+    public OrderRequest(Long customerAccountId, List<OrderItemRequest> orderItems) {
+        this.customerAccountId = customerAccountId;
+        this.orderItems = orderItems;
+    }
 
-    private Long accountId;
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
+    }
+
+    public void setCustomerAccountId(Long customerAccountId) {
+        this.customerAccountId = customerAccountId;
+    }
 }

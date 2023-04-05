@@ -4,6 +4,8 @@ import com.nayoung.orderservice.domain.Order;
 import com.nayoung.orderservice.domain.OrderStatus;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 public class OrderResponse {
@@ -11,31 +13,26 @@ public class OrderResponse {
     private Long orderId;
     private OrderStatus orderStatus;
 
-    private Long itemId;
-    private Long quantity;
-    private Long unitPrice;
+    private List<OrderItemResponse> orderItemResponses;
     private Long totalPrice;
 
-    private Long accountId;
-
+    private Long customerAccountId;
     private LocalDateTime createdAt;
 
 
-    private OrderResponse(Order order) {
+    private OrderResponse(Order order, List<OrderItemResponse> orderItemResponses) {
         this.orderId = order.getId();
         this.orderStatus = order.getOrderStatus();
-
-        this.itemId = order.getItemId();
-        this.quantity = order.getQuantity();
-        this.unitPrice = order.getUnitPrice();
-        this.totalPrice = order.getTotalPrice();
-
-        this.accountId = order.getAccountId();
-
+        this.orderItemResponses = orderItemResponses;
+        this.customerAccountId = order.getCustomerAccountId();
         this.createdAt = order.getCreatedAt();
     }
 
     public static OrderResponse fromOrderEntity(Order order) {
-        return new OrderResponse(order);
+        List<OrderItemResponse> orderItemResponses = order.getOrderItems().parallelStream()
+                .map(OrderItemResponse::new)
+                .collect(Collectors.toList());
+
+        return new OrderResponse(order, orderItemResponses);
     }
 }
