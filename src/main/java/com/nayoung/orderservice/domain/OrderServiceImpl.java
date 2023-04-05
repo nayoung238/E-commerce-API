@@ -1,5 +1,7 @@
 package com.nayoung.orderservice.domain;
 
+import com.nayoung.orderservice.exception.ExceptionCode;
+import com.nayoung.orderservice.exception.OrderException;
 import com.nayoung.orderservice.web.dto.OrderRequest;
 import com.nayoung.orderservice.web.dto.OrderResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +24,10 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public OrderResponse getOrderByOrderId(Long orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow();
+    public OrderResponse findOrderByOrderId(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
+
         return OrderResponse.fromOrderEntity(order);
     }
 
