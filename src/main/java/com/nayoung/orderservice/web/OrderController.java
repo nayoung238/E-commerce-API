@@ -19,7 +19,7 @@ public class OrderController {
 
     @PostMapping("{accountId}/orders")
     public ResponseEntity<?> create(@PathVariable Long accountId, @RequestBody OrderRequest orderRequest) {
-        orderRequest.setAccountId(accountId);
+        orderRequest.setCustomerAccountId(accountId);
         OrderResponse response = orderService.create(orderRequest);
 
         orderRequest.setOrderId(response.getOrderId());
