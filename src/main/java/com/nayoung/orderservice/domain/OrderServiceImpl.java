@@ -6,9 +6,8 @@ import com.nayoung.orderservice.web.dto.OrderRequest;
 import com.nayoung.orderservice.web.dto.OrderResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,11 +31,13 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public List<OrderResponse> getOrdersByAccountId(Long accountId) {
-        List<Order> orders = orderRepository.findAllByAccountId(accountId);
+    @Transactional
+    public void updateOrderStatus(OrderStatus orderStatus, Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
-        List<OrderResponse> ordersResponse = new ArrayList<>();
-        orders.forEach(o ->  ordersResponse.add(OrderResponse.fromOrderEntity(o)));
-        return ordersResponse;
+        order.updateOrderStatus(orderStatus);
+        for(OrderItem orderItem : order.getOrderItems())
+            orderItem.updateOrderStatus(orderStatus);
     }
 }

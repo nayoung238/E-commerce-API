@@ -42,4 +42,8 @@ public class OrderItem {
     protected void setOrder(Order order) {
         this.order = order;
     }
+
+    public void updateOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
+    }
 }
