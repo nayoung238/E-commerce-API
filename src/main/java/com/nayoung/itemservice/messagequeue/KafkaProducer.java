@@ -2,7 +2,7 @@ package com.nayoung.itemservice.messagequeue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nayoung.itemservice.web.dto.ItemStockUpdateResult;
+import com.nayoung.itemservice.web.dto.ItemStockUpdateResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ public class KafkaProducer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public void send(String kafkaTopic, ItemStockUpdateResult result) {
+    public void send(String kafkaTopic, ItemStockUpdateResponse result) {
         ObjectMapper mapper = new ObjectMapper();
         String jsonInString = "";
         try {
