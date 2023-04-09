@@ -1,10 +1,14 @@
 package com.nayoung.itemservice.domain.item;
 
 import com.nayoung.itemservice.domain.discount.DiscountCode;
+import com.nayoung.itemservice.domain.item.log.ItemUpdateLog;
+import com.nayoung.itemservice.domain.item.log.ItemUpdateLogRepository;
+import com.nayoung.itemservice.domain.item.log.OrderStatus;
 import com.nayoung.itemservice.domain.shop.Shop;
 import com.nayoung.itemservice.domain.shop.ShopService;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
+import com.nayoung.itemservice.exception.StockException;
 import com.nayoung.itemservice.web.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +26,7 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
     private final ShopService shopService;
+    private final ItemUpdateLogRepository itemUpdateLogRepository;
 
     @Override
     public ItemResponse createItem(ItemCreationRequest request) {
@@ -39,7 +44,6 @@ public class ItemServiceImpl implements ItemService {
 
         return DiscountCode.applyDiscountByItemEntity(item, customerDiscountCode);
     }
-
 
     @Override
     public List<ItemResponse> findItemsByItemName(ItemInfoByShopLocationRequest request) {
@@ -91,7 +95,6 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
-
     @Override
     @Transactional
     public ItemResponse update(ItemInfoUpdateRequest itemInfoUpdateRequest) {
@@ -102,8 +105,70 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public void decreaseStock(Long id, Long quantity) {
-        Item item = itemRepository.findByIdWithPessimisticLock(id).orElseThrow();
-        item.decreaseStock(quantity);
+    public ItemStockUpdateResponse updateItemsStock(ItemStockUpdateRequest request) {
+        List<CompletableFuture<OrderItemResponse>> result = request.getOrderItemRequests()
+                .stream()
+                .map(o -> CompletableFuture.supplyAsync(
+                        () -> decreaseStock(request.getOrderId(), o)))
+                .collect(Collectors.toList());
+
+        List<OrderItemResponse> orderItemResponses = result.stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
+
+        boolean isAllPossible = orderItemResponses.parallelStream().allMatch(r -> r.getOrderStatus() == OrderStatus.SUCCEED);
+        if(isAllPossible)
+            return ItemStockUpdateResponse.from(true, request, orderItemResponses);
+
+        undo(request.getOrderId(), orderItemResponses);
+        return ItemStockUpdateResponse.from(false, request, orderItemResponses);
+    }
+
+    public OrderItemResponse decreaseStock(Long orderId, OrderItemRequest request) {
+        boolean isSuccess = false;
+        try {
+            Item item = itemRepository.findByIdWithPessimisticLock(request.getItemId())
+                    .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+            item.decreaseStock(request.getQuantity());
+            itemRepository.save(item);
+
+            isSuccess = true;
+            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.SUCCEED, orderId, request);
+            itemUpdateLogRepository.save(itemUpdateLog);
+        } catch (ItemException | StockException e) {
+            isSuccess = false;
+            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.FAILED, orderId, request);
+            itemUpdateLogRepository.save(itemUpdateLog);
+        }
+        if(isSuccess)
+            return OrderItemResponse.fromOrderItemRequest(OrderStatus.SUCCEED, request);
+        return OrderItemResponse.fromOrderItemRequest(OrderStatus.FAILED, request);
+    }
+
+    public void undo(Long orderId, List<OrderItemResponse> orderItemResponses) {
+        increaseStockByOrderId(orderId);
+        for(OrderItemResponse orderItemResponse : orderItemResponses)
+            orderItemResponse.setOrderStatus(OrderStatus.FAILED);
+    }
+
+    public void increaseStockByOrderId(Long orderId) {
+        List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByOrderId(orderId);
+        for(ItemUpdateLog itemUpdateLog : itemUpdateLogs) {
+            if(itemUpdateLog.getOrderStatus() == OrderStatus.SUCCEED) {
+                try {
+                    increaseStock(itemUpdateLog.getItemId(), itemUpdateLog.getQuantity());
+                    itemUpdateLog.setOrderStatus(OrderStatus.CANCELED);
+                } catch (ItemException e) {
+                    log.error(e.getMessage());
+                }
+            }
+        }
+    }
+
+    public void increaseStock(Long itemId, Long quantity) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+
+        item.increaseStock(quantity);
     }
 }

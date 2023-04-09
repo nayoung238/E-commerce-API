@@ -10,5 +10,5 @@ public interface ItemService {
     ItemResponse findItemByItemId(ItemInfoByItemIdRequest request);
     List<ItemResponse> findItemsByItemName(ItemInfoByShopLocationRequest request);
     ItemResponse update(ItemInfoUpdateRequest itemInfoUpdateRequest);
-    void decreaseStock(Long id, Long quantity);
+    ItemStockUpdateResponse updateItemsStock(ItemStockUpdateRequest request);
 }

@@ -51,6 +51,10 @@ public class Item {
             throw new StockException(ExceptionCode.INSUFFICIENT_STOCK_EXCEPTION);
     }
 
+    public void increaseStock(Long quantity) {
+        this.stock += quantity;
+    }
+
     public void update(ItemInfoUpdateRequest request) {
         this.name = request.getName();
         this.price = request.getPrice();
