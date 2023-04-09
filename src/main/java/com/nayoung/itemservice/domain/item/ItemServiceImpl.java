@@ -149,7 +149,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     public void increaseStock(Long itemId, Long quantity) {
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findByIdWithPessimisticLock(itemId)
                 .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
         item.increaseStock(quantity);
