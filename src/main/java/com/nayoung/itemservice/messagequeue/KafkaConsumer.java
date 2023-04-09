@@ -3,7 +3,7 @@ package com.nayoung.itemservice.messagequeue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nayoung.itemservice.domain.item.ItemService;
+import com.nayoung.itemservice.domain.item.OrderItemService;
 import com.nayoung.itemservice.web.dto.ItemStockUpdateRequest;
 import com.nayoung.itemservice.web.dto.ItemStockUpdateResponse;
 import com.nayoung.itemservice.web.dto.OrderItemRequest;
@@ -19,7 +19,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class KafkaConsumer {
 
-    private final ItemService itemService;
+    private final OrderItemService orderItemService;
     private final KafkaProducer kafkaProducer;
 
     @KafkaListener(topics = "update-stock-topic")
@@ -35,7 +35,7 @@ public class KafkaConsumer {
                 orderItemRequests.add(OrderItemRequest.fromKafkaMessage(orderItem));
 
             ItemStockUpdateRequest request = ItemStockUpdateRequest.fromKafkaMessage(map, orderItemRequests);
-            ItemStockUpdateResponse response = itemService.updateItemsStock(request);
+            ItemStockUpdateResponse response = orderItemService.updateItemsStock(request);
             kafkaProducer.send("update-order-status-topic", response);
         } catch (JsonProcessingException e) {
             e.printStackTrace();

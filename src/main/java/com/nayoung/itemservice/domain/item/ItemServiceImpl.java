@@ -105,25 +105,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public ItemStockUpdateResponse updateItemsStock(ItemStockUpdateRequest request) {
-        List<CompletableFuture<OrderItemResponse>> result = request.getOrderItemRequests()
-                .stream()
-                .map(o -> CompletableFuture.supplyAsync(
-                        () -> decreaseStock(request.getOrderId(), o)))
-                .collect(Collectors.toList());
-
-        List<OrderItemResponse> orderItemResponses = result.stream()
-                .map(CompletableFuture::join)
-                .collect(Collectors.toList());
-
-        boolean isAllPossible = orderItemResponses.parallelStream().allMatch(r -> r.getOrderStatus() == OrderStatus.SUCCEED);
-        if(isAllPossible)
-            return ItemStockUpdateResponse.from(true, request, orderItemResponses);
-
-        undo(request.getOrderId(), orderItemResponses);
-        return ItemStockUpdateResponse.from(false, request, orderItemResponses);
-    }
-
     public OrderItemResponse decreaseStock(Long orderId, OrderItemRequest request) {
         boolean isSuccess = false;
         try {
@@ -145,6 +126,8 @@ public class ItemServiceImpl implements ItemService {
         return OrderItemResponse.fromOrderItemRequest(OrderStatus.FAILED, request);
     }
 
+    @Override
+    @Transactional
     public void undo(Long orderId, List<OrderItemResponse> orderItemResponses) {
         increaseStockByOrderId(orderId);
         for(OrderItemResponse orderItemResponse : orderItemResponses)
