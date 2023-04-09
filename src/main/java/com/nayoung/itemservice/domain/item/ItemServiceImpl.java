@@ -111,7 +111,6 @@ public class ItemServiceImpl implements ItemService {
             Item item = itemRepository.findByIdWithPessimisticLock(request.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
             item.decreaseStock(request.getQuantity());
-            itemRepository.save(item);
 
             isSuccess = true;
             ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.SUCCEED, orderId, request);
