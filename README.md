@@ -1,6 +1,6 @@
 ## MSA with Spring Cloud Project: Account service
 
-![](/_img/architecture_230326.png)
+![](/_img/architecture_230408.png)
 
 - 사용자 정보를 가져올 때 해당 사용자가 주문한 모든 주문 정보를 가져오는 방식
 - ```account-service```와 ```order-service``` 연결: [RestTemplate](#resttemplate) test
