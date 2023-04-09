@@ -104,13 +104,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional
     public OrderItemResponse decreaseStock(Long orderId, OrderItemRequest request) {
         boolean isSuccess = false;
         try {
-            Item item = itemRepository.findByIdWithPessimisticLock(request.getItemId())
+            Item item = itemRepository.findById(request.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
             item.decreaseStock(request.getQuantity());
+            itemRepository.save(item);
 
             isSuccess = true;
             ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.SUCCEED, orderId, request);

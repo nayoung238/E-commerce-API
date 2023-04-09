@@ -16,13 +16,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderItemService {
 
+    private final RedissonItemService redissonItemService;
     private final ItemService itemService;
 
     public ItemStockUpdateResponse updateItemsStock(ItemStockUpdateRequest request) {
         List<CompletableFuture<OrderItemResponse>> result = request.getOrderItemRequests()
                 .stream()
                 .map(o -> CompletableFuture.supplyAsync(
-                        () -> itemService.decreaseStock(request.getOrderId(), o)))
+                        () -> redissonItemService.decreaseItemStock(request.getOrderId(), o)))
                 .collect(Collectors.toList());
 
         List<OrderItemResponse> orderItemResponses = result.stream()
