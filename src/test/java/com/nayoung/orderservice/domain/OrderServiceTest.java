@@ -3,10 +3,7 @@ package com.nayoung.orderservice.domain;
 import com.nayoung.orderservice.web.dto.OrderItemRequest;
 import com.nayoung.orderservice.web.dto.OrderRequest;
 import com.nayoung.orderservice.web.dto.OrderResponse;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -20,12 +17,13 @@ public class OrderServiceTest {
     @Autowired OrderRepository orderRepository;
 
     private final int numberOfOrderItems = 3;
+    private final long CUSTOMER_ACCOUNT_ID = 2L;
 
     @BeforeEach
     void beforeEach() {
-        List<OrderItemRequest> orderItemRequests = getOrderItemRequests();
+        List<OrderItemRequest> orderItemRequests = getOrderItemRequests(numberOfOrderItems);
         OrderRequest request = OrderRequest.builder()
-                .customerAccountId(2L)
+                .customerAccountId(CUSTOMER_ACCOUNT_ID)
                 .orderItems(orderItemRequests)
                 .build();
 
@@ -39,7 +37,7 @@ public class OrderServiceTest {
 
     @Test
     void createOrderTest() {
-        List<OrderItemRequest> orderItemRequests = getOrderItemRequests();
+        List<OrderItemRequest> orderItemRequests = getOrderItemRequests(numberOfOrderItems);
         OrderRequest request = OrderRequest.builder()
                 .customerAccountId(3L)
                 .orderItems(orderItemRequests)
@@ -62,22 +60,28 @@ public class OrderServiceTest {
     }
 
     @Test
-    void getOrdersByAccountId() {
-        final int count = 5;
-        final long accountId = 3L;
+    @DisplayName("최대 5개의 주문만 가져오는 테스트")
+    void findOrderByCustomerAccountIdTest() {
+        List<OrderItemRequest> orderItemRequests = getOrderItemRequests(numberOfOrderItems);
+        OrderRequest request = OrderRequest.builder()
+                .customerAccountId(CUSTOMER_ACCOUNT_ID)
+                .orderItems(orderItemRequests)
+                .build();
+        orderService.create(request);
+        orderService.create(request);
 
-        OrderRequest request = new OrderRequest();
-        request.setAccountId(accountId);
+        List<OrderResponse> responses = orderService.findOrderByCustomerAccountId(CUSTOMER_ACCOUNT_ID);
+        Assertions.assertEquals(3L, responses.size());
 
-        for(int i = 0; i < count; i++) orderService.create(request);
-
-        List<OrderResponse> responseList = orderService.getOrdersByAccountId(accountId);
-        Assertions.assertEquals(count, responseList.size());
+        for(int i = 0; i < 10; i++)
+            orderService.create(request);
+        responses = orderService.findOrderByCustomerAccountId(CUSTOMER_ACCOUNT_ID);
+        Assertions.assertEquals(5L, responses.size());
     }
 
-    private List<OrderItemRequest> getOrderItemRequests() {
+    private List<OrderItemRequest> getOrderItemRequests(int n) {
         List<OrderItemRequest> requests = new ArrayList<>();
-        for(int i = 0; i < numberOfOrderItems; i++) {
+        for(int i = 0; i < n; i++) {
             requests.add(OrderItemRequest.builder()
                     .shopId((long) (Math.random() * 12))
                     .itemId((long) (Math.random() * 5)).quantity(34L).price(1200L)
