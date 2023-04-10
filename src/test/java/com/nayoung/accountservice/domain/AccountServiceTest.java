@@ -2,6 +2,7 @@ package com.nayoung.accountservice.domain;
 
 import com.nayoung.accountservice.web.dto.AccountResponse;
 import com.nayoung.accountservice.web.dto.SignUpRequest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class AccountServiceTest {
 
     @Autowired AccountService accountService;
+    @Autowired AccountRepository accountRepository;
+
+    @AfterEach
+    void afterEach() {
+        accountRepository.deleteAll();
+    }
 
     @Test
     void createAccount() {
