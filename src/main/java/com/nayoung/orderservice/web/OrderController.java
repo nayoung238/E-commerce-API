@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/")
@@ -30,7 +32,7 @@ public class OrderController {
 
     @GetMapping("{accountId}/orders")
     public ResponseEntity<?> getOrders(@PathVariable Long accountId) {
-        Iterable<OrderResponse> response = orderService.getOrdersByAccountId(accountId);
+        List<OrderResponse> response = orderService.findOrderByCustomerAccountId(accountId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
