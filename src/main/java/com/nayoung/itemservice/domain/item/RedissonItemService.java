@@ -28,7 +28,7 @@ public class RedissonItemService {
                 log.error("Lock 획득 실패");
                 return OrderItemResponse.fromOrderItemRequest(OrderStatus.FAILED, request);
             }
-            orderItemResponse = itemService.decreaseStock(orderId, request);
+            orderItemResponse = itemService.decreaseStockByRedisson(orderId, request);
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {

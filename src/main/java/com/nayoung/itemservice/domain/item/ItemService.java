@@ -10,6 +10,7 @@ public interface ItemService {
     ItemResponse findItemByItemId(ItemInfoByItemIdRequest request);
     List<ItemResponse> findItemsByItemName(ItemInfoByShopLocationRequest request);
     ItemResponse update(ItemInfoUpdateRequest itemInfoUpdateRequest);
-    OrderItemResponse decreaseStock(Long orderId, OrderItemRequest request);
+    OrderItemResponse decreaseStockByRedisson(Long orderId, OrderItemRequest request);
+    OrderItemResponse decreaseStockByPessimisticLock(Long orderId, OrderItemRequest request);
     void undo(Long orderId, List<OrderItemResponse> orderItemResponses);
 }

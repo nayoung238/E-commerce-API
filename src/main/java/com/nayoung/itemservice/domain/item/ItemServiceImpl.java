@@ -104,13 +104,35 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public OrderItemResponse decreaseStock(Long orderId, OrderItemRequest request) {
+    public OrderItemResponse decreaseStockByRedisson(Long orderId, OrderItemRequest request) {
         boolean isSuccess = false;
         try {
             Item item = itemRepository.findById(request.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
             item.decreaseStock(request.getQuantity());
             itemRepository.save(item);
+
+            isSuccess = true;
+            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.SUCCEED, orderId, request);
+            itemUpdateLogRepository.save(itemUpdateLog);
+        } catch (ItemException | StockException e) {
+            isSuccess = false;
+            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.FAILED, orderId, request);
+            itemUpdateLogRepository.save(itemUpdateLog);
+        }
+        if(isSuccess)
+            return OrderItemResponse.fromOrderItemRequest(OrderStatus.SUCCEED, request);
+        return OrderItemResponse.fromOrderItemRequest(OrderStatus.FAILED, request);
+    }
+
+    @Override
+    @Transactional
+    public OrderItemResponse decreaseStockByPessimisticLock(Long orderId, OrderItemRequest request) {
+        boolean isSuccess = false;
+        try {
+            Item item = itemRepository.findByIdWithPessimisticLock(request.getItemId())
+                    .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+            item.decreaseStock(request.getQuantity());
 
             isSuccess = true;
             ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.SUCCEED, orderId, request);
