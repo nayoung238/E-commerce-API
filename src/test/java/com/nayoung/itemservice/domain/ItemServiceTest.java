@@ -5,11 +5,11 @@ import com.nayoung.itemservice.domain.discount.DiscountService;
 import com.nayoung.itemservice.domain.item.Item;
 import com.nayoung.itemservice.domain.item.ItemRepository;
 import com.nayoung.itemservice.domain.item.ItemService;
+import com.nayoung.itemservice.domain.item.log.OrderStatus;
 import com.nayoung.itemservice.domain.shop.Shop;
 import com.nayoung.itemservice.domain.shop.ShopRepository;
 import com.nayoung.itemservice.domain.shop.ShopService;
 import com.nayoung.itemservice.exception.ItemException;
-import com.nayoung.itemservice.exception.StockException;
 import com.nayoung.itemservice.web.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
@@ -93,12 +93,15 @@ public class ItemServiceTest {
     }
 
     @Test
-    @DisplayName("Lost Update가 발생하지 않는지 테스트")
+    @DisplayName("Lost Update 발생하지 않는지 테스트")
     public void stockUpdateTest() throws InterruptedException {
+        // 같은 상품 업데이트
+        List<ItemInfoUpdateRequest> requestList = getItemUpdateInfoList(5);
         ExecutorService executorService = Executors.newFixedThreadPool(2);
-        CountDownLatch countDownLatch = new CountDownLatch(threadCount);
-        List<ItemInfoUpdateRequest> requestList = getIItemUpdateInfoList();
+        CountDownLatch countDownLatch = new CountDownLatch(requestList.size());
 
+        assert (requestList.size() > 0);
+        Item item = itemRepository.findById(requestList.get(0).getItemId()).orElseThrow();
         for(ItemInfoUpdateRequest request : requestList) {
             executorService.submit(() -> {
                 try {
@@ -116,24 +119,39 @@ public class ItemServiceTest {
                 .map(ItemInfoUpdateRequest::getAdditionalQuantity)
                 .reduce(0L, Long::sum);
 
-        Item item = itemRepository.findById(1L).orElseThrow();
-        Assertions.assertEquals(totalQuantity , item.getStock());
+        Item updatedItem = itemRepository.findById(1L).orElseThrow();
+        Assertions.assertEquals(item.getStock() + totalQuantity , updatedItem.getStock());
     }
 
      @Test
-     @DisplayName("StockException 발생 확인 테스트")
-     public void stockExceptionTest() {
-        itemService.update(getItemInfoUpdateRequest());
+     @DisplayName("StockException 처리 확인 테스트")
+     public void stockExceptionTest() throws InterruptedException {
         Item item = itemRepository.findById(1L).orElseThrow();
         Long count = item.getStock();
 
-        ExecutorService executorService = Executors.newFixedThreadPool(3);
-        CountDownLatch countDownLatch = new CountDownLatch(Math.toIntExact(count));
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        CountDownLatch countDownLatch = new CountDownLatch(Math.toIntExact(count + 2));
 
-        for(long i = 0; i < count; i++)
-            itemService.decreaseStock(1L, 1L);
+        OrderItemRequest orderItemRequest = OrderItemRequest.builder()
+                .shopId(item.getShop().getId()).itemId(item.getId())
+                .quantity(1L).build();
 
-        Assertions.assertThrows(StockException.class, () -> itemService.decreaseStock(1L, 1L));
+        List<OrderItemResponse> responses = new ArrayList<>();
+        for (long i = 0; i < count + 2; i++) {
+            executorService.submit(() -> {
+                try {
+                    responses.add(itemService.decreaseStockByPessimisticLock(1L, orderItemRequest));
+                } catch(Exception e) {
+                    log.error(e.getMessage());
+                } finally {
+                    countDownLatch.countDown();
+                }
+            });
+        }
+        countDownLatch.await();
+
+        Assertions.assertTrue(responses.parallelStream()
+                .anyMatch(response -> Objects.equals(OrderStatus.FAILED, response.getOrderStatus())));
      }
 
     private void createItem() {
@@ -187,9 +205,9 @@ public class ItemServiceTest {
         }
     }
 
-    private List<ItemInfoUpdateRequest> getIItemUpdateInfoList() {
+    private List<ItemInfoUpdateRequest> getItemUpdateInfoList(int n) {
         List<ItemInfoUpdateRequest> itemInfoUpdateRequestList = new ArrayList<>();
-        for(int i = 0; i < ItemServiceTest.threadCount; i++)
+        for(int i = 0; i < n; i++)
             itemInfoUpdateRequestList.add(getItemInfoUpdateRequest());
 
         return itemInfoUpdateRequestList;
