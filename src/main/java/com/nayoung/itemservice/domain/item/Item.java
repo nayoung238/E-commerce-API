@@ -10,6 +10,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
 
@@ -56,10 +57,18 @@ public class Item {
     }
 
     public void update(ItemInfoUpdateRequest request) {
-        this.name = request.getName();
-        this.price = request.getPrice();
-        this.stock += request.getAdditionalQuantity();
-        this.discountPercentage = request.getDiscountPercentage();
+        if(StringUtils.hasText(request.getName())) {
+            this.name = request.getName();
+        }
+        if(request.getPrice() != null) {
+            this.price = request.getPrice();
+        }
+        if(request.getAdditionalQuantity() != null) {
+            this.stock += request.getAdditionalQuantity();
+        }
+        if(request.getDiscountPercentage() != null) {
+            this.discountPercentage = request.getDiscountPercentage();
+        }
     }
 
     public void setDiscountPercentage(int discountPercentage) {
