@@ -28,13 +28,4 @@ public class AccountController {
         AccountResponse response = accountService.getAccountById(accountId, cursorOrderId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-
-    @GetMapping("/health-check")
-    public String healthCheck() {
-        return String.format("It's Working in Account Service"
-                + ", port(local.server.port)= " + env.getProperty("server.port")
-                + ", account id=" + env.getProperty("account.id")
-                + ", account password=" + env.getProperty("account.password"));
-    }
-
 }
