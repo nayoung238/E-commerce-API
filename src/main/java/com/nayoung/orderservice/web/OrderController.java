@@ -13,13 +13,13 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/")
+@RequestMapping("/orders")
 public class OrderController {
 
     private final OrderService orderService;
     private final KafkaProducer kafkaProducer;
 
-    @PostMapping("{accountId}/orders")
+    @PostMapping("/{accountId}")
     public ResponseEntity<?> create(@PathVariable Long accountId, @RequestBody OrderRequest orderRequest) {
         orderRequest.setCustomerAccountId(accountId);
         OrderResponse response = orderService.create(orderRequest);
@@ -30,9 +30,9 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("{accountId}/orders")
-    public ResponseEntity<?> getOrders(@PathVariable Long accountId) {
-        List<OrderResponse> response = orderService.findOrderByCustomerAccountId(accountId);
+    @GetMapping(value = {"/{customerAccountId}/{lastOrderId}", "/{customerAccountId}"})
+    public ResponseEntity<?> getOrders(@PathVariable Long customerAccountId, @PathVariable(required = false) Long lastOrderId) {
+        List<OrderResponse> response = orderService.findOrderByCustomerAccountIdAndOrderId(customerAccountId, lastOrderId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

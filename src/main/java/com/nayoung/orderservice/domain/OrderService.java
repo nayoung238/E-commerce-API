@@ -10,5 +10,5 @@ public interface OrderService {
     OrderResponse create(OrderRequest orderRequest);
     OrderResponse findOrderByOrderId(Long orderId);
     void updateOrderStatus(OrderStatus orderStatus, Long orderId);
-    List<OrderResponse> findOrderByCustomerAccountId(Long customerAccountId);
+    List<OrderResponse> findOrderByCustomerAccountIdAndOrderId(Long customerAccountId, Long cursorOrderId);
 }

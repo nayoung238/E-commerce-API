@@ -5,9 +5,11 @@ import com.nayoung.orderservice.exception.OrderException;
 import com.nayoung.orderservice.web.dto.OrderRequest;
 import com.nayoung.orderservice.web.dto.OrderResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,12 +48,17 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public List<OrderResponse> findOrderByCustomerAccountId(Long customerAccountId) {
-        List<Order> orders = orderRepository.findAllByCustomerAccountId(customerAccountId);
+    public List<OrderResponse> findOrderByCustomerAccountIdAndOrderId(Long customerAccountId, Long cursorOrderId) {
+        PageRequest pageRequest = PageRequest.of(0, 5);
+        List<Order> orders = new ArrayList<>();
+        if(cursorOrderId != null)
+            orders = orderRepository.findByCustomerAccountIdAndIdLessThanOrderByIdDesc(customerAccountId, cursorOrderId, pageRequest);
+        else
+            orders = orderRepository.findByCustomerAccountIdOrderByIdDesc(customerAccountId, pageRequest);
+
         return orders.stream()
                 .sorted(Comparator.comparing(Order::getId).reversed())
                 .map(OrderResponse::fromOrderEntity)
-                .limit(5)
                 .collect(Collectors.toList());
     }
 }
