@@ -1,5 +1,5 @@
 package com.nayoung.accountservice.client;
 
 public enum OrderStatus {
-    ACCEPT, SUCCESS, FAILED
+    ACCEPTED, SUCCEED, FAILED, WAITING
 }
