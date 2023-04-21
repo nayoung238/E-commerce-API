@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/")
+@RequestMapping("/account")
 public class AccountController {
 
     private final AccountService accountService;
@@ -23,9 +23,9 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/account/{accountId}")
-    public ResponseEntity<?> getAccountById(@PathVariable Long accountId) {
-        AccountResponse response = accountService.getAccountById(accountId);
+    @GetMapping(value = {"/{accountId}/{cursorOrderId}","/{accountId}" })
+    public ResponseEntity<?> getAccountById(@PathVariable Long accountId, @PathVariable(required = false) Long cursorOrderId) {
+        AccountResponse response = accountService.getAccountById(accountId, cursorOrderId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

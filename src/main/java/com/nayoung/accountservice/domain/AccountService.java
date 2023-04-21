@@ -6,5 +6,5 @@ import com.nayoung.accountservice.web.dto.SignUpRequest;
 public interface AccountService {
 
     AccountResponse createAccount(SignUpRequest signUpRequest);
-    AccountResponse getAccountById(Long id);
+    AccountResponse getAccountById(Long id, Long cursorOrderId);
 }

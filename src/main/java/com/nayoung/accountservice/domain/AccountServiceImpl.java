@@ -30,12 +30,12 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountResponse getAccountById(Long id) {
+    public AccountResponse getAccountById(Long id, Long cursorOrderId) {
         Account account = accountRepository.findById(id).orElseThrow();
         AccountResponse response = AccountResponse.fromAccountEntity(account);
 
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
-        List<OrderResponse> orders = circuitBreaker.run(() -> orderServiceClient.getOrders(id),
+        List<OrderResponse> orders = circuitBreaker.run(() -> orderServiceClient.getOrders(id, cursorOrderId),
                                                         throwable -> new ArrayList<>());
 
         response.setOrders(orders);
