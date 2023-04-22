@@ -1,6 +1,7 @@
 ## MSA with Spring Cloud: Item-Service
 
 ![](/_img/architecture_230408.png)
+![](/_img/dbdiagram_230422.png)
 
 - [Kafka Consumer](#kafka-consumer) 설정
 - 분산 추적: [Zipkin](#zipkin)
