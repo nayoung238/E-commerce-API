@@ -29,8 +29,8 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
-    public OrderResponse findOrderByOrderId(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+    public OrderResponse findOrderByOrderId(Order.OrderPK id) {
+        Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
         return OrderResponse.fromOrderEntity(order);
@@ -38,8 +38,8 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     @Transactional
-    public void updateOrderStatus(OrderStatus orderStatus, Long orderId) {
-        Order order = orderRepository.findById(orderId)
+    public void updateOrderStatus(OrderStatus orderStatus, Order.OrderPK id) {
+        Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
         order.updateOrderStatus(orderStatus);

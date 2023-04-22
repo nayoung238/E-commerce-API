@@ -3,6 +3,7 @@ package com.nayoung.orderservice.messagequeue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nayoung.orderservice.domain.Order;
 import com.nayoung.orderservice.domain.OrderService;
 import com.nayoung.orderservice.domain.OrderStatus;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,13 @@ public class KafkaConsumer {
         try {
             Map<Object, Object> map = mapper.readValue(kafkaMessage, new TypeReference<Map<Object, Object>>() {});
             Long orderId = Long.parseLong(String.valueOf(map.get("orderId")));
+            Long customerAccountId = Long.parseLong(String.valueOf(map.get("customerAccountId")));
+
             boolean isAvailableStockUpdate = Boolean.parseBoolean(String.valueOf(map.get("isAvailableToOrder")));
             if(isAvailableStockUpdate)
-                orderService.updateOrderStatus(OrderStatus.SUCCEED, orderId);
+                orderService.updateOrderStatus(OrderStatus.SUCCEED, new Order.OrderPK(customerAccountId, orderId));
             else
-                orderService.updateOrderStatus(OrderStatus.FAILED, orderId);
+                orderService.updateOrderStatus(OrderStatus.FAILED, new Order.OrderPK(customerAccountId, orderId));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

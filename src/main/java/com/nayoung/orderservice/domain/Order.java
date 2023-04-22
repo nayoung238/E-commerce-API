@@ -56,6 +56,7 @@ public class Order {
     }
 
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class OrderPK implements Serializable {
         private Long customerAccountId;
         private Long id;

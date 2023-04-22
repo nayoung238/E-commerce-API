@@ -8,7 +8,7 @@ import java.util.List;
 public interface OrderService {
 
     OrderResponse create(OrderRequest orderRequest);
-    OrderResponse findOrderByOrderId(Long orderId);
-    void updateOrderStatus(OrderStatus orderStatus, Long orderId);
+    OrderResponse findOrderByOrderId(Order.OrderPK id);
+    void updateOrderStatus(OrderStatus orderStatus, Order.OrderPK id);
     List<OrderResponse> findOrderByCustomerAccountIdAndOrderId(Long customerAccountId, Long cursorOrderId);
 }
