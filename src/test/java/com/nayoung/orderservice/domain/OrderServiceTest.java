@@ -52,7 +52,7 @@ public class OrderServiceTest {
 
     @Test
     void findOrderTest() {
-        OrderResponse response = orderService.findOrderByOrderId(1L);
+        OrderResponse response = orderService.findOrderByOrderId(new Order.OrderPK(CUSTOMER_ACCOUNT_ID, 1L));
         Assertions.assertEquals(numberOfOrderItems, response.getOrderItemResponses().size());
         Assertions.assertEquals(OrderStatus.ACCEPTED, response.getOrderStatus());
         assert(response.getOrderItemResponses().size() != 0);
