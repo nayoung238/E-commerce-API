@@ -37,8 +37,6 @@ public class OrderItemServiceTest {
 
     private final Long ORDER_ID = 3L;
     private final Long CUSTOMER_ACCOUNT_ID = 2L;
-
-    private final String KYEONGGI = "kyeonggi";
     private final String SUWON = "suwon";
 
     @BeforeEach
@@ -178,15 +176,15 @@ public class OrderItemServiceTest {
     }
 
     private void createShops() {
-        ShopCreationRequest request = ShopCreationRequest.builder()
-                .province(KYEONGGI).city(SUWON)
+        ShopDto request = ShopDto.builder()
+                .city(SUWON)
                 .name(SUWON + 1).build();
 
         shopService.create(request);
     }
 
     private void createItems() {
-        List<Shop> suwonShops = shopService.findShops(KYEONGGI, SUWON);
+        List<Shop> suwonShops = shopService.findAllShopByCity(SUWON);
         assert(suwonShops.size() == 1);
 
         ItemCreationRequest request1 = ItemCreationRequest.builder()

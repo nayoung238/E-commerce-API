@@ -8,14 +8,12 @@ public class ItemInfoByShopLocationRequest {
 
     private String itemName;
     private String customerRating;
-    private String province;
     private String city;
 
     @Builder
-    public ItemInfoByShopLocationRequest(String itemName, String customerRating, String province, String city) {
+    public ItemInfoByShopLocationRequest(String itemName, String customerRating, String city) {
         this.itemName = itemName;
         this.customerRating = customerRating;
-        this.province = province;
         this.city = city;
     }
 }

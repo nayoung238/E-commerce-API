@@ -85,7 +85,7 @@ public class DiscountTest {
     public void DiscountExceptionTest() {
         ItemInfoByShopLocationRequest request = ItemInfoByShopLocationRequest.builder()
                 .itemName(itemName).customerRating("DIAMOND")
-                .province("none").city("none").build();
+                .city("none").build();
 
         Assertions.assertThrows(DiscountException.class,
                 () -> itemService.findItemsByItemName(request));
@@ -94,8 +94,8 @@ public class DiscountTest {
     private void createItem() {
         createShops();
 
-        List<Shop> seoulShops = shopService.findShops(SEOUL, SEOUL);
-        List<Shop> suwonShops = shopService.findShops(KYEONGGI, SUWON);
+        List<Shop> seoulShops = shopService.findAllShopByCity(SEOUL);
+        List<Shop> suwonShops = shopService.findAllShopByCity(SUWON);
         assert(seoulShops.size() > 0);
         assert(suwonShops.size() > 0);
 
@@ -128,15 +128,15 @@ public class DiscountTest {
 
     private void createShops() {
         for(int i = 0; i < 3; i++) {
-            ShopCreationRequest request = ShopCreationRequest.builder()
-                    .province(SEOUL).city(SEOUL)
+            ShopDto request = ShopDto.builder()
+                    .city(SEOUL)
                     .name(SEOUL + i).build();
             shopService.create(request);
         }
 
         for(int i = 0; i < 4; i++) {
-            ShopCreationRequest request = ShopCreationRequest.builder()
-                    .province(KYEONGGI).city(SUWON)
+            ShopDto request = ShopDto.builder()
+                    .city(SUWON)
                     .name(SUWON + i).build();
             shopService.create(request);
         }

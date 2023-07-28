@@ -1,7 +1,7 @@
 package com.nayoung.itemservice.web;
 
 import com.nayoung.itemservice.domain.shop.ShopService;
-import com.nayoung.itemservice.web.dto.ShopCreationRequest;
+import com.nayoung.itemservice.web.dto.ShopDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +18,7 @@ public class ShopController {
     private final ShopService shopService;
 
     @PostMapping("/shops/create")
-    public ResponseEntity<?> create(@RequestBody ShopCreationRequest request) {
+    public ResponseEntity<?> create(@RequestBody ShopDto request) {
         shopService.create(request);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }

@@ -45,7 +45,7 @@ public class ItemService {
 
     public List<ItemResponse> findItemsByItemName(ItemInfoByShopLocationRequest request) {
         DiscountCode customerDiscountCode = DiscountCode.getDiscountCode(request.getCustomerRating());
-        List<Shop> shops = shopService.findShops(request.getProvince(), request.getCity());
+        List<Shop> shops = shopService.findAllShopByCity(request.getCity());
 
         if (shops.isEmpty()) // 원하는 지역에 상점이 존재하지 않거나, 원하는 상점이 없는 경우
             return getItemsByNameAsync(request.getItemName(), customerDiscountCode);

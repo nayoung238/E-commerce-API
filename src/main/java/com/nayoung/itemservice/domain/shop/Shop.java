@@ -1,12 +1,13 @@
 package com.nayoung.itemservice.domain.shop;
 
-import com.nayoung.itemservice.domain.shop.location.Location;
+import com.nayoung.itemservice.domain.shop.location.CityCode;
+import com.nayoung.itemservice.web.dto.ShopDto;
 import lombok.*;
 
 import javax.persistence.*;
 
 @Entity
-@Getter
+@Getter @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Shop {
@@ -15,22 +16,16 @@ public class Shop {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Embedded
-    private Location location;
+    @Enumerated(EnumType.STRING)
+    private CityCode cityCode;
 
     @Column(unique = true)
     private String name;
 
-    @Builder
-    private Shop(Location location, String name) {
-        this.location = location;
-        this.name = name;
-    }
-
-    public static Shop fromLocationAndName(Location location, String name) {
+    public static Shop fromShopDto(ShopDto shopDto) {
         return Shop.builder()
-                .location(location)
-                .name(name)
+                .cityCode(CityCode.getCityCode(shopDto.getCity()))
+                .name(shopDto.getName())
                 .build();
     }
 }

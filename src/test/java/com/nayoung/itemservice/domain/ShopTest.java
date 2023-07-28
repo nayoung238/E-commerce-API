@@ -4,10 +4,9 @@ import com.nayoung.itemservice.domain.shop.Shop;
 import com.nayoung.itemservice.domain.shop.ShopRepository;
 import com.nayoung.itemservice.domain.shop.ShopService;
 import com.nayoung.itemservice.domain.shop.location.CityCode;
-import com.nayoung.itemservice.domain.shop.location.ProvinceCode;
 import com.nayoung.itemservice.exception.LocationException;
 import com.nayoung.itemservice.exception.ShopException;
-import com.nayoung.itemservice.web.dto.ShopCreationRequest;
+import com.nayoung.itemservice.web.dto.ShopDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -26,9 +25,7 @@ public class ShopTest {
     private ShopRepository shopRepository;
 
     private final String SEOUL = "seoul";
-    private final String KYEONGGI = "kyeonggi";
     private final String SUWON = "suwon";
-    private final String NONE = "none";
     private final String USA = "USA";
 
     @AfterEach
@@ -37,46 +34,36 @@ public class ShopTest {
     }
 
     @Test
-    void createShopTest() {
-        // SEOUL
-        ShopCreationRequest request = ShopCreationRequest.builder().province(SEOUL).city(SEOUL).build();
-        shopService.create(request);
-        List<Shop> shops = shopRepository.findAllByLocationProvinceAndLocationCity(ProvinceCode.SEOUL, CityCode.SEOUL);
-        Assertions.assertTrue(shops.size() > 0);
+    public void 상점_생성 () {
+        // 지원하는 지역
+        ShopDto request1 = ShopDto.builder().city(SEOUL).name("songpa-1").build();
+        shopService.create(request1);
+        List<Shop> shops = shopRepository.findAllByCityCode(CityCode.SEOUL);
+        Assertions.assertEquals(1L, shops.size());
 
-        // KYEONGGI - SUWON
-        request = ShopCreationRequest.builder().province(KYEONGGI).city(SUWON).build();
-        for(int i = 0; i < 4; i++) shopService.create(request);
-        shops = shopRepository.findAllByLocationProvinceAndLocationCity(ProvinceCode.KYEONGGI, CityCode.SUWON);
-        Assertions.assertEquals(4, shops.size());
-
-        // USA
-        request = ShopCreationRequest.builder().province(USA).city(USA).build();
-        ShopCreationRequest finalRequest = request;
-        Assertions.assertThrows(LocationException.class, () -> shopService.create(finalRequest));
+        // 지원하지 않는 지역
+        ShopDto request2 = ShopDto.builder().city(USA).name("songpa-1").build();
+        Assertions.assertThrows(LocationException.class, () -> shopService.create(request2));
     }
 
     @Test
-    void findShopsTest() {
-        List<Shop> shops = shopService.findShops(SEOUL, SEOUL);
-        List<Shop> shopsByRepo = shopRepository.findAllByLocationProvinceAndLocationCity(ProvinceCode.SEOUL, CityCode.SEOUL);
+    public void 지역기준으로_상점_찾기 () {
+        List<Shop> shops = shopService.findAllShopByCity(SEOUL);
+        List<Shop> shopsByRepo = shopRepository.findAllByCityCode(CityCode.SEOUL);
         Assertions.assertEquals(shopsByRepo.size(), shops.size());
 
-        shops = shopService.findShops(KYEONGGI, SUWON);
-        shopsByRepo = shopRepository.findAllByLocationProvinceAndLocationCity(ProvinceCode.KYEONGGI, CityCode.SUWON);
+        shops = shopService.findAllShopByCity(SUWON);
+        shopsByRepo = shopRepository.findAllByCityCode(CityCode.SUWON);
         Assertions.assertEquals(shopsByRepo.size(), shops.size());
-
-        shops = shopService.findShops(NONE, NONE);
-        Assertions.assertEquals(shopRepository.findAll().size(), shops.size());
     }
 
     @Test
-    @DisplayName("상점 이름 중복 검사")
-    void duplicationTest() {
-        ShopCreationRequest request = ShopCreationRequest.builder()
-                .province(SEOUL).city(SEOUL).name("songpa-gu1").build();
-        shopService.create(request);
+    void 상점이름_중복검사 () {
+        ShopDto request = ShopDto.builder()
+                .city(SEOUL).name("songpa-1").build();
 
+        shopService.create(request);
         Assertions.assertThrows(ShopException.class, () -> shopService.create(request));
+        Assertions.assertEquals(1L, shopRepository.countByName("songpa-1"));
     }
 }
