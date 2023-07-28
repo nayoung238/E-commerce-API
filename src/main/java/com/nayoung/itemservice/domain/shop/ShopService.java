@@ -1,12 +1,11 @@
 package com.nayoung.itemservice.domain.shop;
 
 import com.nayoung.itemservice.domain.shop.location.CityCode;
-import com.nayoung.itemservice.domain.shop.location.Location;
-import com.nayoung.itemservice.domain.shop.location.ProvinceCode;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ShopException;
-import com.nayoung.itemservice.web.dto.ShopCreationRequest;
+import com.nayoung.itemservice.web.dto.ShopDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,17 +16,16 @@ public class ShopService {
 
     private final ShopRepository shopRepository;
 
-    public void create(ShopCreationRequest request) {
-        Location location = new Location(request.getProvince(), request.getCity());
-        if(isExistShopName(request.getName())) {
-            throw new ShopException(ExceptionCode.ALREADY_EXIST_SHOP_NAME);
+    public ShopDto create(ShopDto shopDto) {
+        try {
+            Shop shop = Shop.fromShopDto(shopDto);
+            shopRepository.save(shop);
+        } catch (DataIntegrityViolationException e) {
+            throw new ShopException(ExceptionCode.DUPLICATE_NAME);
         }
-        Shop shop = Shop.fromLocationAndName(location, request.getName());
-        shopRepository.save(shop);
-    }
-
-    private boolean isExistShopName(String name) {
-        return shopRepository.findByName(name).isPresent();
+        Shop savedShop = shopRepository.findByCityCodeAndName(CityCode.getCityCode(shopDto.getCity()), shopDto.getName())
+                .orElseThrow(() -> new ShopException(ExceptionCode.NOT_FOUND_SHOP));
+        return ShopDto.fromShop(savedShop);
     }
 
     public Shop findShopById(Long shopId) {
@@ -35,11 +33,7 @@ public class ShopService {
                 .orElseThrow(() -> new ShopException(ExceptionCode.NOT_FOUND_SHOP));
     }
 
-    public List<Shop> findShops(String province, String city) {
-        ProvinceCode provinceCode = ProvinceCode.getProvinceCode(province);
-        CityCode cityCode = CityCode.getCityCode(city);
-
-        if(provinceCode == ProvinceCode.NONE && cityCode == CityCode.NONE) return shopRepository.findAll();
-        return shopRepository.findAllByLocationProvinceAndLocationCity(provinceCode, cityCode);
+    public List<Shop> findAllShopByCity(String city) {
+        return shopRepository.findAllByCityCode(CityCode.getCityCode(city));
     }
 }
