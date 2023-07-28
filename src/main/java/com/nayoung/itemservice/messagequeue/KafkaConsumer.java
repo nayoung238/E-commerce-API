@@ -24,21 +24,28 @@ public class KafkaConsumer {
 
     @KafkaListener(topics = "update-stock-topic")
     public void updateStock(String kafkaMessage)  {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            Map<Object, Object> map = mapper.readValue(kafkaMessage, new TypeReference<Map<Object, Object>>() {
-            });
-            Object[] orderItems = mapper.convertValue(map.get("orderItems"), Object[].class);
-
-            List<OrderItemRequest> orderItemRequests = new ArrayList<>();
-            for (Object orderItem : orderItems)
-                orderItemRequests.add(OrderItemRequest.fromKafkaMessage(orderItem));
-
-            ItemStockUpdateRequest request = ItemStockUpdateRequest.fromKafkaMessage(map, orderItemRequests);
+        ItemStockUpdateRequest request = getItemStockUpdateRequest(kafkaMessage);
+        if(request != null) {
             ItemStockUpdateResponse response = orderItemService.updateItemsStock(request);
             kafkaProducer.send("update-order-status-topic", response);
+        }
+    }
+
+    private ItemStockUpdateRequest getItemStockUpdateRequest(String message) {
+        List<OrderItemRequest> orderItemRequests = new ArrayList<>();
+        Map<Object, Object> map;
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            map = mapper.readValue(message, new TypeReference<Map<Object, Object>>() {});
+            Object[] orderItems = mapper.convertValue(map.get("orderItems"), Object[].class);
+
+            for (Object orderItem : orderItems)
+                orderItemRequests.add(OrderItemRequest.fromKafkaMessage(orderItem));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
+            return null;
         }
+        return ItemStockUpdateRequest.fromKafkaMessage(map, orderItemRequests);
     }
 }
