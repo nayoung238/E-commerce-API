@@ -13,7 +13,7 @@ public class ShopDto {
     private Long id;
 
     @NotBlank
-    private String city;
+    private String location;
 
     @NotBlank
     private String name;
@@ -21,7 +21,7 @@ public class ShopDto {
     public static ShopDto fromShop(Shop shop) {
         return ShopDto.builder()
                 .id(shop.getId())
-                .city(shop.getCityCode().toString())
+                .location(shop.getLocationCode().toString())
                 .name(shop.getName())
                 .build();
     }

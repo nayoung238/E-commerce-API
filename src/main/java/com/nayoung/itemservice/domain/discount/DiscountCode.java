@@ -4,7 +4,6 @@ import com.nayoung.itemservice.domain.item.Item;
 import com.nayoung.itemservice.exception.DiscountException;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.web.dto.ItemDto;
-import com.nayoung.itemservice.web.dto.ItemResponse;
 
 import java.util.Objects;
 
@@ -26,20 +25,19 @@ public enum DiscountCode {
         throw new DiscountException(ExceptionCode.NO_MATCHING_DISCOUNT_CODE);
     }
 
-    public static ItemResponse applyDiscountByItemEntity(Item item, DiscountCode customerDiscountCode) {
-        ItemResponse response = ItemResponse.fromItemEntity(item);
-        response.setDiscountedPrice(getDiscountPrice(response.getPrice(), item.getDiscountPercentage(), customerDiscountCode));
+    public static ItemDto applyDiscountByItem(Item item, DiscountCode customerDiscountCode) {
+        ItemDto response = ItemDto.fromItem(item);
+        response.setPrice(getDiscountedPrice(response.getPrice(), item.getDiscountPercentage(), customerDiscountCode));
         return response;
     }
 
-    public static ItemResponse applyDiscountByItemDto(ItemDto itemDto, DiscountCode customerDiscountCode) {
-        ItemResponse response = ItemResponse.fromItemDto(itemDto);
-        if(response.isExist())
-            response.setDiscountedPrice(getDiscountPrice(response.getPrice(), itemDto.getDiscountPercentage(), customerDiscountCode));
-        return response;
+    public static ItemDto applyDiscountByItemDto(ItemDto itemDto, DiscountCode customerDiscountCode) {
+        Long discountedPrice = getDiscountedPrice(itemDto.getPrice(), itemDto.getDiscountPercentage(), customerDiscountCode);
+        itemDto.setDiscountedPrice(discountedPrice);
+        return itemDto;
     }
 
-    private static Long getDiscountPrice(long price, int discountPercentage, DiscountCode customerDiscountCode) {
+    private static Long getDiscountedPrice(long price, int discountPercentage, DiscountCode customerDiscountCode) {
         if(customerDiscountCode.percentage <= discountPercentage) {
             return price * (100 - discountPercentage) / 100;
         }

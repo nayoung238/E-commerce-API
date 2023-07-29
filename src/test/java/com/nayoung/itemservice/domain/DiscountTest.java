@@ -37,7 +37,6 @@ public class DiscountTest {
     private final Integer testItemDiscountPercentage = 7;
 
     private final String SEOUL = "seoul";
-    private final String KYEONGGI = "kyeonggi";
     private final String SUWON = "suwon";
 
     @BeforeEach
@@ -63,7 +62,7 @@ public class DiscountTest {
          */
         ItemInfoByItemIdRequest request1 = ItemInfoByItemIdRequest.builder()
                 .itemId(2L).customerRating("GOLD").build();
-        ItemResponse response = itemService.findItemByItemId(request1);
+        ItemDto response = itemService.findItemByItemId(request1.getItemId(), request1.getCustomerRating());
 
         long expectedPrice =  item.get().getPrice() * (100 - DiscountCode.GOLD.percentage) / 100;
         Assertions.assertEquals(expectedPrice, response.getDiscountedPrice());
@@ -74,7 +73,7 @@ public class DiscountTest {
          */
         ItemInfoByItemIdRequest request2 = ItemInfoByItemIdRequest.builder()
                 .itemId(2L).customerRating("UNQUALIFIED").build();
-        response = itemService.findItemByItemId(request2);
+        response = itemService.findItemByItemId(request2.getItemId(), request2.getCustomerRating());
 
         expectedPrice = item.get().getPrice() * (100 - item.get().getDiscountPercentage()) / 100;
         Assertions.assertEquals(expectedPrice, response.getDiscountedPrice());
@@ -83,23 +82,19 @@ public class DiscountTest {
     @Test
     @DisplayName("매칭되는 할인코드 없음")
     public void DiscountExceptionTest() {
-        ItemInfoByShopLocationRequest request = ItemInfoByShopLocationRequest.builder()
-                .itemName(itemName).customerRating("DIAMOND")
-                .city("none").build();
-
         Assertions.assertThrows(DiscountException.class,
-                () -> itemService.findItemsByItemName(request));
+                () -> itemService.findItems(itemName, "none", "DIAMOND"));
     }
 
     private void createItem() {
         createShops();
 
-        List<Shop> seoulShops = shopService.findAllShopByCity(SEOUL);
-        List<Shop> suwonShops = shopService.findAllShopByCity(SUWON);
+        List<Shop> seoulShops = shopService.findAllShopByLocation(SEOUL);
+        List<Shop> suwonShops = shopService.findAllShopByLocation(SUWON);
         assert(seoulShops.size() > 0);
         assert(suwonShops.size() > 0);
 
-        ItemCreationRequest request = ItemCreationRequest.builder()
+        ItemDto request = ItemDto.builder()
                 .name(itemName).price(itemPrice).stock(100L)
                 .build();
 
@@ -107,9 +102,9 @@ public class DiscountTest {
             Long randomId = seoulShops.get((int)(Math.random() * (seoulShops.size()))).getId();
             request.setShopId(randomId);
             try {
-                ItemResponse response = itemService.createItem(request);
+                ItemDto response = itemService.create(request);
                 DiscountCreationRequest discountCreationRequest = DiscountCreationRequest.builder()
-                        .itemId(response.getItemId()).discountPercentage(testItemDiscountPercentage).build();
+                        .itemId(response.getId()).discountPercentage(testItemDiscountPercentage).build();
                 discountService.applyDiscount(discountCreationRequest);
             } catch(ItemException ignored) {}
         }
@@ -118,9 +113,9 @@ public class DiscountTest {
             Long randomId = suwonShops.get((int)(Math.random() * (suwonShops.size()))).getId();
             request.setShopId(randomId);
             try {
-                ItemResponse response = itemService.createItem(request);
+                ItemDto response = itemService.create(request);
                 DiscountCreationRequest discountCreationRequest = DiscountCreationRequest.builder()
-                        .itemId(response.getItemId()).discountPercentage(testItemDiscountPercentage).build();
+                        .itemId(response.getId()).discountPercentage(testItemDiscountPercentage).build();
                 discountService.applyDiscount(discountCreationRequest);
             } catch(ItemException ignored) {}
         }
@@ -129,14 +124,14 @@ public class DiscountTest {
     private void createShops() {
         for(int i = 0; i < 3; i++) {
             ShopDto request = ShopDto.builder()
-                    .city(SEOUL)
+                    .location(SEOUL)
                     .name(SEOUL + i).build();
             shopService.create(request);
         }
 
         for(int i = 0; i < 4; i++) {
             ShopDto request = ShopDto.builder()
-                    .city(SUWON)
+                    .location(SUWON)
                     .name(SUWON + i).build();
             shopService.create(request);
         }

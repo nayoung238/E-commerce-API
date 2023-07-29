@@ -1,6 +1,6 @@
 package com.nayoung.itemservice.domain.shop;
 
-import com.nayoung.itemservice.domain.shop.location.CityCode;
+import com.nayoung.itemservice.domain.shop.location.LocationCode;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ShopException;
 import com.nayoung.itemservice.web.dto.ShopDto;
@@ -23,7 +23,7 @@ public class ShopService {
         } catch (DataIntegrityViolationException e) {
             throw new ShopException(ExceptionCode.DUPLICATE_NAME);
         }
-        Shop savedShop = shopRepository.findByCityCodeAndName(CityCode.getCityCode(shopDto.getCity()), shopDto.getName())
+        Shop savedShop = shopRepository.findByLocationCodeAndName(LocationCode.getLocationCode(shopDto.getLocation()), shopDto.getName())
                 .orElseThrow(() -> new ShopException(ExceptionCode.NOT_FOUND_SHOP));
         return ShopDto.fromShop(savedShop);
     }
@@ -33,7 +33,7 @@ public class ShopService {
                 .orElseThrow(() -> new ShopException(ExceptionCode.NOT_FOUND_SHOP));
     }
 
-    public List<Shop> findAllShopByCity(String city) {
-        return shopRepository.findAllByCityCode(CityCode.getCityCode(city));
+    public List<Shop> findAllShopByLocation(String location) {
+    return shopRepository.findAllByLocationCode(LocationCode.getLocationCode(location));
     }
 }

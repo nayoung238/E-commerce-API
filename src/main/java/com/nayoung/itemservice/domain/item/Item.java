@@ -1,20 +1,16 @@
 package com.nayoung.itemservice.domain.item;
 
-import com.nayoung.itemservice.domain.discount.DiscountCode;
 import com.nayoung.itemservice.domain.shop.Shop;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.StockException;
-import com.nayoung.itemservice.web.dto.ItemCreationRequest;
+import com.nayoung.itemservice.web.dto.ItemDto;
 import com.nayoung.itemservice.web.dto.ItemInfoUpdateRequest;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
 
-@Entity
+@Entity @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -33,16 +29,14 @@ public class Item {
     private Integer discountPercentage;
     private Long stock;
 
-    private Item (ItemCreationRequest itemCreationRequest, Shop shop) {
-        this.shop = shop;
-        this.name = itemCreationRequest.getName();
-        this.price = itemCreationRequest.getPrice();
-        this.stock = itemCreationRequest.getStock();
-        this.discountPercentage = DiscountCode.NONE.percentage;
-    }
-
-    public static Item fromItemCreationRequestAndShopEntity(ItemCreationRequest itemCreationRequest, Shop shop) {
-        return new Item(itemCreationRequest, shop);
+    public static Item fromItemDtoAndShopEntity(ItemDto itemDto, Shop shop) {
+        return Item.builder()
+                .shop(shop)
+                .name(itemDto.getName())
+                .price(itemDto.getPrice())
+                .discountPercentage((itemDto.getDiscountPercentage() == null) ? 0 : itemDto.getDiscountPercentage())
+                .stock(itemDto.getStock())
+                .build();
     }
 
     public void decreaseStock(Long quantity) {

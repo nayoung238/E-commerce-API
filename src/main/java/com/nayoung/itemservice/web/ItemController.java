@@ -1,10 +1,7 @@
 package com.nayoung.itemservice.web;
 
 import com.nayoung.itemservice.domain.item.ItemService;
-import com.nayoung.itemservice.web.dto.ItemCreationRequest;
-import com.nayoung.itemservice.web.dto.ItemInfoByItemIdRequest;
-import com.nayoung.itemservice.web.dto.ItemInfoByShopLocationRequest;
-import com.nayoung.itemservice.web.dto.ItemResponse;
+import com.nayoung.itemservice.web.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,19 +18,19 @@ public class ItemController {
 
     @GetMapping("/item")
     public ResponseEntity<?> findItemByItemId(@RequestBody ItemInfoByItemIdRequest request) {
-        ItemResponse response = itemService.findItemByItemId(request);
+        ItemDto response = itemService.findItemByItemId(request.getItemId(), request.getCustomerRating());
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/items/")
-    public ResponseEntity<?> findItemByShopLocation(@RequestBody ItemInfoByShopLocationRequest request) {
-        List<ItemResponse> response = itemService.findItemsByItemName(request);
+    public ResponseEntity<?> findItemByShopLocation(@RequestBody ItemListRequestDto request) {
+        List<ItemDto> response = itemService.findItems(request.getItemName(), request.getLocation(), request.getCustomerRating());
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/items/create")
-    public ResponseEntity<?> create(@RequestBody ItemCreationRequest request) {
-        ItemResponse response = itemService.createItem(request);
+    public ResponseEntity<?> create(@RequestBody ItemDto request) {
+        ItemDto response = itemService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

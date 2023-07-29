@@ -177,28 +177,28 @@ public class OrderItemServiceTest {
 
     private void createShops() {
         ShopDto request = ShopDto.builder()
-                .city(SUWON)
+                .location(SUWON)
                 .name(SUWON + 1).build();
 
         shopService.create(request);
     }
 
     private void createItems() {
-        List<Shop> suwonShops = shopService.findAllShopByCity(SUWON);
+        List<Shop> suwonShops = shopService.findAllShopByLocation(SUWON);
         assert(suwonShops.size() == 1);
 
-        ItemCreationRequest request1 = ItemCreationRequest.builder()
+        ItemDto request1 = ItemDto.builder()
                 .name("apple").price(1200L).stock(20L)
                 .build();
 
         request1.setShopId(suwonShops.get(0).getId());
-        itemService.createItem(request1);
+        itemService.create(request1);
 
-        ItemCreationRequest request2 = ItemCreationRequest.builder()
+        ItemDto request2 = ItemDto.builder()
                 .name("kiwi").price(1200L).stock(10L)
                 .build();
 
         request2.setShopId(suwonShops.get(0).getId());
-        itemService.createItem(request2);
+        itemService.create(request2);
     }
 }
