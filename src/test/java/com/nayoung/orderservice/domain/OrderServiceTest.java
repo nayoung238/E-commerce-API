@@ -64,6 +64,48 @@ public class OrderServiceTest {
     }
 
     @Test
+    void 재고_부족한_주문_생성 () {
+        List<OrderItemDto> orderItemDtos = new ArrayList<>();
+        for(long itemId = 0; itemId < numberOfItems; itemId++) {
+            orderItemDtos.add(OrderItemDto.builder()
+                    .itemId(itemId)
+                    .quantity(INITIAL_STOCK + 2).price(1000L)
+                    .shopId(1L).build());
+        }
+
+        OrderDto request = OrderDto.builder()
+                .customerAccountId(CUSTOMER_ACCOUNT_ID).orderItemDtos(orderItemDtos).build();
+        OrderDto response = orderService.create(request);
+
+        Assertions.assertEquals(orderItemDtos.size(), response.getOrderItemDtos().size());
+        Assertions.assertEquals(OrderStatus.FAILED, response.getOrderStatus());
+
+        assert(response.getOrderItemDtos().size() != 0);
+        Assertions.assertTrue(response.getOrderItemDtos().stream()
+                .allMatch(o -> Objects.equals(o.getOrderStatus(), OrderStatus.OUT_OF_STOCK)));
+    }
+
+    @Test
+    void 일부_상품만_재고가_없는_경우 () {
+        List<OrderItemDto> orderItemDtos = new ArrayList<>();
+        for(long itemId = 0; itemId < numberOfItems; itemId++) {
+            orderItemDtos.add(OrderItemDto.builder()
+                    .itemId(itemId)
+                    .quantity(INITIAL_STOCK + ((itemId % 2 == 0) ? 1: 0)).price(1000L)
+                    .shopId(1L).build());
+        }
+
+        OrderDto request = OrderDto.builder()
+                .customerAccountId(CUSTOMER_ACCOUNT_ID).orderItemDtos(orderItemDtos).build();
+        OrderDto response = orderService.create(request);
+
+        Assertions.assertEquals(OrderStatus.FAILED, response.getOrderStatus());
+        assert(response.getOrderItemDtos().size() != 0);
+        Assertions.assertTrue(response.getOrderItemDtos().stream()
+                .allMatch(o -> Objects.equals(o.getOrderStatus(), OrderStatus.OUT_OF_STOCK)));
+    }
+
+    @Test
     void findOrderTest() {
         OrderDto response = orderService.findOrderByOrderId(new Order.OrderPK(CUSTOMER_ACCOUNT_ID, 1L));
         Assertions.assertEquals(numberOfOrderItems, response.getOrderItemDtos().size());
