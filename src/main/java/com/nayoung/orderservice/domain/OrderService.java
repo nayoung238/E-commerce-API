@@ -2,7 +2,9 @@ package com.nayoung.orderservice.domain;
 
 import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
+import com.nayoung.orderservice.messagequeue.KafkaProducer;
 import com.nayoung.orderservice.web.dto.OrderDto;
+import com.nayoung.orderservice.web.dto.OrderItemDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -18,11 +20,37 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final StockRedisRepository stockRedisRepository;
+    private final KafkaProducer kafkaProducer;
 
     public OrderDto create(OrderDto orderDto) {
-        Order order = Order.fromOrderDto(orderDto);
-        Order savedOrder = orderRepository.save(order);
-        return OrderDto.fromOrder(savedOrder);
+        List<OrderItemDto> outOfStockItems = orderDto.getOrderItemDtos().stream()
+                .filter(r -> !isAvailableToOrder(r.getItemId(), r.getQuantity()))
+                .collect(Collectors.toList());
+
+        if(outOfStockItems.isEmpty()) {
+            Order order = Order.fromOrderDto(orderDto);
+            Order savedOrder = orderRepository.save(order);
+
+            for(OrderItem orderItem : savedOrder.getOrderItems()) {
+                OrderItemDto orderItemDto = OrderItemDto.fronmOrderItem(orderItem);
+                kafkaProducer.send("update-stock-topic", orderItemDto);
+            }
+            return OrderDto.fromOrder(savedOrder);
+        }
+        else {
+            return OrderDto.fromFailedOrder(outOfStockItems);
+        }
+    }
+
+    /**
+     * Item-Service: 재고 데이터 write only
+     * Order-Service: 재고 데이터 read only
+     * 사용자가 장바구니 기능에서 주문을 요청하면 재고를 확인하며,
+     * 재고가 없는 주문은 Item-Service로 재고 차감 요청을 보내지 않음
+     */
+    private boolean isAvailableToOrder(Long itemId, Long quantity) {
+        return stockRedisRepository.getItemStock(itemId) >= quantity;
     }
 
     public OrderDto findOrderByOrderId(Order.OrderPK id) {

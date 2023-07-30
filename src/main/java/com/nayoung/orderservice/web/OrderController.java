@@ -1,7 +1,6 @@
 package com.nayoung.orderservice.web;
 
 import com.nayoung.orderservice.domain.OrderService;
-import com.nayoung.orderservice.messagequeue.KafkaProducer;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,12 +15,10 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
-    private final KafkaProducer kafkaProducer;
 
     @PostMapping("/")
     public ResponseEntity<?> create(@RequestBody OrderDto orderDto) {
         OrderDto response = orderService.create(orderDto);
-        kafkaProducer.send("update-stock-topic", response);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
