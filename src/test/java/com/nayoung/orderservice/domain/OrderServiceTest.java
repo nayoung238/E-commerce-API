@@ -1,30 +1,36 @@
 package com.nayoung.orderservice.domain;
 
-import com.nayoung.orderservice.web.dto.OrderItemRequest;
-import com.nayoung.orderservice.web.dto.OrderRequest;
-import com.nayoung.orderservice.web.dto.OrderResponse;
+import com.nayoung.orderservice.web.dto.OrderDto;
+import com.nayoung.orderservice.web.dto.OrderItemDto;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @SpringBootTest
 public class OrderServiceTest {
 
     @Autowired OrderService orderService;
     @Autowired OrderRepository orderRepository;
+    @Autowired StockRedisRepository stockRedisRepository;
 
+    private final long numberOfItems = 3;
     private final int numberOfOrderItems = 3;
     private final long CUSTOMER_ACCOUNT_ID = 2L;
+    private final Long INITIAL_STOCK = 10L;
 
     @BeforeEach
     void beforeEach() {
-        List<OrderItemRequest> orderItemRequests = getOrderItemRequests(numberOfOrderItems);
-        OrderRequest request = OrderRequest.builder()
+        for(long itemId = 0; itemId < numberOfItems; itemId++)
+            stockRedisRepository.initialStockQuantity(itemId, INITIAL_STOCK);
+
+        List<OrderItemDto> orderItemRequests = getOrderItemRequests(numberOfOrderItems);
+        OrderDto request = OrderDto.builder()
                 .customerAccountId(CUSTOMER_ACCOUNT_ID)
-                .orderItems(orderItemRequests)
+                .orderItemDtos(orderItemRequests)
                 .build();
 
         for(int i = 0; i < 4; i++) orderService.create(request);
@@ -36,49 +42,56 @@ public class OrderServiceTest {
     }
 
     @Test
-    void createOrderTest() {
-        List<OrderItemRequest> orderItemRequests = getOrderItemRequests(numberOfOrderItems);
-        OrderRequest request = OrderRequest.builder()
-                .customerAccountId(CUSTOMER_ACCOUNT_ID + 2)
-                .orderItems(orderItemRequests)
-                .build();
+    void 재고_충분한_주문_생성 () {
+        List<OrderItemDto> orderItemDtos = new ArrayList<>();
+        for(long itemId = 0; itemId < numberOfItems; itemId++) {
+            orderItemDtos.add(OrderItemDto.builder()
+                    .itemId(itemId)
+                    .quantity(INITIAL_STOCK - 2).price(1000L)
+                    .shopId(1L).build());
+        }
 
-        OrderResponse response = orderService.create(request);
-        Assertions.assertEquals(orderItemRequests.size(), response.getOrderItemResponses().size());
-        Assertions.assertEquals(OrderStatus.ACCEPTED, response.getOrderStatus());
-        assert(response.getOrderItemResponses().size() != 0);
-        Assertions.assertEquals(OrderStatus.WAITING, response.getOrderItemResponses().get(0).getOrderStatus());
+        OrderDto request = OrderDto.builder()
+                .customerAccountId(CUSTOMER_ACCOUNT_ID).orderItemDtos(orderItemDtos).build();
+        OrderDto response = orderService.create(request);
+
+        Assertions.assertEquals(orderItemDtos.size(), response.getOrderItemDtos().size());
+        Assertions.assertEquals(OrderStatus.WAITING, response.getOrderStatus());
+
+        assert(response.getOrderItemDtos().size() != 0);
+        Assertions.assertTrue(response.getOrderItemDtos().stream()
+                .allMatch(o -> Objects.equals(o.getOrderStatus(), OrderStatus.WAITING)));
     }
 
     @Test
     void findOrderTest() {
-        OrderResponse response = orderService.findOrderByOrderId(new Order.OrderPK(CUSTOMER_ACCOUNT_ID, 1L));
-        Assertions.assertEquals(numberOfOrderItems, response.getOrderItemResponses().size());
-        Assertions.assertEquals(OrderStatus.ACCEPTED, response.getOrderStatus());
-        assert(response.getOrderItemResponses().size() != 0);
-        Assertions.assertEquals(OrderStatus.WAITING, response.getOrderItemResponses().get(0).getOrderStatus());
+        OrderDto response = orderService.findOrderByOrderId(new Order.OrderPK(CUSTOMER_ACCOUNT_ID, 1L));
+        Assertions.assertEquals(numberOfOrderItems, response.getOrderItemDtos().size());
+        Assertions.assertEquals(OrderStatus.WAITING, response.getOrderStatus());
+        assert(response.getOrderItemDtos().size() != 0);
+        Assertions.assertEquals(OrderStatus.WAITING, response.getOrderItemDtos().get(0).getOrderStatus());
     }
 
     @Test
     @DisplayName("cursor Id 존재 유무에 따른 테스트")
     public void cursorBasedOnPaginationTest() {
-        List<OrderResponse> orderResponses1 = orderService.findOrderByCustomerAccountIdAndOrderId(CUSTOMER_ACCOUNT_ID, null);
+        List<OrderDto> orderResponses1 = orderService.findOrderByCustomerAccountIdAndOrderId(CUSTOMER_ACCOUNT_ID, null);
 
         // order entity의 Id는 1부터 차례대로 증가함을 보장
         long count = orderRepository.count();
-        List<OrderResponse> orderResponses2 = orderService.findOrderByCustomerAccountIdAndOrderId(CUSTOMER_ACCOUNT_ID, count + 1);
+        List<OrderDto> orderResponses2 = orderService.findOrderByCustomerAccountIdAndOrderId(CUSTOMER_ACCOUNT_ID, count + 1);
 
         Assertions.assertEquals(orderResponses1.size(), orderResponses2.size());
         assert (orderResponses1.size() > 0);
         Assertions.assertEquals(orderResponses1.get(0).getOrderId(), orderResponses2.get(0).getOrderId());
     }
 
-    private List<OrderItemRequest> getOrderItemRequests(int n) {
-        List<OrderItemRequest> requests = new ArrayList<>();
-        for(int i = 0; i < n; i++) {
-            requests.add(OrderItemRequest.builder()
-                    .shopId((long) (Math.random() * 12))
-                    .itemId((long) (Math.random() * 5)).quantity(34L).price(1200L)
+    private List<OrderItemDto> getOrderItemRequests(int n) {
+        List<OrderItemDto> requests = new ArrayList<>();
+        for(long i = 0; i < n; i++) {
+            requests.add(OrderItemDto.builder()
+                    .shopId(i)
+                    .itemId(i).quantity(INITIAL_STOCK).price(1200L)
                     .build());
         }
         return requests;

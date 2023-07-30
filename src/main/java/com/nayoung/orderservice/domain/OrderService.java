@@ -2,8 +2,7 @@ package com.nayoung.orderservice.domain;
 
 import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
-import com.nayoung.orderservice.web.dto.OrderRequest;
-import com.nayoung.orderservice.web.dto.OrderResponse;
+import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -14,24 +13,23 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 @Service
 @RequiredArgsConstructor
 public class OrderService {
 
     private final OrderRepository orderRepository;
 
-    public OrderResponse create(OrderRequest orderRequest) {
-        Order order = Order.fromOrderRequest(orderRequest);
+    public OrderDto create(OrderDto orderDto) {
+        Order order = Order.fromOrderDto(orderDto);
         Order savedOrder = orderRepository.save(order);
-        return OrderResponse.fromOrderEntity(savedOrder);
+        return OrderDto.fromOrder(savedOrder);
     }
 
-    public OrderResponse findOrderByOrderId(Order.OrderPK id) {
+    public OrderDto findOrderByOrderId(Order.OrderPK id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
-        return OrderResponse.fromOrderEntity(order);
+        return OrderDto.fromOrder(order);
     }
 
     @Transactional
@@ -44,7 +42,7 @@ public class OrderService {
             orderItem.updateOrderStatus(orderStatus);
     }
 
-    public List<OrderResponse> findOrderByCustomerAccountIdAndOrderId(Long customerAccountId, Long cursorOrderId) {
+    public List<OrderDto> findOrderByCustomerAccountIdAndOrderId(Long customerAccountId, Long cursorOrderId) {
         PageRequest pageRequest = PageRequest.of(0, 5);
         List<Order> orders = new ArrayList<>();
         if(cursorOrderId != null)
@@ -54,7 +52,7 @@ public class OrderService {
 
         return orders.stream()
                 .sorted(Comparator.comparing(Order::getId).reversed())
-                .map(OrderResponse::fromOrderEntity)
+                .map(OrderDto::fromOrder)
                 .collect(Collectors.toList());
     }
 }

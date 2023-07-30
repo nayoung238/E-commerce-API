@@ -1,23 +1,21 @@
 package com.nayoung.orderservice.domain;
 
-import com.nayoung.orderservice.web.dto.OrderItemRequest;
-import com.nayoung.orderservice.web.dto.OrderRequest;
+import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Entity @Getter
+@Entity @Getter @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "orders")
-
 @IdClass(Order.OrderPK.class)
 public class Order {
 
@@ -39,20 +37,21 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
-    private LocalDateTime createdAt;
-
     private Order(Long customerAccountId, List<OrderItem> orderItems) {
         for(OrderItem orderItem : orderItems) {
-            this.orderItems.add(orderItem);
+            this.getOrderItems().add(orderItem);
             orderItem.setOrder(this);
         }
-        this.orderStatus = OrderStatus.ACCEPTED;
         this.customerAccountId = customerAccountId;
-        this.createdAt = LocalDateTime.now();
+        this.orderStatus = OrderStatus.WAITING;
     }
 
-    protected static Order fromOrderRequest(OrderRequest request) {
-        return new Order(request.getCustomerAccountId(), getOrderItem(request.getOrderItems()));
+    protected static Order fromOrderDto(OrderDto orderDto) {
+        List<OrderItem> orderItems = orderDto.getOrderItemDtos().stream()
+                .map(OrderItem::fromOrderItemDto)
+                .collect(Collectors.toList());
+
+        return new Order(orderDto.getCustomerAccountId(), orderItems);
     }
 
     @NoArgsConstructor
@@ -64,11 +63,5 @@ public class Order {
 
     public void updateOrderStatus(OrderStatus status) {
         this.orderStatus = status;
-    }
-
-    private static List<OrderItem> getOrderItem(List<OrderItemRequest> requests) {
-        return requests.parallelStream()
-                .map(OrderItem::new)
-                .collect(Collectors.toList());
     }
 }

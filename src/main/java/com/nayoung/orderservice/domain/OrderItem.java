@@ -1,15 +1,12 @@
 package com.nayoung.orderservice.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.nayoung.orderservice.web.dto.OrderItemRequest;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.nayoung.orderservice.web.dto.OrderItemDto;
+import lombok.*;
 
 import javax.persistence.*;
 
-@Entity @Getter
+@Entity @Getter @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderItem {
@@ -32,12 +29,13 @@ public class OrderItem {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    public OrderItem(OrderItemRequest request) {
-        this.itemId = request.getItemId();
-        this.quantity = request.getQuantity();
-        this.price = request.getPrice();
-        this.shopId = request.getShopId();
-        this.orderStatus = OrderStatus.WAITING;
+    public static OrderItem fromOrderItemDto(OrderItemDto orderItemDto) {
+        return OrderItem.builder()
+                .itemId(orderItemDto.getItemId())
+                .quantity(orderItemDto.getQuantity())
+                .price(orderItemDto.getPrice())
+                .shopId(orderItemDto.getShopId())
+                .build();
     }
 
     protected void setOrder(Order order) {
