@@ -147,7 +147,7 @@ public class ItemService {
         return ItemDto.fromItem(item);
     }
 
-    public OrderItemResponse decreaseStockByRedisson(Long orderId, OrderItemRequest request) {
+    public ItemStockToUpdateDto decreaseStockByRedisson(ItemStockToUpdateDto request) {
         boolean isSuccess = false;
         try {
             Item item = itemRepository.findById(request.getItemId())
@@ -156,20 +156,20 @@ public class ItemService {
             itemRepository.save(item);
 
             isSuccess = true;
-            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.SUCCEED, orderId, request);
+            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.SUCCEED, request.getOrderId(), request);
             itemUpdateLogRepository.save(itemUpdateLog);
         } catch (ItemException | StockException e) {
             isSuccess = false;
-            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.FAILED, orderId, request);
+            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.OUT_OF_STOCK, request.getOrderId(), request);
             itemUpdateLogRepository.save(itemUpdateLog);
         }
         if(isSuccess)
-            return OrderItemResponse.fromOrderItemRequest(OrderStatus.SUCCEED, request);
-        return OrderItemResponse.fromOrderItemRequest(OrderStatus.FAILED, request);
+            return ItemStockToUpdateDto.fromOrderItemRequest(OrderStatus.SUCCEED, request);
+        return ItemStockToUpdateDto.fromOrderItemRequest(OrderStatus.OUT_OF_STOCK, request);
     }
 
     @Transactional
-    public OrderItemResponse decreaseStockByPessimisticLock(Long orderId, OrderItemRequest request) {
+    public ItemStockToUpdateDto decreaseStockByPessimisticLock(Long orderId, ItemStockToUpdateDto request) {
         boolean isSuccess = false;
         try {
             Item item = itemRepository.findByIdWithPessimisticLock(request.getItemId())
@@ -185,15 +185,13 @@ public class ItemService {
             itemUpdateLogRepository.save(itemUpdateLog);
         }
         if(isSuccess)
-            return OrderItemResponse.fromOrderItemRequest(OrderStatus.SUCCEED, request);
-        return OrderItemResponse.fromOrderItemRequest(OrderStatus.FAILED, request);
+            return ItemStockToUpdateDto.fromOrderItemRequest(OrderStatus.SUCCEED, request);
+        return ItemStockToUpdateDto.fromOrderItemRequest(OrderStatus.FAILED, request);
     }
 
     @Transactional
-    public void undo(Long orderId, List<OrderItemResponse> orderItemResponses) {
+    public void undo(Long orderId) {
         increaseStockByOrderId(orderId);
-        for(OrderItemResponse orderItemResponse : orderItemResponses)
-            orderItemResponse.setOrderStatus(OrderStatus.FAILED);
     }
 
     public void increaseStockByOrderId(Long orderId) {
@@ -203,6 +201,7 @@ public class ItemService {
                 try {
                     increaseStock(itemUpdateLog.getItemId(), itemUpdateLog.getQuantity());
                     itemUpdateLog.setOrderStatus(OrderStatus.CANCELED);
+                    itemUpdateLog.setQuantity(0L);
                 } catch (ItemException e) {
                     log.error(e.getMessage());
                 }

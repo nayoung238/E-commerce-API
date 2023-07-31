@@ -6,11 +6,12 @@ spring:
     name: item-service
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
     show-sql: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql:3306/item_service?useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://127.0.0.1:3307/item_service
+    #url: jdbc:mysql://mysql:3306/item_service?useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: nayoung1234
   zipkin:

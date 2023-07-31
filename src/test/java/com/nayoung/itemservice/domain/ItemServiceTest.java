@@ -143,11 +143,11 @@ public class ItemServiceTest {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         CountDownLatch countDownLatch = new CountDownLatch(Math.toIntExact(count + 2));
 
-        OrderItemRequest orderItemRequest = OrderItemRequest.builder()
+        ItemStockToUpdateDto orderItemRequest = ItemStockToUpdateDto.builder()
                 .shopId(item.getShop().getId()).itemId(item.getId())
                 .quantity(1L).build();
 
-        List<OrderItemResponse> responses = new ArrayList<>();
+        List<ItemStockToUpdateDto> responses = new ArrayList<>();
         for (long i = 0; i < count + 2; i++) {
             executorService.submit(() -> {
                 try {

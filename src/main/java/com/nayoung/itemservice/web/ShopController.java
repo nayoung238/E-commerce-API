@@ -19,7 +19,7 @@ public class ShopController {
 
     @PostMapping("/shops/create")
     public ResponseEntity<?> create(@RequestBody ShopDto request) {
-        shopService.create(request);
-        return ResponseEntity.status(HttpStatus.OK).body(null);
+        ShopDto response = shopService.create(request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

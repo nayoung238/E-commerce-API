@@ -3,36 +3,34 @@ package com.nayoung.itemservice.messagequeue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nayoung.itemservice.domain.item.OrderItemService;
-import com.nayoung.itemservice.web.dto.ItemStockUpdateRequest;
-import com.nayoung.itemservice.web.dto.ItemStockUpdateResponse;
-import com.nayoung.itemservice.web.dto.OrderItemRequest;
+import com.nayoung.itemservice.domain.item.log.OrderStatus;
+import com.nayoung.itemservice.web.dto.ItemStockToUpdateDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class KafkaConsumer {
 
-    private final OrderItemService orderItemService;
     private final KafkaProducer kafkaProducer;
 
     @KafkaListener(topics = "update-stock-topic")
     public void updateStock(String kafkaMessage)  {
-        ItemStockUpdateRequest request = getItemStockUpdateRequest(kafkaMessage);
+        ItemStockToUpdateDto request = getItemStockUpdateRequest(kafkaMessage);
         if(request != null) {
-            ItemStockUpdateResponse response = orderItemService.updateItemsStock(request);
+            ItemStockToUpdateDto response = orderItemService.updateItemsStock(request);
             kafkaProducer.send("update-order-status-topic", response);
         }
     }
 
-    private ItemStockUpdateRequest getItemStockUpdateRequest(String message) {
-        List<OrderItemRequest> orderItemRequests = new ArrayList<>();
+    private List<ItemStockToUpdateDto> getItemStockUpdateRequest(String message) {
+        List<ItemStockToUpdateDto> itemStockToUpdateDtos = new ArrayList<>();
         Map<Object, Object> map;
         ObjectMapper mapper = new ObjectMapper();
 
@@ -41,11 +39,11 @@ public class KafkaConsumer {
             Object[] orderItems = mapper.convertValue(map.get("orderItems"), Object[].class);
 
             for (Object orderItem : orderItems)
-                orderItemRequests.add(OrderItemRequest.fromKafkaMessage(orderItem));
+                itemStockToUpdateDtos.add(ItemStockToUpdateDto.fromKafkaMessage(orderItem));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return null;
         }
-        return ItemStockUpdateRequest.fromKafkaMessage(map, orderItemRequests);
+        return itemStockToUpdateDtos;
     }
 }

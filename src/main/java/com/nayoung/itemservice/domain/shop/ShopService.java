@@ -17,15 +17,13 @@ public class ShopService {
     private final ShopRepository shopRepository;
 
     public ShopDto create(ShopDto shopDto) {
+        Shop shop = null;
         try {
-            Shop shop = Shop.fromShopDto(shopDto);
-            shopRepository.save(shop);
+            shop = shopRepository.save(Shop.fromShopDto(shopDto));
         } catch (DataIntegrityViolationException e) {
             throw new ShopException(ExceptionCode.DUPLICATE_NAME);
         }
-        Shop savedShop = shopRepository.findByLocationCodeAndName(LocationCode.getLocationCode(shopDto.getLocation()), shopDto.getName())
-                .orElseThrow(() -> new ShopException(ExceptionCode.NOT_FOUND_SHOP));
-        return ShopDto.fromShop(savedShop);
+        return ShopDto.fromShop(shop);
     }
 
     public Shop findShopById(Long shopId) {
