@@ -29,16 +29,15 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final ShopService shopService;
     private final ItemUpdateLogRepository itemUpdateLogRepository;
+    private final ItemRedisRepository itemRedisRepository;
 
     public ItemDto create(ItemDto itemDto) {
         Shop shop = shopService.findShopById(itemDto.getShopId());
         Item item = Item.fromItemDtoAndShopEntity(itemDto, shop);
-        itemRepository.save(item);
+        item = itemRepository.save(item);
 
-        Item savedItem = itemRepository.findByShopAndName(shop, item.getName())
-                .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
-
-        return ItemDto.fromItem(savedItem);
+        itemRedisRepository.initializeItemStock(item.getId(), item.getStock());
+        return ItemDto.fromItem(item);
     }
 
     public ItemDto findItemByItemId(Long itemId, String customerRating) {
@@ -145,6 +144,29 @@ public class ItemService {
         Item item = itemRepository.findByIdWithPessimisticLock(itemInfoUpdateRequest.getItemId()).orElseThrow();
         item.update(itemInfoUpdateRequest);
         return ItemDto.fromItem(item);
+    }
+
+    public ItemStockToUpdateDto decreaseStockByRedis(ItemStockToUpdateDto itemStockToUpdateDto) {
+        Item item = itemRepository.findById(itemStockToUpdateDto.getItemId())
+                .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+
+        Long stock = itemRedisRepository.decrementItemStock(item.getId(), itemStockToUpdateDto.getQuantity());
+        if(stock >= 0) {
+            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.SUCCEED, itemStockToUpdateDto.getOrderId(), itemStockToUpdateDto);
+            itemUpdateLogRepository.save(itemUpdateLog);
+
+            itemStockToUpdateDto.setOrderStatus(OrderStatus.SUCCEED);
+            return itemStockToUpdateDto;
+        }
+        else { // 재고 부족
+            itemRedisRepository.incrementItemStock(item.getId(), itemStockToUpdateDto.getQuantity());
+
+            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.OUT_OF_STOCK, itemStockToUpdateDto.getOrderId(), itemStockToUpdateDto);
+            itemUpdateLogRepository.save(itemUpdateLog);
+
+            itemStockToUpdateDto.setOrderStatus(OrderStatus.OUT_OF_STOCK);
+            return itemStockToUpdateDto;
+        }
     }
 
     public ItemStockToUpdateDto decreaseStockByRedisson(ItemStockToUpdateDto request) {

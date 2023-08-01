@@ -3,6 +3,7 @@ package com.nayoung.itemservice.messagequeue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nayoung.itemservice.domain.item.ItemService;
 import com.nayoung.itemservice.domain.item.log.OrderStatus;
 import com.nayoung.itemservice.web.dto.ItemStockToUpdateDto;
 import lombok.RequiredArgsConstructor;
@@ -19,14 +20,26 @@ import java.util.stream.Collectors;
 public class KafkaConsumer {
 
     private final KafkaProducer kafkaProducer;
+    private final ItemService itemService;
 
     @KafkaListener(topics = "update-stock-topic")
     public void updateStock(String kafkaMessage)  {
-        ItemStockToUpdateDto request = getItemStockUpdateRequest(kafkaMessage);
-        if(request != null) {
-            ItemStockToUpdateDto response = orderItemService.updateItemsStock(request);
-            kafkaProducer.send("update-order-status-topic", response);
+        List<ItemStockToUpdateDto> itemStockToUpdateDtos = getItemStockUpdateRequest(kafkaMessage);
+
+        assert itemStockToUpdateDtos != null;
+        List<ItemStockToUpdateDto> result = itemStockToUpdateDtos.stream()
+                .map(itemService::decreaseStockByRedis)
+                .collect(Collectors.toList());
+
+        boolean isExistOutOfStockItem = result.stream()
+                .anyMatch(r -> Objects.equals(OrderStatus.OUT_OF_STOCK, r.getOrderStatus()));
+
+        if(isExistOutOfStockItem) {
+            itemService.undo(result.get(0).getOrderId());
+            for(ItemStockToUpdateDto itemStockToUpdateDto : result)
+                itemStockToUpdateDto.setOrderStatus(OrderStatus.FAILED);
         }
+        kafkaProducer.send("update-order-status-topic", result);
     }
 
     private List<ItemStockToUpdateDto> getItemStockUpdateRequest(String message) {
