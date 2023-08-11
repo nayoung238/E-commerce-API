@@ -2,7 +2,7 @@ package com.nayoung.orderservice.messagequeue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nayoung.orderservice.web.dto.OrderItemDto;
+import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ public class KafkaProducer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public void send(String kafkaTopic, OrderItemDto orderDto) {
+    public void send(String kafkaTopic, OrderDto orderDto) {
         ObjectMapper mapper = new ObjectMapper();
         String jsonInString = "";
         try {

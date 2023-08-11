@@ -30,13 +30,10 @@ public class OrderService {
 
         if(outOfStockItems.isEmpty()) {
             Order order = Order.fromOrderDto(orderDto);
-            Order savedOrder = orderRepository.save(order);
+            order = orderRepository.save(order);
 
-            for(OrderItem orderItem : savedOrder.getOrderItems()) {
-                OrderItemDto orderItemDto = OrderItemDto.fronmOrderItem(orderItem);
-                kafkaProducer.send("update-stock-topic", orderItemDto);
-            }
-            return OrderDto.fromOrder(savedOrder);
+            kafkaProducer.send("update-stock-topic", OrderDto.fromOrder(order));
+            return OrderDto.fromOrder(order);
         }
         else {
             return OrderDto.fromFailedOrder(outOfStockItems);
