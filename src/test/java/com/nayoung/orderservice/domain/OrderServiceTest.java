@@ -107,7 +107,7 @@ public class OrderServiceTest {
 
     @Test
     void findOrderTest() {
-        OrderDto response = orderService.findOrderByOrderId(new Order.OrderPK(CUSTOMER_ACCOUNT_ID, 1L));
+        OrderDto response = orderService.findOrderByOrderId(1L);
         Assertions.assertEquals(numberOfOrderItems, response.getOrderItemDtos().size());
         Assertions.assertEquals(OrderStatus.WAITING, response.getOrderStatus());
         assert(response.getOrderItemDtos().size() != 0);

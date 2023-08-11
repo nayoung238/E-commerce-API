@@ -31,6 +31,7 @@ public class OrderDto {
             orderItemDto.setOrderStatus(OrderStatus.WAITING);
 
         return OrderDto.builder()
+                .orderId(order.getId())
                 .orderStatus(OrderStatus.WAITING)
                 .orderItemDtos(orderItemDtos)
                 .totalPrice(getTotalPrice(orderItemDtos))

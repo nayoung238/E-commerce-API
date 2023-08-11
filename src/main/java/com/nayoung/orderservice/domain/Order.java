@@ -16,20 +16,14 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "orders")
-@IdClass(Order.OrderPK.class)
 public class Order {
 
-    @Id
-    @Column(name = "customer_account_id")
-    private Long customerAccountId;
-
-    @SequenceGenerator(
-            name = "orders", sequenceName = "order_entity",
-            initialValue = 1, allocationSize = 10
-    )
-    @Id @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "orders")
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
     private Long id;
+
+    @Column(name = "customer_account_id")
+    private Long customerAccountId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<OrderItem> orderItems = new ArrayList<>();
@@ -52,13 +46,6 @@ public class Order {
                 .collect(Collectors.toList());
 
         return new Order(orderDto.getCustomerAccountId(), orderItems);
-    }
-
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class OrderPK implements Serializable {
-        private Long customerAccountId;
-        private Long id;
     }
 
     public void updateOrderStatus(OrderStatus status) {

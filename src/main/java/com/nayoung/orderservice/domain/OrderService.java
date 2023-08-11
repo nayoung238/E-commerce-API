@@ -53,7 +53,7 @@ public class OrderService {
         return stockRedisRepository.getItemStock(itemId) >= quantity;
     }
 
-    public OrderDto findOrderByOrderId(Order.OrderPK id) {
+    public OrderDto findOrderByOrderId(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
@@ -61,7 +61,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void updateOrderStatus(OrderStatus orderStatus, Order.OrderPK id) {
+    public void updateOrderStatus(OrderStatus orderStatus, Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
