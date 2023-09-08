@@ -146,52 +146,29 @@ public class ItemService {
         return ItemDto.fromItem(item);
     }
 
-    public ItemStockToUpdateDto decreaseStockByRedis(ItemStockToUpdateDto itemStockToUpdateDto) {
-        Item item = itemRepository.findById(itemStockToUpdateDto.getItemId())
-                .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+    public ItemStockUpdateDto updateStockByRedisson(ItemStockUpdateDto request) {
+        Item item = itemRepository.findById(request.getItemId())
+                    .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
-        Long stock = itemRedisRepository.decrementItemStock(item.getId(), itemStockToUpdateDto.getQuantity());
-        if(stock >= 0) {
-            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.SUCCEED, itemStockToUpdateDto.getOrderId(), itemStockToUpdateDto);
-            itemUpdateLogRepository.save(itemUpdateLog);
+        OrderStatus orderStatus = null;
+        if(updateStockByRedis(item.getId(), request.getQuantity())) orderStatus = (request.getQuantity() >= 0) ? OrderStatus.SUCCEED : OrderStatus.CANCELED;
+        else orderStatus = OrderStatus.OUT_OF_STOCK;
 
-            itemStockToUpdateDto.setOrderStatus(OrderStatus.SUCCEED);
-            return itemStockToUpdateDto;
-        }
-        else { // 재고 부족
-            itemRedisRepository.incrementItemStock(item.getId(), itemStockToUpdateDto.getQuantity());
-
-            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.OUT_OF_STOCK, itemStockToUpdateDto.getOrderId(), itemStockToUpdateDto);
-            itemUpdateLogRepository.save(itemUpdateLog);
-
-            itemStockToUpdateDto.setOrderStatus(OrderStatus.OUT_OF_STOCK);
-            return itemStockToUpdateDto;
-        }
+        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderStatus, request.getOrderId(), request);
+        itemUpdateLogRepository.save(itemUpdateLog);
+        return ItemStockUpdateDto.fromOrderItemRequest(orderStatus, request);
     }
 
-    public ItemStockToUpdateDto decreaseStockByRedisson(ItemStockToUpdateDto request) {
-        boolean isSuccess = false;
-        try {
-            Item item = itemRepository.findById(request.getItemId())
-                    .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
-            item.decreaseStock(request.getQuantity());
-            itemRepository.save(item);
+    private boolean updateStockByRedis(Long itemId, Long quantity) {
+        Long stock = itemRedisRepository.decrementItemStock(itemId, quantity);
+        if(stock >= 0) return true;
 
-            isSuccess = true;
-            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.SUCCEED, request.getOrderId(), request);
-            itemUpdateLogRepository.save(itemUpdateLog);
-        } catch (ItemException | StockException e) {
-            isSuccess = false;
-            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.OUT_OF_STOCK, request.getOrderId(), request);
-            itemUpdateLogRepository.save(itemUpdateLog);
-        }
-        if(isSuccess)
-            return ItemStockToUpdateDto.fromOrderItemRequest(OrderStatus.SUCCEED, request);
-        return ItemStockToUpdateDto.fromOrderItemRequest(OrderStatus.OUT_OF_STOCK, request);
+        itemRedisRepository.incrementItemStock(itemId, quantity);
+        return false;
     }
 
     @Transactional
-    public ItemStockToUpdateDto decreaseStockByPessimisticLock(Long orderId, ItemStockToUpdateDto request) {
+    public ItemStockUpdateDto decreaseStockByPessimisticLock(Long orderId, ItemStockUpdateDto request) {
         boolean isSuccess = false;
         try {
             Item item = itemRepository.findByIdWithPessimisticLock(request.getItemId())
@@ -207,34 +184,7 @@ public class ItemService {
             itemUpdateLogRepository.save(itemUpdateLog);
         }
         if(isSuccess)
-            return ItemStockToUpdateDto.fromOrderItemRequest(OrderStatus.SUCCEED, request);
-        return ItemStockToUpdateDto.fromOrderItemRequest(OrderStatus.FAILED, request);
-    }
-
-    @Transactional
-    public void undo(Long orderId) {
-        increaseStockByOrderId(orderId);
-    }
-
-    public void increaseStockByOrderId(Long orderId) {
-        List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByOrderId(orderId);
-        for(ItemUpdateLog itemUpdateLog : itemUpdateLogs) {
-            if(itemUpdateLog.getOrderStatus() == OrderStatus.SUCCEED) {
-                try {
-                    increaseStock(itemUpdateLog.getItemId(), itemUpdateLog.getQuantity());
-                    itemUpdateLog.setOrderStatus(OrderStatus.CANCELED);
-                    itemUpdateLog.setQuantity(0L);
-                } catch (ItemException e) {
-                    log.error(e.getMessage());
-                }
-            }
-        }
-    }
-
-    public void increaseStock(Long itemId, Long quantity) {
-        Item item = itemRepository.findByIdWithPessimisticLock(itemId)
-                .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
-
-        item.increaseStock(quantity);
+            return ItemStockUpdateDto.fromOrderItemRequest(OrderStatus.SUCCEED, request);
+        return ItemStockUpdateDto.fromOrderItemRequest(OrderStatus.FAILED, request);
     }
 }

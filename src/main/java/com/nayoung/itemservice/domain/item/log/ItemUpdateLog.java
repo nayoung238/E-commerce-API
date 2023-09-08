@@ -1,6 +1,6 @@
 package com.nayoung.itemservice.domain.item.log;
 
-import com.nayoung.itemservice.web.dto.ItemStockToUpdateDto;
+import com.nayoung.itemservice.web.dto.ItemStockUpdateDto;
 import lombok.*;
 
 import javax.persistence.*;
@@ -31,13 +31,13 @@ public class ItemUpdateLog {
         this.quantity = quantity;
     }
 
-    public static ItemUpdateLog from(OrderStatus orderStatus, Long orderId, ItemStockToUpdateDto request) {
+    public static ItemUpdateLog from(OrderStatus orderStatus, Long orderId, ItemStockUpdateDto request) {
         return ItemUpdateLog.builder()
                 .orderStatus(orderStatus)
                 .orderId(orderId)
                 .shopId(request.getShopId())
                 .itemId(request.getItemId())
-                .quantity(request.getQuantity())
+                .quantity(orderStatus == OrderStatus.OUT_OF_STOCK ? 0 : request.getQuantity())
                 .build();
     }
 
