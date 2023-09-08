@@ -22,7 +22,7 @@ public class KafkaConsumer {
     private final KafkaProducer kafkaProducer;
     private final RedissonItemService redissonItemService;
 
-    @KafkaListener(topics = "update-stock-topic")
+    @KafkaListener(topics = "e-commerce.order.order-details")
     public void updateStock(String kafkaMessage)  {
         List<ItemStockToUpdateDto> itemStockToUpdateDtos = getItemStockUpdateRequest(kafkaMessage);
 
