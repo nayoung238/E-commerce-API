@@ -3,7 +3,7 @@ package com.nayoung.itemservice.messagequeue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nayoung.itemservice.domain.item.ItemService;
+import com.nayoung.itemservice.domain.item.RedissonItemService;
 import com.nayoung.itemservice.domain.item.log.OrderStatus;
 import com.nayoung.itemservice.web.dto.ItemStockToUpdateDto;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class KafkaConsumer {
 
     private final KafkaProducer kafkaProducer;
-    private final ItemService itemService;
+    private final RedissonItemService redissonItemService;
 
     @KafkaListener(topics = "update-stock-topic")
     public void updateStock(String kafkaMessage)  {
@@ -28,14 +28,14 @@ public class KafkaConsumer {
 
         assert itemStockToUpdateDtos != null;
         List<ItemStockToUpdateDto> result = itemStockToUpdateDtos.stream()
-                .map(itemService::decreaseStockByRedis)
+                .map(redissonItemService::decreaseStock)
                 .collect(Collectors.toList());
 
         boolean isExistOutOfStockItem = result.stream()
                 .anyMatch(r -> Objects.equals(OrderStatus.OUT_OF_STOCK, r.getOrderStatus()));
 
         if(isExistOutOfStockItem) {
-            itemService.undo(result.get(0).getOrderId());
+            redissonItemService.undo(result.get(0).getOrderId());
             for(ItemStockToUpdateDto itemStockToUpdateDto : result)
                 itemStockToUpdateDto.setOrderStatus(OrderStatus.FAILED);
         }
@@ -49,7 +49,7 @@ public class KafkaConsumer {
 
         try {
             map = mapper.readValue(message, new TypeReference<Map<Object, Object>>() {});
-            Object[] orderItems = mapper.convertValue(map.get("orderItems"), Object[].class);
+            Object[] orderItems = mapper.convertValue(map.get("orderItemDtos"), Object[].class);
 
             for (Object orderItem : orderItems)
                 itemStockToUpdateDtos.add(ItemStockToUpdateDto.fromKafkaMessage(orderItem));
