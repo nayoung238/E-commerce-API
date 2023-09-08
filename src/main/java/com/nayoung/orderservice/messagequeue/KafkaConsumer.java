@@ -3,7 +3,6 @@ package com.nayoung.orderservice.messagequeue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nayoung.orderservice.domain.Order;
 import com.nayoung.orderservice.domain.OrderService;
 import com.nayoung.orderservice.domain.OrderStatus;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,7 @@ public class KafkaConsumer {
 
     private final OrderService orderService;
 
-    @KafkaListener(topics = "update-order-status-topic")
+    @KafkaListener(topics = "e-commerce.order.local.order-details")
     public void updateOrderStatus(String kafkaMessage) {
         ObjectMapper mapper = new ObjectMapper();
         try {
@@ -28,9 +27,9 @@ public class KafkaConsumer {
 
             boolean isAvailableStockUpdate = Boolean.parseBoolean(String.valueOf(map.get("isAvailableToOrder")));
             if(isAvailableStockUpdate)
-                orderService.updateOrderStatus(OrderStatus.SUCCEED, new Order.OrderPK(customerAccountId, orderId));
+                orderService.updateOrderStatus(OrderStatus.SUCCEED, orderId);
             else
-                orderService.updateOrderStatus(OrderStatus.FAILED, new Order.OrderPK(customerAccountId, orderId));
+                orderService.updateOrderStatus(OrderStatus.FAILED, orderId);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
