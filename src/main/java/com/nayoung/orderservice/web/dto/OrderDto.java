@@ -35,6 +35,7 @@ public class OrderDto {
                 .orderStatus(OrderStatus.WAITING)
                 .orderItemDtos(orderItemDtos)
                 .totalPrice(getTotalPrice(orderItemDtos))
+                .customerAccountId(order.getCustomerAccountId())
                 .build();
     }
 
