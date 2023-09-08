@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 public class ItemRedisRepository {
 
     private final RedisTemplate<String, String> redisTemplate;
-    private final String PREFIX = "item-";
+    private final String PREFIX = "item:";
     private final String SUFFIX_QUANTITY = ":count";
 
     public void initializeItemStock(Long itemId, Long stock) {
