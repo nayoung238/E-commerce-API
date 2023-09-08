@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nayoung.itemservice.domain.item.RedissonItemService;
 import com.nayoung.itemservice.domain.item.log.OrderStatus;
-import com.nayoung.itemservice.web.dto.ItemStockToUpdateDto;
+import com.nayoung.itemservice.web.dto.ItemStockUpdateDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -24,11 +24,11 @@ public class KafkaConsumer {
 
     @KafkaListener(topics = "e-commerce.order.order-details")
     public void updateStock(String kafkaMessage)  {
-        List<ItemStockToUpdateDto> itemStockToUpdateDtos = getItemStockUpdateRequest(kafkaMessage);
+        List<ItemStockUpdateDto> itemStockUpdateDtos = getItemStockUpdateRequest(kafkaMessage);
 
-        assert itemStockToUpdateDtos != null;
-        List<ItemStockToUpdateDto> result = itemStockToUpdateDtos.stream()
-                .map(redissonItemService::decreaseStock)
+        assert itemStockUpdateDtos != null;
+        List<ItemStockUpdateDto> result = itemStockUpdateDtos.stream()
+                .map(redissonItemService::updateStock)
                 .collect(Collectors.toList());
 
         boolean isExistOutOfStockItem = result.stream()
@@ -36,14 +36,14 @@ public class KafkaConsumer {
 
         if(isExistOutOfStockItem) {
             redissonItemService.undo(result.get(0).getOrderId());
-            for(ItemStockToUpdateDto itemStockToUpdateDto : result)
-                itemStockToUpdateDto.setOrderStatus(OrderStatus.FAILED);
+            for(ItemStockUpdateDto itemStockUpdateDto : result)
+                itemStockUpdateDto.setOrderStatus(OrderStatus.FAILED);
         }
         kafkaProducer.send("update-order-status-topic", result);
     }
 
-    private List<ItemStockToUpdateDto> getItemStockUpdateRequest(String message) {
-        List<ItemStockToUpdateDto> itemStockToUpdateDtos = new ArrayList<>();
+    private List<ItemStockUpdateDto> getItemStockUpdateRequest(String message) {
+        List<ItemStockUpdateDto> itemStockUpdateDtos = new ArrayList<>();
         Map<Object, Object> map;
         ObjectMapper mapper = new ObjectMapper();
 
@@ -51,12 +51,16 @@ public class KafkaConsumer {
             map = mapper.readValue(message, new TypeReference<Map<Object, Object>>() {});
             Object[] orderItems = mapper.convertValue(map.get("orderItemDtos"), Object[].class);
 
-            for (Object orderItem : orderItems)
-                itemStockToUpdateDtos.add(ItemStockToUpdateDto.fromKafkaMessage(orderItem));
+            for (Object orderItem : orderItems) {
+                itemStockUpdateDtos.add(ItemStockUpdateDto.fromKafkaMessage(
+                        Long.parseLong(String.valueOf(map.get("orderId"))),
+                        Long.parseLong(String.valueOf(map.get("customerAccountId"))),
+                        orderItem));
+            }
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return null;
         }
-        return itemStockToUpdateDtos;
+        return itemStockUpdateDtos;
     }
 }

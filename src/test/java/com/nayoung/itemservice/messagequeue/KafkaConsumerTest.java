@@ -12,7 +12,7 @@ import com.nayoung.itemservice.domain.shop.ShopService;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
 import com.nayoung.itemservice.web.dto.ItemDto;
-import com.nayoung.itemservice.web.dto.ItemStockToUpdateDto;
+import com.nayoung.itemservice.web.dto.ItemStockUpdateDto;
 import com.nayoung.itemservice.web.dto.ShopDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -23,8 +23,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class KafkaConsumerTest {
@@ -72,11 +70,11 @@ class KafkaConsumerTest {
 
     @Test
     void 모든_상품_재고_충분 () {
-        List<ItemStockToUpdateDto> itemStockToUpdateDtos = getItemStockToUpdateDtos();
-        Map<Long, Long> previousStockMap = getPreviousStock(itemStockToUpdateDtos);
+        List<ItemStockUpdateDto> itemStockUpdateDtos = getItemStockToUpdateDtos();
+        Map<Long, Long> previousStockMap = getPreviousStock(itemStockUpdateDtos);
 
-        List<ItemStockToUpdateDto> response = itemStockToUpdateDtos.parallelStream()
-                .map(i -> redissonItemService.decreaseItemStock(i))
+        List<ItemStockUpdateDto> response = itemStockUpdateDtos.parallelStream()
+                .map(i -> redissonItemService.updateStock(i))
                 .collect(Collectors.toList());
 
         Assertions.assertTrue(response.stream()
@@ -95,11 +93,11 @@ class KafkaConsumerTest {
 
     @Test
     void 일부_상품_재고_부족 () {
-        List<ItemStockToUpdateDto> itemStockToUpdateDtos = getItemStockToUpdateDtosByExcessQuantity();
-        Map<Long, Long> previousStockMap = getPreviousStock(itemStockToUpdateDtos);
+        List<ItemStockUpdateDto> itemStockUpdateDtos = getItemStockToUpdateDtosByExcessQuantity();
+        Map<Long, Long> previousStockMap = getPreviousStock(itemStockUpdateDtos);
 
-        List<ItemStockToUpdateDto> response = itemStockToUpdateDtos.stream()
-                .map(i -> redissonItemService.decreaseItemStock(i))
+        List<ItemStockUpdateDto> response = itemStockUpdateDtos.stream()
+                .map(i -> redissonItemService.updateStock(i))
                 .collect(Collectors.toList());
 
         Assertions.assertTrue(response.stream()
@@ -111,35 +109,35 @@ class KafkaConsumerTest {
                 .noneMatch(i -> Objects.equals(OrderStatus.SUCCEED, i.getOrderStatus())));
         Assertions.assertTrue(itemUpdateLogs.stream().allMatch(i -> i.getQuantity() == 0L));
 
-        for(ItemStockToUpdateDto itemStockToUpdateDto : itemStockToUpdateDtos) {
-            Item item = itemRepository.findById(itemStockToUpdateDto.getItemId()).orElseThrow();
+        for(ItemStockUpdateDto itemStockUpdateDto : itemStockUpdateDtos) {
+            Item item = itemRepository.findById(itemStockUpdateDto.getItemId()).orElseThrow();
             Assertions.assertEquals(previousStockMap.get(item.getId()), item.getStock());
         }
     }
 
-    private List<ItemStockToUpdateDto> getItemStockToUpdateDtos() {
+    private List<ItemStockUpdateDto> getItemStockToUpdateDtos() {
         List<Item> items = itemRepository.findAll();
         assert(items.size() > 0);
 
         return items.stream()
-                .map(i -> ItemStockToUpdateDto.builder()
+                .map(i -> ItemStockUpdateDto.builder()
                         .shopId(i.getShop().getId()).orderId(1L)
                         .itemId(i.getId())
                         .quantity(i.getStock() / 2).build())
                 .collect(Collectors.toList());
     }
 
-    private List<ItemStockToUpdateDto> getItemStockToUpdateDtosByExcessQuantity() {
+    private List<ItemStockUpdateDto> getItemStockToUpdateDtosByExcessQuantity() {
         List<Item> items = itemRepository.findAll();
         assert(items.size() == 2);
 
-        List<ItemStockToUpdateDto> orderItemRequests = new ArrayList<>();
-        orderItemRequests.add(ItemStockToUpdateDto.builder()
+        List<ItemStockUpdateDto> orderItemRequests = new ArrayList<>();
+        orderItemRequests.add(ItemStockUpdateDto.builder()
                 .shopId(items.get(0).getShop().getId())
                 .itemId(items.get(0).getId())
                 .quantity(items.get(0).getStock() / 2).build());
 
-        orderItemRequests.add(ItemStockToUpdateDto.builder()
+        orderItemRequests.add(ItemStockUpdateDto.builder()
                 .shopId(items.get(1).getShop().getId())
                 .itemId(items.get(1).getId())
                 .quantity(items.get(1).getStock() + 1).build()); // 재고보다 많은 주문
@@ -147,9 +145,9 @@ class KafkaConsumerTest {
         return orderItemRequests;
     }
 
-    private Map<Long, Long> getPreviousStock(List<ItemStockToUpdateDto> requests) {
+    private Map<Long, Long> getPreviousStock(List<ItemStockUpdateDto> requests) {
         Map<Long, Long> previousStock = new HashMap<>();
-        for(ItemStockToUpdateDto request : requests) {
+        for(ItemStockUpdateDto request : requests) {
             Item item = itemRepository.findById(request.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
             previousStock.put(item.getId(), item.getStock());
