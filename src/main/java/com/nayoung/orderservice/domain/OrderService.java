@@ -24,30 +24,11 @@ public class OrderService {
     private final KafkaProducer kafkaProducer;
 
     public OrderDto create(OrderDto orderDto) {
-        List<OrderItemDto> outOfStockItems = orderDto.getOrderItemDtos().stream()
-                .filter(r -> !isAvailableToOrder(r.getItemId(), r.getQuantity()))
-                .collect(Collectors.toList());
+        Order order = Order.fromOrderDto(orderDto);
+        order = orderRepository.save(order);
 
-        if(outOfStockItems.isEmpty()) {
-            Order order = Order.fromOrderDto(orderDto);
-            order = orderRepository.save(order);
-
-            kafkaProducer.send("update-stock-topic", OrderDto.fromOrder(order));
-            return OrderDto.fromOrder(order);
-        }
-        else {
-            return OrderDto.fromFailedOrder(outOfStockItems);
-        }
-    }
-
-    /**
-     * Item-Service: 재고 데이터 write only
-     * Order-Service: 재고 데이터 read only
-     * 사용자가 장바구니 기능에서 주문을 요청하면 재고를 확인하며,
-     * 재고가 없는 주문은 Item-Service로 재고 차감 요청을 보내지 않음
-     */
-    private boolean isAvailableToOrder(Long itemId, Long quantity) {
-        return stockRedisRepository.getItemStock(itemId) >= quantity;
+        kafkaProducer.send("e-commerce.order.order-details", OrderDto.fromOrder(order));
+        return OrderDto.fromOrder(order);
     }
 
     public OrderDto findOrderByOrderId(Long id) {
