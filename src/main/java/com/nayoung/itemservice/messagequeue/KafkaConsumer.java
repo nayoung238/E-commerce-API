@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nayoung.itemservice.domain.item.RedissonItemService;
-import com.nayoung.itemservice.domain.item.log.OrderStatus;
+import com.nayoung.itemservice.domain.item.log.ItemUpdateStatus;
 import com.nayoung.itemservice.web.dto.ItemStockUpdateDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +32,12 @@ public class KafkaConsumer {
                 .collect(Collectors.toList());
 
         boolean isExistOutOfStockItem = result.stream()
-                .anyMatch(r -> Objects.equals(OrderStatus.OUT_OF_STOCK, r.getOrderStatus()));
+                .anyMatch(r -> Objects.equals(ItemUpdateStatus.OUT_OF_STOCK, r.getItemUpdateStatus()));
 
         if(isExistOutOfStockItem) {
             redissonItemService.undo(result.get(0).getOrderId());
             for(ItemStockUpdateDto itemStockUpdateDto : result)
-                itemStockUpdateDto.setOrderStatus(OrderStatus.FAILED);
+                itemStockUpdateDto.setItemUpdateStatus(ItemUpdateStatus.FAILED);
         }
         kafkaProducer.send("update-order-status-topic", result);
     }

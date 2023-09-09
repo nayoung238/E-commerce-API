@@ -2,7 +2,7 @@ package com.nayoung.itemservice.domain.item;
 
 import com.nayoung.itemservice.domain.item.log.ItemUpdateLog;
 import com.nayoung.itemservice.domain.item.log.ItemUpdateLogRepository;
-import com.nayoung.itemservice.domain.item.log.OrderStatus;
+import com.nayoung.itemservice.domain.item.log.ItemUpdateStatus;
 import com.nayoung.itemservice.domain.shop.ShopRepository;
 import com.nayoung.itemservice.domain.shop.ShopService;
 import com.nayoung.itemservice.exception.ExceptionCode;
@@ -73,11 +73,11 @@ class RedissonItemServiceTest {
                                 .collect(Collectors.toList());
 
         Assertions.assertTrue(response.stream()
-                .allMatch(i -> Objects.equals(OrderStatus.SUCCEED, i.getOrderStatus())));
+                .allMatch(i -> Objects.equals(ItemUpdateStatus.SUCCEED, i.getItemUpdateStatus())));
 
         List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByOrderId(response.get(0).getOrderId());
         Assertions.assertTrue(itemUpdateLogs.stream()
-                .allMatch(itemUpdateLog -> itemUpdateLog.getOrderStatus() == OrderStatus.SUCCEED));
+                .allMatch(itemUpdateLog -> itemUpdateLog.getItemUpdateStatus() == ItemUpdateStatus.SUCCEED));
 
         for(ItemUpdateLog itemUpdateLog : itemUpdateLogs) {
             Long previousStock = previousStockMap.get(itemUpdateLog.getItemId());
@@ -96,12 +96,12 @@ class RedissonItemServiceTest {
                 .collect(Collectors.toList());
 
         Assertions.assertTrue(response.stream()
-                .noneMatch(r -> Objects.equals(OrderStatus.SUCCEED, r.getOrderStatus())));
+                .noneMatch(r -> Objects.equals(ItemUpdateStatus.SUCCEED, r.getItemUpdateStatus())));
 
         // Log 확인
         List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByOrderId(response.get(0).getOrderId());
         Assertions.assertTrue(itemUpdateLogs.stream()
-                .noneMatch(i -> Objects.equals(OrderStatus.SUCCEED, i.getOrderStatus())));
+                .noneMatch(i -> Objects.equals(ItemUpdateStatus.SUCCEED, i.getItemUpdateStatus())));
         Assertions.assertTrue(itemUpdateLogs.stream().allMatch(i -> i.getQuantity() == 0L));
 
         for(ItemStockUpdateDto itemStockUpdateDto : itemStockUpdateDtos) {

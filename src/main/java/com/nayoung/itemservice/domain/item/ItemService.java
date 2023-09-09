@@ -3,7 +3,7 @@ package com.nayoung.itemservice.domain.item;
 import com.nayoung.itemservice.domain.discount.DiscountCode;
 import com.nayoung.itemservice.domain.item.log.ItemUpdateLog;
 import com.nayoung.itemservice.domain.item.log.ItemUpdateLogRepository;
-import com.nayoung.itemservice.domain.item.log.OrderStatus;
+import com.nayoung.itemservice.domain.item.log.ItemUpdateStatus;
 import com.nayoung.itemservice.domain.shop.Shop;
 import com.nayoung.itemservice.domain.shop.ShopService;
 import com.nayoung.itemservice.exception.ExceptionCode;
@@ -150,13 +150,13 @@ public class ItemService {
         Item item = itemRepository.findById(request.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
-        OrderStatus orderStatus = null;
-        if(updateStockByRedis(item.getId(), request.getQuantity())) orderStatus = (request.getQuantity() >= 0) ? OrderStatus.SUCCEED : OrderStatus.CANCELED;
-        else orderStatus = OrderStatus.OUT_OF_STOCK;
+        ItemUpdateStatus itemUpdateStatus = null;
+        if(updateStockByRedis(item.getId(), request.getQuantity())) itemUpdateStatus = (request.getQuantity() >= 0) ? ItemUpdateStatus.SUCCEED : ItemUpdateStatus.CANCELED;
+        else itemUpdateStatus = ItemUpdateStatus.OUT_OF_STOCK;
 
-        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderStatus, request.getOrderId(), request);
+        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(itemUpdateStatus, request.getOrderId(), request);
         itemUpdateLogRepository.save(itemUpdateLog);
-        return ItemStockUpdateDto.fromOrderItemRequest(orderStatus, request);
+        return ItemStockUpdateDto.fromOrderItemRequest(itemUpdateStatus, request);
     }
 
     private boolean updateStockByRedis(Long itemId, Long quantity) {
@@ -176,15 +176,15 @@ public class ItemService {
             item.decreaseStock(request.getQuantity());
 
             isSuccess = true;
-            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.SUCCEED, orderId, request);
+            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(ItemUpdateStatus.SUCCEED, orderId, request);
             itemUpdateLogRepository.save(itemUpdateLog);
         } catch (ItemException | StockException e) {
             isSuccess = false;
-            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(OrderStatus.FAILED, orderId, request);
+            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(ItemUpdateStatus.FAILED, orderId, request);
             itemUpdateLogRepository.save(itemUpdateLog);
         }
         if(isSuccess)
-            return ItemStockUpdateDto.fromOrderItemRequest(OrderStatus.SUCCEED, request);
-        return ItemStockUpdateDto.fromOrderItemRequest(OrderStatus.FAILED, request);
+            return ItemStockUpdateDto.fromOrderItemRequest(ItemUpdateStatus.SUCCEED, request);
+        return ItemStockUpdateDto.fromOrderItemRequest(ItemUpdateStatus.FAILED, request);
     }
 }

@@ -2,7 +2,7 @@ package com.nayoung.itemservice.domain.item;
 
 import com.nayoung.itemservice.domain.item.log.ItemUpdateLog;
 import com.nayoung.itemservice.domain.item.log.ItemUpdateLogRepository;
-import com.nayoung.itemservice.domain.item.log.OrderStatus;
+import com.nayoung.itemservice.domain.item.log.ItemUpdateStatus;
 import com.nayoung.itemservice.exception.ItemException;
 import com.nayoung.itemservice.web.dto.ItemStockUpdateDto;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class RedissonItemService {
             boolean available = lock.tryLock(10, 1, TimeUnit.SECONDS);
             if(!available) {
                 log.error("Lock 획득 실패");
-                return ItemStockUpdateDto.fromOrderItemRequest(OrderStatus.FAILED, request);
+                return ItemStockUpdateDto.fromOrderItemRequest(ItemUpdateStatus.FAILED, request);
             }
             itemStockUpdateDto = itemService.updateStockByRedisson(request);
         } catch (InterruptedException e) {
@@ -47,9 +47,9 @@ public class RedissonItemService {
     public void undo(Long orderId) {
         List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByOrderId(orderId);
         for(ItemUpdateLog itemUpdateLog : itemUpdateLogs) {
-            if(Objects.equals(OrderStatus.SUCCEED, itemUpdateLog.getOrderStatus())) {
+            if(Objects.equals(ItemUpdateStatus.SUCCEED, itemUpdateLog.getItemUpdateStatus())) {
                 try {
-                    updateStock(ItemStockUpdateDto.fromItemUpdateLog(OrderStatus.CANCELED, itemUpdateLog));
+                    updateStock(ItemStockUpdateDto.fromItemUpdateLog(ItemUpdateStatus.CANCELED, itemUpdateLog));
                 } catch (ItemException e) {
                     log.error(e.getMessage());
                 }

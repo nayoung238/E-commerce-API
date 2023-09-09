@@ -3,7 +3,7 @@ package com.nayoung.itemservice.domain;
 import com.nayoung.itemservice.domain.item.Item;
 import com.nayoung.itemservice.domain.item.ItemRepository;
 import com.nayoung.itemservice.domain.item.ItemService;
-import com.nayoung.itemservice.domain.item.log.OrderStatus;
+import com.nayoung.itemservice.domain.item.log.ItemUpdateStatus;
 import com.nayoung.itemservice.domain.shop.Shop;
 import com.nayoung.itemservice.domain.shop.ShopRepository;
 import com.nayoung.itemservice.domain.shop.ShopService;
@@ -162,7 +162,7 @@ public class ItemServiceTest {
         countDownLatch.await();
 
         Assertions.assertTrue(responses.parallelStream()
-                .anyMatch(response -> Objects.equals(OrderStatus.FAILED, response.getOrderStatus())));
+                .anyMatch(response -> Objects.equals(ItemUpdateStatus.FAILED, response.getItemUpdateStatus())));
      }
 
     private void createShops(int numberOfShops) {
