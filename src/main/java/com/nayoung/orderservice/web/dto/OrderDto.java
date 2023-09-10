@@ -21,6 +21,7 @@ public class OrderDto {
 
     @NotBlank
     private Long customerAccountId;
+    private String createdAt;
 
     public static OrderDto fromOrder(Order order) {
         List<OrderItemDto> orderItemDtos = order.getOrderItems().parallelStream()
@@ -36,6 +37,7 @@ public class OrderDto {
                 .orderItemDtos(orderItemDtos)
                 .totalPrice(getTotalPrice(orderItemDtos))
                 .customerAccountId(order.getCustomerAccountId())
+                .createdAt(order.getCreatedAt().toString())
                 .build();
     }
 

@@ -5,9 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "orders")
+@EntityListeners(AuditingEntityListener.class)
 public class Order {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +33,10 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
+
+    @CreatedDate
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 
     private Order(Long customerAccountId, List<OrderItem> orderItems) {
         for(OrderItem orderItem : orderItems) {
