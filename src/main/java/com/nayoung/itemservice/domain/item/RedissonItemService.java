@@ -27,9 +27,26 @@ public class RedissonItemService {
     private final String REDISSON_ITEM_LOCK_PREFIX = "ITEM:";
     private final ItemService itemService;
     private final ItemUpdateLogRepository itemUpdateLogRepository;
+    private final OrderRedisRepository orderRedisRepository;
 
     @Transactional
     public KafkaConsumer.OrderDetails updateItemStockByOrderDetails(KafkaConsumer.OrderDetails orderDetails) {
+        String[] redisKey = orderDetails.getCreatedAt().split(":");
+        if(orderRedisRepository.addOrderId(redisKey[0], orderDetails.getOrderId()) != 1) {
+            List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByOrderId(orderDetails.getOrderId());
+
+            List<ItemStockUpdateDto> itemStockUpdateDtos = itemUpdateLogs.stream()
+                    .map(ItemStockUpdateDto::fromItemUpdateLog)
+                    .collect(Collectors.toList());
+
+            return KafkaConsumer.OrderDetails.builder()
+                    .orderId(orderDetails.getOrderId())
+                    .customerAccountId(orderDetails.getCustomerAccountId())
+                    .createdAt(orderDetails.getCreatedAt())
+                    .itemStockUpdateDtos(itemStockUpdateDtos)
+                    .build();
+        }
+
         List<ItemStockUpdateDto> result = orderDetails.getItemStockUpdateDtos().stream()
                 .map(i -> updateStock(orderDetails.getOrderId(), orderDetails.getCustomerAccountId(), i))
                 .collect(Collectors.toList());
