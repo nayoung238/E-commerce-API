@@ -10,9 +10,7 @@ import java.util.Map;
 @Getter @Builder
 public class ItemStockUpdateDto {
 
-    private Long orderId;
     private ItemUpdateStatus itemUpdateStatus;
-    private Long customerAccountId;
     private Long shopId;
     private Long itemId;
     private Long quantity;
@@ -22,28 +20,15 @@ public class ItemStockUpdateDto {
         Map<String, Long> map = objectMapper.convertValue(orderItem, Map.class);
 
         return ItemStockUpdateDto.builder()
-                .orderId(orderId)
-                .customerAccountId(customerAccountId)
                 .shopId(Long.parseLong(String.valueOf(map.get("shopId"))))
                 .itemId(Long.parseLong(String.valueOf(map.get("itemId"))))
                 .quantity(Long.parseLong(String.valueOf(map.get("quantity"))))
                 .build();
     }
 
-    public static ItemStockUpdateDto fromOrderItemRequest(ItemUpdateStatus itemUpdateStatus, ItemStockUpdateDto request) {
+    public static ItemStockUpdateDto fromItemUpdateLog(ItemUpdateLog itemUpdateLog) {
         return ItemStockUpdateDto.builder()
-                .orderId(request.getOrderId())
-                .itemUpdateStatus(itemUpdateStatus)
-                .shopId(request.getShopId())
-                .itemId(request.getItemId())
-                .quantity(request.getQuantity())
-                .build();
-    }
-
-    public static ItemStockUpdateDto fromItemUpdateLog(ItemUpdateStatus itemUpdateStatus, ItemUpdateLog itemUpdateLog) {
-        return ItemStockUpdateDto.builder()
-                .orderId(itemUpdateLog.getOrderId())
-                .itemUpdateStatus(itemUpdateStatus)
+                .itemUpdateStatus(itemUpdateLog.getItemUpdateStatus())
                 .shopId(itemUpdateLog.getShopId())
                 .itemId(itemUpdateLog.getItemId())
                 .quantity(-itemUpdateLog.getQuantity())

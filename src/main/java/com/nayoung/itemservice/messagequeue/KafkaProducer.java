@@ -15,7 +15,7 @@ public class KafkaProducer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public void send(String kafkaTopic, List<ItemStockUpdateDto> result) {
+    public void send(String kafkaTopic, KafkaConsumer.OrderDetails result) {
         ObjectMapper mapper = new ObjectMapper();
         String jsonInString = "";
         try {
