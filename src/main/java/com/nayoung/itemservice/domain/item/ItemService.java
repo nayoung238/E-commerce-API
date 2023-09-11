@@ -9,6 +9,7 @@ import com.nayoung.itemservice.domain.shop.ShopService;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
 import com.nayoung.itemservice.exception.StockException;
+import com.nayoung.itemservice.messagequeue.KafkaConsumer;
 import com.nayoung.itemservice.web.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -146,17 +145,17 @@ public class ItemService {
         return ItemDto.fromItem(item);
     }
 
-    public ItemStockUpdateDto updateStockByRedisson(Long orderId, Long customerAccountId, ItemStockUpdateDto request) {
+    public ItemUpdateLogDto updateStockByRedisson(Long orderId, Long customerAccountId, KafkaConsumer.ItemStockUpdateDetails request) {
         Item item = itemRepository.findById(request.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
-        ItemUpdateStatus itemUpdateStatus = null;
+        ItemUpdateStatus itemUpdateStatus;
         if(updateStockByRedis(item.getId(), request.getQuantity())) itemUpdateStatus = (request.getQuantity() >= 0) ? ItemUpdateStatus.SUCCEED : ItemUpdateStatus.CANCELED;
         else itemUpdateStatus = ItemUpdateStatus.OUT_OF_STOCK;
 
         ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(itemUpdateStatus, orderId, customerAccountId, request);
         itemUpdateLogRepository.save(itemUpdateLog);
-        return ItemStockUpdateDto.fromItemUpdateLog(itemUpdateLog);
+        return ItemUpdateLogDto.fromItemUpdateLog(itemUpdateLog);
     }
 
     private boolean updateStockByRedis(Long itemId, Long quantity) {
@@ -168,19 +167,20 @@ public class ItemService {
     }
 
     @Transactional
-    public ItemStockUpdateDto decreaseStockByPessimisticLock(Long orderId, Long customerAccountId, ItemStockUpdateDto request) {
+    public ItemUpdateLogDto decreaseStockByPessimisticLock(Long orderId, Long customerAccountId, KafkaConsumer.ItemStockUpdateDetails request) {
+        ItemUpdateStatus itemUpdateStatus;
         try {
             Item item = itemRepository.findByIdWithPessimisticLock(request.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
             item.decreaseStock(request.getQuantity());
-
-            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(ItemUpdateStatus.SUCCEED, orderId, customerAccountId, request);
-            itemUpdateLogRepository.save(itemUpdateLog);
-            return ItemStockUpdateDto.fromItemUpdateLog(itemUpdateLog);
-        } catch (ItemException | StockException e) {
-            ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(ItemUpdateStatus.FAILED, orderId, customerAccountId, request);
-            itemUpdateLogRepository.save(itemUpdateLog);
-            return ItemStockUpdateDto.fromItemUpdateLog(itemUpdateLog);
+            itemUpdateStatus = ItemUpdateStatus.SUCCEED;
+        } catch (ItemException e) {
+            itemUpdateStatus = ItemUpdateStatus.FAILED;
+        } catch(StockException e) {
+            itemUpdateStatus = ItemUpdateStatus.OUT_OF_STOCK;
         }
+        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(itemUpdateStatus, orderId, customerAccountId, request);
+        itemUpdateLogRepository.save(itemUpdateLog);
+        return ItemUpdateLogDto.fromItemUpdateLog(itemUpdateLog);
     }
 }
