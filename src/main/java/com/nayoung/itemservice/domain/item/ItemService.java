@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -138,6 +139,23 @@ public class ItemService {
                 .collect(Collectors.toList());
     }
 
+    public List<ItemUpdateLogDto> findAllItemUpdateLogByOrderId(Long orderId) {
+        List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByOrderId(orderId);
+
+        if(itemUpdateLogs.isEmpty()) return null;
+
+        Map<Long, ItemUpdateLog> uniqueItemUpdateLogs = new HashMap<>();
+        itemUpdateLogs.sort((Comparator.comparing(ItemUpdateLog::getId)));
+        for(ItemUpdateLog itemUpdateLog : itemUpdateLogs)
+            uniqueItemUpdateLogs.put(itemUpdateLog.getItemId(), itemUpdateLog);
+
+        List<ItemUpdateLogDto> itemUpdateLogDtos = new ArrayList<>();
+        for(ItemUpdateLog itemUpdateLog : uniqueItemUpdateLogs.values())
+            itemUpdateLogDtos.add(ItemUpdateLogDto.fromItemUpdateLog(itemUpdateLog));
+
+        return itemUpdateLogDtos;
+    }
+
     @Transactional
     public ItemDto update(ItemInfoUpdateRequest itemInfoUpdateRequest) {
         Item item = itemRepository.findByIdWithPessimisticLock(itemInfoUpdateRequest.getItemId()).orElseThrow();
@@ -150,7 +168,7 @@ public class ItemService {
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
         ItemUpdateStatus itemUpdateStatus;
-        if(updateStockByRedis(item.getId(), request.getQuantity())) itemUpdateStatus = (request.getQuantity() >= 0) ? ItemUpdateStatus.SUCCEED : ItemUpdateStatus.CANCELED;
+        if(updateStockByRedis(item.getId(), request.getQuantity())) itemUpdateStatus = (request.getQuantity() >= 0) ? ItemUpdateStatus.SUCCEEDED : ItemUpdateStatus.CANCELED;
         else itemUpdateStatus = ItemUpdateStatus.OUT_OF_STOCK;
 
         ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(itemUpdateStatus, orderId, customerAccountId, request);
@@ -173,7 +191,7 @@ public class ItemService {
             Item item = itemRepository.findByIdWithPessimisticLock(request.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
             item.decreaseStock(request.getQuantity());
-            itemUpdateStatus = ItemUpdateStatus.SUCCEED;
+            itemUpdateStatus = ItemUpdateStatus.SUCCEEDED;
         } catch (ItemException e) {
             itemUpdateStatus = ItemUpdateStatus.FAILED;
         } catch(StockException e) {

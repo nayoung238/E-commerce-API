@@ -34,24 +34,27 @@ public class RedissonItemService {
     public KafkaConsumer.OrderDetails updateItemStockByOrderDetails(KafkaConsumer.OrderDetails orderDetails) {
         List<KafkaConsumer.ItemStockUpdateDetails> itemStockUpdateDetailsList = new ArrayList<>();
         String[] redisKey = orderDetails.getCreatedAt().split(":");
-        if(orderRedisRepository.addOrderId(redisKey[0], orderDetails.getOrderId()) != 1) {
-            List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByOrderId(orderDetails.getOrderId());
-            itemStockUpdateDetailsList = itemUpdateLogs.stream()
-                    .map(KafkaConsumer.ItemStockUpdateDetails::fromItemUpdateLog)
+        if(orderRedisRepository.addOrderId(redisKey[0], orderDetails.getOrderId()) == 1) {
+            itemStockUpdateDetailsList = orderDetails.getItemStockUpdateDetailsList().stream()
+                    .map(i -> updateStock(orderDetails.getOrderId(), orderDetails.getCustomerAccountId(), i))
                     .collect(Collectors.toList());
+
+            boolean isExistOutOfStockItem = itemStockUpdateDetailsList.stream()
+                    .anyMatch(r -> Objects.equals(ItemUpdateStatus.OUT_OF_STOCK, r.getItemUpdateStatus()));
+
+            if(isExistOutOfStockItem) {
+                undo(orderDetails.getOrderId());
+                List<ItemUpdateLogDto> itemUpdateLogDtos = itemService.findAllItemUpdateLogByOrderId(orderDetails.getOrderId());
+                itemStockUpdateDetailsList = itemUpdateLogDtos.stream()
+                        .map(KafkaConsumer.ItemStockUpdateDetails::fromItemUpdateLogDto)
+                        .collect(Collectors.toList());
+            }
         }
-
-        itemStockUpdateDetailsList = orderDetails.getItemStockUpdateDetailsList().stream()
-                .map(i -> updateStock(orderDetails.getOrderId(), orderDetails.getCustomerAccountId(), i))
-                .collect(Collectors.toList());
-
-        boolean isExistOutOfStockItem = itemStockUpdateDetailsList.stream()
-                .anyMatch(r -> Objects.equals(ItemUpdateStatus.OUT_OF_STOCK, r.getItemUpdateStatus()));
-
-        if(isExistOutOfStockItem) {
-            undo(orderDetails.getOrderId());
-            for(KafkaConsumer.ItemStockUpdateDetails itemStockUpdateDetails : itemStockUpdateDetailsList)
-                itemStockUpdateDetails.setItemUpdateStatus(ItemUpdateStatus.FAILED);
+        else { // 이미 처리된 이벤트
+            List<ItemUpdateLogDto> itemUpdateLogDtos = itemService.findAllItemUpdateLogByOrderId(orderDetails.getOrderId());
+            itemStockUpdateDetailsList = itemUpdateLogDtos.stream()
+                    .map(KafkaConsumer.ItemStockUpdateDetails::fromItemUpdateLogDto)
+                    .collect(Collectors.toList());
         }
 
         return KafkaConsumer.OrderDetails.builder()
@@ -88,7 +91,7 @@ public class RedissonItemService {
     private void undo(Long orderId) {
         List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByOrderId(orderId);
         for(ItemUpdateLog itemUpdateLog : itemUpdateLogs) {
-            if(Objects.equals(ItemUpdateStatus.SUCCEED, itemUpdateLog.getItemUpdateStatus())) {
+            if(Objects.equals(ItemUpdateStatus.SUCCEEDED, itemUpdateLog.getItemUpdateStatus())) {
                 try {
                     updateStock(itemUpdateLog.getOrderId(),
                                 itemUpdateLog.getCustomerAccountId(),

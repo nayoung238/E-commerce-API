@@ -33,4 +33,10 @@ public class ItemController {
         ItemDto response = itemService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @GetMapping("/itemUpdateLogs/{orderId}")
+    public ResponseEntity<?> findAllItemUpdateLogByOrderId(@PathVariable Long orderId) {
+        List<ItemUpdateLogDto> response = itemService.findAllItemUpdateLogByOrderId(orderId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }
