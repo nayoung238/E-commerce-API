@@ -36,6 +36,7 @@ public class RedissonItemService {
         String[] redisKey = orderDetails.getCreatedAt().split(":");
         if(orderRedisRepository.addOrderId(redisKey[0], orderDetails.getOrderId()) == 1) {
             itemStockUpdateDetailsList = orderDetails.getItemStockUpdateDetailsList().stream()
+                    .filter(itemStockUpdateDetails -> itemStockUpdateDetails.getQuantity() > 0L)
                     .map(i -> updateStock(orderDetails.getOrderId(), orderDetails.getCustomerAccountId(), i))
                     .collect(Collectors.toList());
 
