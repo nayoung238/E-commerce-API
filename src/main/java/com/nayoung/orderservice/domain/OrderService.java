@@ -2,17 +2,17 @@ package com.nayoung.orderservice.domain;
 
 import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
+import com.nayoung.orderservice.exception.OrderStatusException;
 import com.nayoung.orderservice.messagequeue.KafkaProducer;
+import com.nayoung.orderservice.messagequeue.client.ItemUpdateStatus;
+import com.nayoung.orderservice.web.dto.ItemUpdateLogDto;
 import com.nayoung.orderservice.web.dto.OrderDto;
-import com.nayoung.orderservice.web.dto.OrderItemDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,13 +39,27 @@ public class OrderService {
     }
 
     @Transactional
-    public void updateOrderStatus(OrderStatus orderStatus, Long id) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
+    public void updateOrderStatus(List<ItemUpdateLogDto> itemUpdateLogDtos) {
+        try {
+            Long orderId = itemUpdateLogDtos.get(0).getOrderId();
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
-        order.updateOrderStatus(orderStatus);
-        for(OrderItem orderItem : order.getOrderItems())
-            orderItem.updateOrderStatus(orderStatus);
+            HashMap<Long, ItemUpdateStatus> orderItemStatus = new HashMap<>();
+            for(ItemUpdateLogDto itemUpdateLogDto : itemUpdateLogDtos)
+                orderItemStatus.put(itemUpdateLogDto.getItemId(), itemUpdateLogDto.getItemUpdateStatus());
+
+            for(OrderItem orderItem : order.getOrderItems()) {
+                OrderStatus orderStatus = OrderStatus.getOrderStatus(orderItemStatus.get(orderItem.getItemId()));
+                orderItem.updateOrderStatus(orderStatus);
+            }
+            boolean isAllSucceeded = order.getOrderItems().stream()
+                     .allMatch(o -> Objects.equals(o.getOrderStatus(), OrderStatus.SUCCEEDED));
+            if(isAllSucceeded) order.updateOrderStatus(OrderStatus.SUCCEEDED);
+            else order.updateOrderStatus(OrderStatus.FAILED);
+        } catch(OrderStatusException e) {
+           e.printStackTrace();
+        }
     }
 
     public List<OrderDto> findOrderByCustomerAccountIdAndOrderId(Long customerAccountId, Long cursorOrderId) {
