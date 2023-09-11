@@ -31,11 +31,10 @@ public class RedissonItemService {
     private final OrderRedisRepository orderRedisRepository;
 
     @Transactional
-    public KafkaConsumer.OrderDetails updateItemStockByOrderDetails(KafkaConsumer.OrderDetails orderDetails) {
-        List<KafkaConsumer.ItemStockUpdateDetails> itemStockUpdateDetailsList = new ArrayList<>();
+    public void updateItemStockByOrderDetails(KafkaConsumer.OrderDetails orderDetails) {
         String[] redisKey = orderDetails.getCreatedAt().split(":");
         if(orderRedisRepository.addOrderId(redisKey[0], orderDetails.getOrderId()) == 1) {
-            itemStockUpdateDetailsList = orderDetails.getItemStockUpdateDetailsList().stream()
+            List<KafkaConsumer.ItemStockUpdateDetails> itemStockUpdateDetailsList = orderDetails.getItemStockUpdateDetailsList().stream()
                     .filter(itemStockUpdateDetails -> itemStockUpdateDetails.getQuantity() > 0L)
                     .map(i -> updateStock(orderDetails.getOrderId(), orderDetails.getCustomerAccountId(), i))
                     .collect(Collectors.toList());
@@ -43,27 +42,8 @@ public class RedissonItemService {
             boolean isExistOutOfStockItem = itemStockUpdateDetailsList.stream()
                     .anyMatch(r -> Objects.equals(ItemUpdateStatus.OUT_OF_STOCK, r.getItemUpdateStatus()));
 
-            if(isExistOutOfStockItem) {
-                undo(orderDetails.getOrderId());
-                List<ItemUpdateLogDto> itemUpdateLogDtos = itemService.findAllItemUpdateLogByOrderId(orderDetails.getOrderId());
-                itemStockUpdateDetailsList = itemUpdateLogDtos.stream()
-                        .map(KafkaConsumer.ItemStockUpdateDetails::fromItemUpdateLogDto)
-                        .collect(Collectors.toList());
-            }
+            if(isExistOutOfStockItem) undo(orderDetails.getOrderId());
         }
-        else { // 이미 처리된 이벤트
-            List<ItemUpdateLogDto> itemUpdateLogDtos = itemService.findAllItemUpdateLogByOrderId(orderDetails.getOrderId());
-            itemStockUpdateDetailsList = itemUpdateLogDtos.stream()
-                    .map(KafkaConsumer.ItemStockUpdateDetails::fromItemUpdateLogDto)
-                    .collect(Collectors.toList());
-        }
-
-        return KafkaConsumer.OrderDetails.builder()
-                .orderId(orderDetails.getOrderId())
-                .customerAccountId(orderDetails.getCustomerAccountId())
-                .createdAt(orderDetails.getCreatedAt())
-                .itemStockUpdateDetailsList(itemStockUpdateDetailsList)
-                .build();
     }
 
     public KafkaConsumer.ItemStockUpdateDetails updateStock(Long orderId, Long customerAccountId, KafkaConsumer.ItemStockUpdateDetails itemStockUpdateDetails) {

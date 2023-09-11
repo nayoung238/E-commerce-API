@@ -21,13 +21,11 @@ import java.util.*;
 @RequiredArgsConstructor
 public class KafkaConsumer {
 
-    private final KafkaProducer kafkaProducer;
     private final RedissonItemService redissonItemService;
 
     @KafkaListener(topics = "e-commerce.order.order-details")
     public void updateStock(String kafkaMessage)  {
-        OrderDetails result = redissonItemService.updateItemStockByOrderDetails(Objects.requireNonNull(getOrderDetails(kafkaMessage)));
-        kafkaProducer.send("update-order-status-topic", result);
+        redissonItemService.updateItemStockByOrderDetails(Objects.requireNonNull(getOrderDetails(kafkaMessage)));
     }
 
     private OrderDetails getOrderDetails(String message) {
