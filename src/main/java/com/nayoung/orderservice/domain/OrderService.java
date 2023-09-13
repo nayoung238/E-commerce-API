@@ -4,7 +4,7 @@ import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
 import com.nayoung.orderservice.exception.OrderStatusException;
 import com.nayoung.orderservice.messagequeue.KafkaProducer;
-import com.nayoung.orderservice.messagequeue.client.ItemUpdateStatus;
+import com.nayoung.orderservice.openfeign.ItemUpdateStatus;
 import com.nayoung.orderservice.web.dto.ItemUpdateLogDto;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;

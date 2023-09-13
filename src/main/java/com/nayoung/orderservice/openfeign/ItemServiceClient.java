@@ -1,4 +1,4 @@
-package com.nayoung.orderservice.messagequeue.client;
+package com.nayoung.orderservice.openfeign;
 
 import com.nayoung.orderservice.web.dto.ItemUpdateLogDto;
 import org.springframework.cloud.openfeign.FeignClient;

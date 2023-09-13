@@ -2,7 +2,7 @@ package com.nayoung.orderservice.domain;
 
 import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderStatusException;
-import com.nayoung.orderservice.messagequeue.client.ItemUpdateStatus;
+import com.nayoung.orderservice.openfeign.ItemUpdateStatus;
 
 import java.util.Objects;
 

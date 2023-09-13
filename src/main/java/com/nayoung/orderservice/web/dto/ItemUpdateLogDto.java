@@ -1,6 +1,6 @@
 package com.nayoung.orderservice.web.dto;
 
-import com.nayoung.orderservice.messagequeue.client.ItemUpdateStatus;
+import com.nayoung.orderservice.openfeign.ItemUpdateStatus;
 import lombok.Getter;
 
 @Getter

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nayoung.orderservice.domain.OrderService;
-import com.nayoung.orderservice.messagequeue.client.ItemServiceClient;
+import com.nayoung.orderservice.openfeign.ItemServiceClient;
 import com.nayoung.orderservice.web.dto.ItemUpdateLogDto;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -26,10 +26,13 @@ public class KafkaConsumer {
     public void updateOrderStatus(ConsumerRecord<String, String> record) {
         try {
             waitBasedOnTimestamp(record.timestamp());
+
             ObjectMapper mapper = new ObjectMapper();
             Map<Object, Object> map = mapper.readValue(record.value(), new TypeReference<Map<Object, Object>>() {});
+
             Long orderId = Long.parseLong(String.valueOf(map.get("orderId")));
             List<ItemUpdateLogDto> itemUpdateLogDtoList = itemServiceClient.getItemUpdateLogDtos(orderId);
+
             if(!itemUpdateLogDtoList.isEmpty())
                 orderService.updateOrderStatus(itemUpdateLogDtoList);
         } catch (InterruptedException | JsonProcessingException e) {
