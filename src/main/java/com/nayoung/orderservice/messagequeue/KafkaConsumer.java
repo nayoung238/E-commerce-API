@@ -4,9 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nayoung.orderservice.domain.OrderService;
+import com.nayoung.orderservice.messagequeue.retry.OrderRetry;
 import com.nayoung.orderservice.openfeign.ItemServiceClient;
 import com.nayoung.orderservice.web.dto.ItemUpdateLogDto;
+import feign.FeignException;
+import io.github.resilience4j.retry.Retry;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
@@ -14,8 +18,9 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
-@Service
+@Service @Slf4j
 @RequiredArgsConstructor
 public class KafkaConsumer {
 
@@ -29,12 +34,14 @@ public class KafkaConsumer {
 
             ObjectMapper mapper = new ObjectMapper();
             Map<Object, Object> map = mapper.readValue(record.value(), new TypeReference<Map<Object, Object>>() {});
-
             Long orderId = Long.parseLong(String.valueOf(map.get("orderId")));
-            List<ItemUpdateLogDto> itemUpdateLogDtoList = itemServiceClient.getItemUpdateLogDtos(orderId);
 
-            if(!itemUpdateLogDtoList.isEmpty())
-                orderService.updateOrderStatus(itemUpdateLogDtoList);
+            try {
+                List<ItemUpdateLogDto> itemUpdateLogDtos = getItemUpdateLogDtos(orderId);
+                orderService.updateOrderStatus(itemUpdateLogDtos);
+            } catch (FeignException e) {
+                orderService.resendKafkaRecord(orderId);
+            }
         } catch (InterruptedException | JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -47,5 +54,12 @@ public class KafkaConsumer {
             Thread.sleep(1000);
             now = Instant.now();
         }
+    }
+
+    private List<ItemUpdateLogDto> getItemUpdateLogDtos(Long orderId) {
+        Retry retry = OrderRetry.stockUpdateResult();
+        Function<Long, List<ItemUpdateLogDto>> retryableFunction =
+                Retry.decorateFunction(retry, itemServiceClient::getItemUpdateLogDtos);
+        return retryableFunction.apply(orderId);
     }
 }

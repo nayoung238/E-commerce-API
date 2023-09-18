@@ -8,14 +8,16 @@ import com.nayoung.orderservice.openfeign.ItemUpdateStatus;
 import com.nayoung.orderservice.web.dto.ItemUpdateLogDto;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service
+@Service @Slf4j
 @RequiredArgsConstructor
 public class OrderService {
 
@@ -31,6 +33,15 @@ public class OrderService {
         return OrderDto.fromOrder(order);
     }
 
+    public void resendKafkaRecord(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
+
+        log.warn("Event retransmission target's ID " + orderId + " " + LocalDateTime.now());
+        kafkaProducer.send("e-commerce.order.order-details", OrderDto.fromOrder(order));
+    }
+
+
     public OrderDto findOrderByOrderId(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
@@ -40,6 +51,7 @@ public class OrderService {
 
     @Transactional
     public void updateOrderStatus(List<ItemUpdateLogDto> itemUpdateLogDtos) {
+        assert itemUpdateLogDtos != null;
         try {
             Long orderId = itemUpdateLogDtos.get(0).getOrderId();
             Order order = orderRepository.findById(orderId)
