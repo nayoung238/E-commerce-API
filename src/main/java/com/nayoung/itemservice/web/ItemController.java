@@ -1,6 +1,7 @@
 package com.nayoung.itemservice.web;
 
 import com.nayoung.itemservice.domain.item.ItemService;
+import com.nayoung.itemservice.exception.OrderException;
 import com.nayoung.itemservice.web.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,11 @@ public class ItemController {
 
     @GetMapping("/itemUpdateLogs/{orderId}")
     public ResponseEntity<?> findAllItemUpdateLogByOrderId(@PathVariable Long orderId) {
-        List<ItemUpdateLogDto> response = itemService.findAllItemUpdateLogByOrderId(orderId);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        try {
+            List<ItemUpdateLogDto> response = itemService.findAllItemUpdateLogByOrderId(orderId);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (OrderException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e);
+        }
     }
 }

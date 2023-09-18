@@ -8,6 +8,7 @@ import com.nayoung.itemservice.domain.shop.Shop;
 import com.nayoung.itemservice.domain.shop.ShopService;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
+import com.nayoung.itemservice.exception.OrderException;
 import com.nayoung.itemservice.exception.StockException;
 import com.nayoung.itemservice.messagequeue.KafkaConsumer;
 import com.nayoung.itemservice.web.dto.*;
@@ -142,7 +143,8 @@ public class ItemService {
     public List<ItemUpdateLogDto> findAllItemUpdateLogByOrderId(Long orderId) {
         List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByOrderId(orderId);
 
-        if(itemUpdateLogs.isEmpty()) return null;
+        if(itemUpdateLogs.isEmpty())
+            throw new OrderException(ExceptionCode.NOT_FOUND_ORDER_DETAILS);
 
         Map<Long, ItemUpdateLog> uniqueItemUpdateLogs = new HashMap<>();
         itemUpdateLogs.sort((Comparator.comparing(ItemUpdateLog::getId)));
