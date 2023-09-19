@@ -4,11 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nayoung.orderservice.domain.OrderService;
-import com.nayoung.orderservice.messagequeue.retry.OrderRetry;
 import com.nayoung.orderservice.openfeign.ItemServiceClient;
 import com.nayoung.orderservice.web.dto.ItemUpdateLogDto;
 import feign.FeignException;
-import io.github.resilience4j.retry.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 @Service @Slf4j
 @RequiredArgsConstructor
@@ -40,6 +37,7 @@ public class KafkaConsumer {
                 List<ItemUpdateLogDto> itemUpdateLogDtos = getItemUpdateLogDtos(orderId);
                 orderService.updateOrderStatus(itemUpdateLogDtos);
             } catch (FeignException e) {
+                e.printStackTrace();
                 orderService.resendKafkaRecord(orderId);
             }
         } catch (InterruptedException | JsonProcessingException e) {
@@ -57,9 +55,6 @@ public class KafkaConsumer {
     }
 
     private List<ItemUpdateLogDto> getItemUpdateLogDtos(Long orderId) {
-        Retry retry = OrderRetry.stockUpdateResult();
-        Function<Long, List<ItemUpdateLogDto>> retryableFunction =
-                Retry.decorateFunction(retry, itemServiceClient::getItemUpdateLogDtos);
-        return retryableFunction.apply(orderId);
+        return itemServiceClient.getItemUpdateLogDtos(orderId);
     }
 }

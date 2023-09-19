@@ -7,11 +7,11 @@ import io.github.resilience4j.retry.RetryConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
+//@Configuration
 public class OrderRetry {
 
-    @Bean
-    public static Retry stockUpdateResult() {
+    //@Bean
+    public Retry stockUpdateResult() {
         IntervalFunction intervalFunction = IntervalFunction.ofExponentialRandomBackoff(5000L, 2);
         RetryConfig retryConfig = RetryConfig.custom()
                 .maxAttempts(4)
@@ -19,6 +19,6 @@ public class OrderRetry {
                 .retryExceptions(FeignException.class)
                 .build();
 
-        return Retry.of("stockUpdateResult", retryConfig);
+        return Retry.of("stockUpdateResultRetry", retryConfig);
     }
 }
