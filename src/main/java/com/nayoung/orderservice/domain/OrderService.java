@@ -13,7 +13,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,7 +21,6 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final StockRedisRepository stockRedisRepository;
     private final KafkaProducer kafkaProducer;
 
     public OrderDto create(OrderDto orderDto) {
@@ -32,15 +30,6 @@ public class OrderService {
         kafkaProducer.send("e-commerce.order.order-details", OrderDto.fromOrder(order));
         return OrderDto.fromOrder(order);
     }
-
-    public void resendKafkaRecord(Long orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
-
-        log.warn("Event retransmission target's ID " + orderId + " " + LocalDateTime.now());
-        kafkaProducer.send("e-commerce.order.order-details", OrderDto.fromOrder(order));
-    }
-
 
     public OrderDto findOrderByOrderId(Long id) {
         Order order = orderRepository.findById(id)
