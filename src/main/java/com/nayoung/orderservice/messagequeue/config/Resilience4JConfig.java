@@ -1,4 +1,4 @@
-package com.nayoung.orderservice.messagequeue.retry;
+package com.nayoung.orderservice.messagequeue.config;
 
 import feign.FeignException;
 import io.github.resilience4j.core.IntervalFunction;
@@ -7,8 +7,10 @@ import io.github.resilience4j.retry.RetryConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-//@Configuration
-public class OrderRetry {
+import java.time.Duration;
+
+@Configuration
+public class Resilience4JConfig {
 
     //@Bean
     public Retry stockUpdateResult() {
@@ -19,6 +21,6 @@ public class OrderRetry {
                 .retryExceptions(FeignException.class)
                 .build();
 
-        return Retry.of("stockUpdateResultRetry", retryConfig);
+        return Retry.of("orderDetailsResult", retryConfig);
     }
 }
