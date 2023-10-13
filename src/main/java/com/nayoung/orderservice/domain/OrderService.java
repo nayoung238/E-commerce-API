@@ -4,8 +4,7 @@ import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
 import com.nayoung.orderservice.exception.OrderStatusException;
 import com.nayoung.orderservice.messagequeue.KafkaProducer;
-import com.nayoung.orderservice.openfeign.ItemUpdateStatus;
-import com.nayoung.orderservice.web.dto.ItemUpdateLogDto;
+import com.nayoung.orderservice.messagequeue.client.ItemUpdateLogDto;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,18 +45,17 @@ public class OrderService {
             Order order = orderRepository.findById(orderId)
                     .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
-            HashMap<Long, ItemUpdateStatus> orderItemStatus = new HashMap<>();
+            HashMap<Long, OrderItemStatus> orderItemStatus = new HashMap<>();
             for(ItemUpdateLogDto itemUpdateLogDto : itemUpdateLogDtos)
-                orderItemStatus.put(itemUpdateLogDto.getItemId(), itemUpdateLogDto.getItemUpdateStatus());
+                orderItemStatus.put(itemUpdateLogDto.getItemId(), itemUpdateLogDto.getOrderItemStatus());
 
-            for(OrderItem orderItem : order.getOrderItems()) {
-                OrderStatus orderStatus = OrderStatus.getOrderStatus(orderItemStatus.get(orderItem.getItemId()));
-                orderItem.updateOrderStatus(orderStatus);
-            }
+            for(OrderItem orderItem : order.getOrderItems())
+                orderItem.updateOrderStatus(orderItemStatus.get(orderItem.getItemId()));
+
             boolean isAllSucceeded = order.getOrderItems().stream()
-                     .allMatch(o -> Objects.equals(o.getOrderStatus(), OrderStatus.SUCCEEDED));
-            if(isAllSucceeded) order.updateOrderStatus(OrderStatus.SUCCEEDED);
-            else order.updateOrderStatus(OrderStatus.FAILED);
+                     .allMatch(o -> Objects.equals(o.getOrderItemStatus(), OrderItemStatus.SUCCEEDED));
+            if(isAllSucceeded) order.updateOrderStatus(OrderItemStatus.SUCCEEDED);
+            else order.updateOrderStatus(OrderItemStatus.FAILED);
         } catch(OrderStatusException e) {
            e.printStackTrace();
         }

@@ -21,7 +21,7 @@ public class OrderItem {
     private Long shopId;
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus orderStatus;
+    private OrderItemStatus orderItemStatus;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -41,7 +41,7 @@ public class OrderItem {
         this.order = order;
     }
 
-    public void updateOrderStatus(OrderStatus orderStatus) {
-        this.orderStatus = orderStatus;
+    public void updateOrderStatus(OrderItemStatus orderItemStatus) {
+        this.orderItemStatus = orderItemStatus;
     }
 }

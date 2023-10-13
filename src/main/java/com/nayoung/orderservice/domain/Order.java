@@ -32,7 +32,9 @@ public class Order {
     private List<OrderItem> orderItems = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus orderStatus;
+    private OrderItemStatus orderStatus;
+
+    private Long totalPrice;
 
     @CreatedDate
     @Column(updatable = false)
@@ -44,7 +46,8 @@ public class Order {
             orderItem.setOrder(this);
         }
         this.customerAccountId = customerAccountId;
-        this.orderStatus = OrderStatus.WAITING;
+        this.totalPrice = getTotalPrice(orderItems);
+        this.orderStatus = OrderItemStatus.WAITING;
     }
 
     protected static Order fromOrderDto(OrderDto orderDto) {
@@ -55,7 +58,14 @@ public class Order {
         return new Order(orderDto.getCustomerAccountId(), orderItems);
     }
 
-    public void updateOrderStatus(OrderStatus status) {
+    public void updateOrderStatus(OrderItemStatus status) {
         this.orderStatus = status;
+    }
+
+    private Long getTotalPrice(List<OrderItem> orderItems) {
+        assert(!orderItems.isEmpty());
+        return orderItems.stream()
+                .map(OrderItem::getPrice)
+                .reduce(Long::sum).get();
     }
 }

@@ -1,16 +1,15 @@
-package com.nayoung.orderservice.web.dto;
+package com.nayoung.orderservice.messagequeue.client;
 
-import com.nayoung.orderservice.openfeign.ItemUpdateStatus;
+import com.nayoung.orderservice.domain.OrderItemStatus;
 import lombok.Getter;
 
 @Getter
 public class ItemUpdateLogDto {
 
     private Long id;
-    private ItemUpdateStatus itemUpdateStatus;
+    private OrderItemStatus orderItemStatus;
     private Long orderId;
     private Long customerAccountId;
-    private String createdAt;
     private Long itemId;
     private Long quantity;
 }
