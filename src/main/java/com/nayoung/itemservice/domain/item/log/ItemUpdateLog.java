@@ -19,7 +19,6 @@ public class ItemUpdateLog {
 
     private Long orderId;
     private Long customerAccountId;
-    private String createdAt; // order-service 기준
 
     private Long itemId;
     private Long quantity;

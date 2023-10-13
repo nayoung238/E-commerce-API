@@ -12,7 +12,6 @@ public class ItemUpdateLogDto {
     private OrderItemStatus orderItemStatus;
     private Long orderId;
     private Long customerAccountId;
-    private String createdAt;
     private Long itemId;
     private Long quantity;
 
