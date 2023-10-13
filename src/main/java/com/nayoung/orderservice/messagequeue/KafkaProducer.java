@@ -14,10 +14,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KafkaProducer {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, OrderDto> kafkaTemplate;
 
-    public void send(String kafkaTopic, OrderDto orderDto) {
-        String message = getMessage(orderDto);
+    public void send(String kafkaTopic, OrderDto message) {
         try {
             sendMessage(kafkaTopic, message);
         } catch(KafkaProducerException e) {
@@ -25,7 +24,7 @@ public class KafkaProducer {
         }
     }
 
-    private void sendMessage(String topic, String message) {
+    private void sendMessage(String topic, OrderDto message) {
         kafkaTemplate.send(topic, message)
                 .addCallback(result -> {
                     assert result != null;

@@ -1,11 +1,9 @@
 package com.nayoung.orderservice.messagequeue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nayoung.orderservice.domain.OrderService;
 import com.nayoung.orderservice.openfeign.ItemServiceClient;
-import com.nayoung.orderservice.web.dto.ItemUpdateLogDto;
+import com.nayoung.orderservice.messagequeue.client.ItemUpdateLogDto;
+import com.nayoung.orderservice.web.dto.OrderDto;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 @Service @Slf4j
 @RequiredArgsConstructor
@@ -28,15 +25,13 @@ public class KafkaConsumer {
     private final CircuitBreakerFactory circuitBreakerFactory;
 
     @KafkaListener(topics = "e-commerce.order.order-details")
-    public void updateOrderStatus(ConsumerRecord<String, String> record) {
+    public void updateOrderStatus(ConsumerRecord<String, OrderDto> record) {
         try {
             waitBasedOnTimestamp(record.timestamp());
 
-            ObjectMapper mapper = new ObjectMapper();
-            Map<Object, Object> map = mapper.readValue(record.value(), new TypeReference<Map<Object, Object>>() {});
-            Long orderId = Long.parseLong(String.valueOf(map.get("orderId")));
-            updateOrderStatus(orderId);
-        } catch (InterruptedException | JsonProcessingException e) {
+            OrderDto orderDto = record.value();
+            updateOrderStatus(orderDto.getId());
+        } catch(InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -61,7 +56,6 @@ public class KafkaConsumer {
 
     private List<ItemUpdateLogDto> getItemUpdateLogDtos(Long orderId) {
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
-        return circuitBreaker.run(() -> itemServiceClient.getItemUpdateLogDtos(orderId),
-                throwable -> null);
+        return circuitBreaker.run(() -> itemServiceClient.getItemUpdateLogDtos(orderId), throwable -> null);
     }
 }

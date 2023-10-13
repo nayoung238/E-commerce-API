@@ -1,5 +1,6 @@
 package com.nayoung.orderservice.messagequeue;
 
+import com.nayoung.orderservice.web.dto.OrderDto;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
@@ -17,18 +18,18 @@ import java.util.Map;
 public class KafkaConsumerConfig {
 
     @Bean
-    public ConsumerFactory<String, String> consumerFactory() {
+    public ConsumerFactory<String, OrderDto> consumerFactory() {
         Map<String, Object> properties = new HashMap<>();
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, "orderServiceGroup");
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OrderDtoDeserializer.class);
         return new DefaultKafkaConsumerFactory<>(properties);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory
+    public ConcurrentKafkaListenerContainerFactory<String, OrderDto> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, OrderDto> kafkaListenerContainerFactory
                 = new ConcurrentKafkaListenerContainerFactory<>();
 
         kafkaListenerContainerFactory.setConsumerFactory(consumerFactory());
