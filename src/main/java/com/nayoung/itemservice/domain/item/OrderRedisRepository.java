@@ -13,6 +13,6 @@ public class OrderRedisRepository {
 
     public Long addOrderId(String key, Long orderId) {
         return redisTemplate.opsForSet()
-                .add(PREFIX + key, String.valueOf(orderId));
+                .add(PREFIX + key, String.valueOf(orderId));  // key -> order:yyyy-mm-dd'T'HH
     }
 }
