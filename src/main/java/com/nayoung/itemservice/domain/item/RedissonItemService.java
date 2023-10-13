@@ -26,7 +26,7 @@ public class RedissonItemService {
 
     private final RedissonClient redissonClient;
     private final String REDISSON_ITEM_LOCK_PREFIX = "ITEM:";
-    private final ItemService itemService;
+    private final ItemStockService itemStockService;
     private final ItemUpdateLogRepository itemUpdateLogRepository;
     private final OrderRedisRepository orderRedisRepository;
 
@@ -55,7 +55,7 @@ public class RedissonItemService {
                 itemStockUpdateDetails.setItemUpdateStatus(ItemUpdateStatus.FAILED);
                 return itemStockUpdateDetails;
             }
-            ItemUpdateLogDto itemUpdateLogDto = itemService.updateStockByRedisson(orderId, customerAccountId, itemStockUpdateDetails);
+            ItemUpdateLogDto itemUpdateLogDto = itemStockService.updateStockByRedisson(orderId, customerAccountId, itemStockUpdateDetails);
             return KafkaConsumer.ItemStockUpdateDetails.fromItemUpdateLogDto(itemUpdateLogDto);
         } catch (InterruptedException e) {
             e.printStackTrace();
