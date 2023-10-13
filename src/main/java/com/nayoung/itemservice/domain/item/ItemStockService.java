@@ -2,11 +2,10 @@ package com.nayoung.itemservice.domain.item;
 
 import com.nayoung.itemservice.domain.item.log.ItemUpdateLog;
 import com.nayoung.itemservice.domain.item.log.ItemUpdateLogRepository;
-import com.nayoung.itemservice.domain.item.log.ItemUpdateStatus;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
 import com.nayoung.itemservice.exception.StockException;
-import com.nayoung.itemservice.messagequeue.KafkaConsumer;
+import com.nayoung.itemservice.messagequeue.client.OrderItemStatus;
 import com.nayoung.itemservice.web.dto.ItemUpdateLogDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,19 +28,19 @@ public class ItemStockService {
      * -> Redis Distributed lock에 lease time 설정하는 방식으로 해결 (updateStockByRedisson method)
      */
     @Transactional
-    public ItemUpdateLogDto decreaseStockByPessimisticLock(Long orderId, Long customerAccountId, KafkaConsumer.ItemStockUpdateDetails request) {
-        ItemUpdateStatus itemUpdateStatus;
+    public ItemUpdateLogDto decreaseStockByPessimisticLock(Long orderId, Long customerAccountId, Long itemId, Long quantity) {
+        OrderItemStatus orderItemStatus;
         try {
-            Item item = itemRepository.findByIdWithPessimisticLock(request.getItemId())
+            Item item = itemRepository.findByIdWithPessimisticLock(itemId)
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
-            item.decreaseStock(request.getQuantity());
-            itemUpdateStatus = ItemUpdateStatus.SUCCEEDED;
+            item.decreaseStock(quantity);
+            orderItemStatus = OrderItemStatus.SUCCEEDED;
         } catch (ItemException e) {
-            itemUpdateStatus = ItemUpdateStatus.FAILED;
+            orderItemStatus = OrderItemStatus.FAILED;
         } catch(StockException e) {
-            itemUpdateStatus = ItemUpdateStatus.OUT_OF_STOCK;
+            orderItemStatus = OrderItemStatus.OUT_OF_STOCK;
         }
-        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(itemUpdateStatus, orderId, customerAccountId, request);
+        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderId, customerAccountId, itemId, quantity);
         itemUpdateLogRepository.save(itemUpdateLog);
         return ItemUpdateLogDto.fromItemUpdateLog(itemUpdateLog);
     }
@@ -55,17 +54,17 @@ public class ItemStockService {
      * -> Optimistic Lock을 사용해 DB 반영 시 충돌 감지해 동시성 문제 해결
      */
     @Transactional
-    public ItemUpdateLogDto updateStockByRedisson(Long orderId, Long customerAccountId, KafkaConsumer.ItemStockUpdateDetails request) {
-        Item item = itemRepository.findById(request.getItemId())
+    public ItemUpdateLogDto updateStockByRedisson(Long orderId, Long customerAccountId, Long itemId, Long quantity) {
+        Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
         // Redis에서 재고 차감 시도
-        ItemUpdateStatus itemUpdateStatus;
-        if(isUpdatableStockByRedis(item.getId(), request.getQuantity()))
-            itemUpdateStatus = (request.getQuantity() >= 0) ? ItemUpdateStatus.SUCCEEDED : ItemUpdateStatus.CANCELED;
-        else itemUpdateStatus = ItemUpdateStatus.OUT_OF_STOCK;
+        OrderItemStatus orderItemStatus;
+        if(isUpdatableStockByRedis(item.getId(), quantity))
+            orderItemStatus = (quantity >= 0) ? OrderItemStatus.SUCCEEDED : OrderItemStatus.CANCELED;
+        else orderItemStatus = OrderItemStatus.OUT_OF_STOCK;
 
-        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(itemUpdateStatus, orderId, customerAccountId, request);
+        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderId, customerAccountId, itemId, quantity);
         itemUpdateLogRepository.save(itemUpdateLog);
         return ItemUpdateLogDto.fromItemUpdateLog(itemUpdateLog);
     }

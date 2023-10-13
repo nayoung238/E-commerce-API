@@ -1,6 +1,6 @@
 package com.nayoung.itemservice.domain.item.log;
 
-import com.nayoung.itemservice.messagequeue.KafkaConsumer;
+import com.nayoung.itemservice.messagequeue.client.OrderItemStatus;
 import lombok.*;
 
 import javax.persistence.*;
@@ -15,7 +15,7 @@ public class ItemUpdateLog {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private ItemUpdateStatus itemUpdateStatus;
+    private OrderItemStatus orderItemStatus;
 
     private Long orderId;
     private Long customerAccountId;
@@ -24,14 +24,14 @@ public class ItemUpdateLog {
     private Long itemId;
     private Long quantity;
 
-    public static ItemUpdateLog from(ItemUpdateStatus itemUpdateStatus, Long orderId,
-                                     Long customerAccountId, KafkaConsumer.ItemStockUpdateDetails request) {
+    public static ItemUpdateLog from(OrderItemStatus orderItemStatus, Long orderId,
+                                     Long customerAccountId, Long itemId, Long quantity) {
         return ItemUpdateLog.builder()
-                .itemUpdateStatus(itemUpdateStatus)
+                .orderItemStatus(orderItemStatus)
                 .orderId(orderId)
                 .customerAccountId(customerAccountId)
-                .itemId(request.getItemId())
-                .quantity(itemUpdateStatus == ItemUpdateStatus.OUT_OF_STOCK ? 0 : request.getQuantity())
+                .itemId(itemId)
+                .quantity(orderItemStatus == OrderItemStatus.OUT_OF_STOCK ? 0 : quantity)
                 .build();
     }
 }

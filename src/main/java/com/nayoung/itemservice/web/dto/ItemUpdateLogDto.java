@@ -1,7 +1,7 @@
 package com.nayoung.itemservice.web.dto;
 
 import com.nayoung.itemservice.domain.item.log.ItemUpdateLog;
-import com.nayoung.itemservice.domain.item.log.ItemUpdateStatus;
+import com.nayoung.itemservice.messagequeue.client.OrderItemStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,7 +9,7 @@ import lombok.Getter;
 public class ItemUpdateLogDto {
 
     private Long id;
-    private ItemUpdateStatus itemUpdateStatus;
+    private OrderItemStatus orderItemStatus;
     private Long orderId;
     private Long customerAccountId;
     private String createdAt;
@@ -19,7 +19,7 @@ public class ItemUpdateLogDto {
     public static ItemUpdateLogDto fromItemUpdateLog(ItemUpdateLog itemUpdateLog) {
         return ItemUpdateLogDto.builder()
                 .id(itemUpdateLog.getId())
-                .itemUpdateStatus(itemUpdateLog.getItemUpdateStatus())
+                .orderItemStatus(itemUpdateLog.getOrderItemStatus())
                 .orderId(itemUpdateLog.getOrderId())
                 .customerAccountId(itemUpdateLog.getCustomerAccountId())
                 .itemId(itemUpdateLog.getItemId())
