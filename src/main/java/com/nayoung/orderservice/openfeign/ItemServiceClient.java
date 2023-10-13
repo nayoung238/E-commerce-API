@@ -1,6 +1,6 @@
 package com.nayoung.orderservice.openfeign;
 
-import com.nayoung.orderservice.web.dto.ItemUpdateLogDto;
+import com.nayoung.orderservice.messagequeue.client.ItemUpdateLogDto;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
