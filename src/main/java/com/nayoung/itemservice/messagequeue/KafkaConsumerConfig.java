@@ -16,6 +16,8 @@ import java.util.Map;
 @Configuration
 public class KafkaConsumerConfig {
 
+    public static final String TEMPORARY_ORDER_TOPIC_NAME = "e-commerce.order.temporary-order-details";
+
     @Bean
     public ConsumerFactory<String, String> consumerFactory() {
         Map<String, Object> properties = new HashMap<>();

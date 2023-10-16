@@ -12,7 +12,7 @@ public class KafkaConsumer {
 
     private final ItemStockService itemStockService;
 
-    @KafkaListener(topics = "e-commerce.order.order-details")
+    @KafkaListener(topics = KafkaConsumerConfig.TEMPORARY_ORDER_TOPIC_NAME)
     public void updateStock(OrderDto order) {
         itemStockService.updateStock(order);
     }
