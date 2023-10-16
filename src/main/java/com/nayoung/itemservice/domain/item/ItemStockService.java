@@ -28,18 +28,19 @@ public class ItemStockService {
      * -> Redis Distributed lock에 lease time 설정하는 방식으로 해결 (updateStockByRedisson method)
      */
     @Transactional
-    public ItemUpdateLogDto decreaseStockByPessimisticLock(Long orderId, Long customerAccountId, Long itemId, Long quantity) {
+    public ItemUpdateLogDto updateStockByPessimisticLock(Long orderId, Long customerAccountId, Long itemId, Long quantity) {
         OrderItemStatus orderItemStatus;
         try {
             Item item = itemRepository.findByIdWithPessimisticLock(itemId)
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
-            item.decreaseStock(quantity);
+            item.updateStock(quantity);
             orderItemStatus = OrderItemStatus.SUCCEEDED;
         } catch (ItemException e) {
             orderItemStatus = OrderItemStatus.FAILED;
         } catch(StockException e) {
             orderItemStatus = OrderItemStatus.OUT_OF_STOCK;
         }
+
         ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderId, customerAccountId, itemId, quantity);
         itemUpdateLogRepository.save(itemUpdateLog);
         return ItemUpdateLogDto.fromItemUpdateLog(itemUpdateLog);
@@ -60,8 +61,11 @@ public class ItemStockService {
 
         // Redis에서 재고 차감 시도
         OrderItemStatus orderItemStatus;
-        if(isUpdatableStockByRedis(item.getId(), quantity))
-            orderItemStatus = (quantity >= 0) ? OrderItemStatus.SUCCEEDED : OrderItemStatus.CANCELED;
+        if(isUpdatableStockByRedis(item.getId(), quantity)) {
+            orderItemStatus = (quantity < 0) ?
+                    OrderItemStatus.SUCCEEDED  // consumption
+                    : OrderItemStatus.CANCELED;  // undo 작업에서 발생하는 production
+        }
         else orderItemStatus = OrderItemStatus.OUT_OF_STOCK;
 
         ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderId, customerAccountId, itemId, quantity);
@@ -70,11 +74,11 @@ public class ItemStockService {
     }
 
     private boolean isUpdatableStockByRedis(Long itemId, Long quantity) {
-        Long stock = itemRedisRepository.decrementItemStock(itemId, quantity);
+        Long stock = itemRedisRepository.incrementItemStock(itemId, quantity);
         if(stock >= 0) return true;
 
         // undo
-        itemRedisRepository.incrementItemStock(itemId, quantity);
+        itemRedisRepository.decrementItemStock(itemId, quantity);
         return false;
     }
 }

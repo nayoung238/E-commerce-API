@@ -47,7 +47,7 @@ public class RedissonItemService {
         if(orderRedisRepository.addOrderId(redisKey[0], order.getId()) == 1) {
             List<OrderItemStatus> result = order.getOrderItemDtos().stream()
                     .filter(orderItem -> orderItem.getQuantity() > 0L)
-                    .map(orderItem -> updateStock(order.getId(), order.getCustomerAccountId(), orderItem.getItemId(), orderItem.getQuantity()))
+                    .map(orderItem -> updateStock(order.getId(), order.getCustomerAccountId(), orderItem.getItemId(), -orderItem.getQuantity()))
                     .collect(Collectors.toList());
 
             boolean isAllSucceeded = result.stream()

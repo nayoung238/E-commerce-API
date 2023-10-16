@@ -39,15 +39,13 @@ public class Item {
                 .build();
     }
 
-    public void decreaseStock(Long quantity) {
-        if(this.stock >= quantity)
-            this.stock -= quantity;
+    public void updateStock(Long quantity) {
+        if(quantity >= 0)  // production
+            this.stock += quantity;
+        else if(this.stock >= -quantity)  // consumption
+            this.stock += quantity;
         else
             throw new StockException(ExceptionCode.INSUFFICIENT_STOCK_EXCEPTION);
-    }
-
-    public void increaseStock(Long quantity) {
-        this.stock += quantity;
     }
 
     public void update(ItemInfoUpdateRequest request) {
