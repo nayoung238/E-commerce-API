@@ -4,6 +4,7 @@ import com.nayoung.itemservice.messagequeue.client.OrderItemStatus;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity @Getter @Builder
 @AllArgsConstructor
@@ -23,6 +24,8 @@ public class ItemUpdateLog {
     private Long itemId;
     private Long quantity;
 
+    private LocalDateTime logCreatedAt;
+
     public static ItemUpdateLog from(OrderItemStatus orderItemStatus, Long orderId,
                                      Long customerAccountId, Long itemId, Long quantity) {
         return ItemUpdateLog.builder()
@@ -32,5 +35,9 @@ public class ItemUpdateLog {
                 .itemId(itemId)
                 .quantity(orderItemStatus == OrderItemStatus.OUT_OF_STOCK ? 0 : quantity)
                 .build();
+    }
+
+    public void setLogCreatedAt(LocalDateTime logCreatedAt) {
+        this.logCreatedAt = logCreatedAt;
     }
 }
