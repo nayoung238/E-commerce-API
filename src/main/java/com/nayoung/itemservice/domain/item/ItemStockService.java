@@ -7,6 +7,7 @@ import com.nayoung.itemservice.exception.ItemException;
 import com.nayoung.itemservice.exception.StockException;
 import com.nayoung.itemservice.messagequeue.KStreamConfig;
 import com.nayoung.itemservice.messagequeue.client.OrderDto;
+import com.nayoung.itemservice.messagequeue.client.OrderItemDto;
 import com.nayoung.itemservice.messagequeue.client.OrderItemStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,22 +53,15 @@ public class ItemStockService {
          */
         String[] redisKey = orderDto.getCreatedAt().toString().split(":");  // key -> order:yyyy-mm-dd'T'HH
         if(orderRedisRepository.addOrderId(redisKey[0], orderDto.getId()) == 1) {
-            List<OrderItemStatus> result = orderDto.getOrderItemDtos().stream()
-                    .filter(orderItem -> orderItem.getQuantity() > 0L)
-                    /*
-                    .map(orderItemDto -> updateStockByPessimisticLock(orderDto.getId(), orderDto.getCustomerAccountId(),
-                                                                      orderItemDto.getItemId(), -orderItemDto.getQuantity()))
-                     */
-                    /*
-                    .map(orderItemDto -> getDistributedLockAndUpdateStock(orderDto.getId(), orderDto.getCustomerAccountId(),
-                                                                          orderItemDto.getItemId(), -orderItemDto.getQuantity()))
-                     */
-                    .map(orderItemDto -> updateStockByKStream(orderDto.getId(), orderDto.getCustomerAccountId(),
-                                                              orderItemDto.getItemId(), -orderItemDto.getQuantity()))
+            List<OrderItemDto> result = orderDto.getOrderItemDtos().stream()
+                    .filter(orderItem -> orderItem.getQuantity() < 0L)
+                    //.map(o -> updateStockByPessimisticLock(o, orderDto.getId())
+                    //.map(o -> getDistributedLockAndUpdateStock(o, orderDto.getId())
+                    .map(o -> updateStockByKStream(o, orderDto.getId()))
                     .collect(Collectors.toList());
 
             boolean isAllSucceeded = result.stream()
-                    .allMatch(orderItemStatus -> Objects.equals(OrderItemStatus.SUCCEEDED, orderItemStatus));
+                    .allMatch(o -> Objects.equals(OrderItemStatus.SUCCEEDED, o.getOrderItemStatus()));
 
             if(!isAllSucceeded) undo(orderDto.getId());
         }
@@ -81,12 +75,12 @@ public class ItemStockService {
      * DB X-Lock을 획득한 노드가 죽는 경우 락을 자동 반납하지 않아 다른 요청은 무한정 대기할 수 있음
      * -> Redis Distributed lock에 lease time 설정하는 방식으로 해결 (updateStockByRedisson method)
      */
-    private OrderItemStatus updateStockByPessimisticLock(Long orderId, Long customerAccountId, Long itemId, Long quantity) {
+    private OrderItemDto updateStockByPessimisticLock(OrderItemDto orderItemDto, Long orderId) {
         OrderItemStatus orderItemStatus;
         try {
-            Item item = itemRepository.findByIdWithPessimisticLock(itemId)
+            Item item = itemRepository.findByIdWithPessimisticLock(orderItemDto.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
-            item.updateStock(quantity);
+            item.updateStock(orderItemDto.getQuantity());
             orderItemStatus = OrderItemStatus.SUCCEEDED;
         } catch (ItemException e) {
             orderItemStatus = OrderItemStatus.FAILED;
@@ -94,9 +88,11 @@ public class ItemStockService {
             orderItemStatus = OrderItemStatus.OUT_OF_STOCK;
         }
 
-        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderId, customerAccountId, itemId, quantity);
+        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderItemDto, orderId);
         itemUpdateLogRepository.save(itemUpdateLog);
-        return itemUpdateLog.getOrderItemStatus();
+
+        orderItemDto.setOrderItemStatus(orderItemStatus);
+        return orderItemDto;
     }
 
     /**
@@ -107,43 +103,46 @@ public class ItemStockService {
      * 분산락 lease time 보다 transaction 처리가 더 길다면 동시성 문제 발생할 수 있음 (여러 요청이 자신이 분산락 주인이라고 착각하고 쿼리 날리는 경우)
      * -> Optimistic Lock을 사용해 DB 반영 시 충돌 감지해 동시성 문제 해결
      */
-    private OrderItemStatus getDistributedLockAndUpdateStock(Long orderId, Long customerAccountId, Long itemId, Long quantity) {
-        RLock lock = redissonClient.getLock(generateKey(itemId));
+    private OrderItemDto getDistributedLockAndUpdateStock(OrderItemDto orderItemDto, Long orderId) {
+        RLock lock = redissonClient.getLock(generateKey(orderItemDto.getItemId()));
         try {
             boolean available = lock.tryLock(10, 1, TimeUnit.SECONDS);
             if(!available) {
                 log.error("Lock 획득 실패");
-                return OrderItemStatus.FAILED;
+                orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
             }
-            return updateStockByRedisson(orderId, customerAccountId, itemId, quantity);
+            return updateStockByRedisson(orderItemDto, orderId);
         } catch (InterruptedException e) {
             e.printStackTrace();
-            return OrderItemStatus.FAILED;
+            orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
         } finally {
             lock.unlock();
         }
+        return orderItemDto;
     }
 
     private String generateKey(Long key) {
         return REDISSON_ITEM_LOCK_PREFIX + key.toString();
     }
 
-    private OrderItemStatus updateStockByRedisson(Long orderId, Long customerAccountId, Long itemId, Long quantity) {
-        Item item = itemRepository.findById(itemId)
+    private OrderItemDto updateStockByRedisson(OrderItemDto orderItemDto, Long orderId) {
+        Item item = itemRepository.findById(orderItemDto.getItemId())
                 .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
         // Redis에서 재고 차감 시도
         OrderItemStatus orderItemStatus;
-        if(isUpdatableStockByRedis(item.getId(), quantity)) {
-            orderItemStatus = (quantity < 0) ?
+        if(isUpdatableStockByRedis(item.getId(), orderItemDto.getQuantity())) {
+            orderItemStatus = (orderItemDto.getQuantity() < 0) ?
                     OrderItemStatus.SUCCEEDED  // consumption
                     : OrderItemStatus.CANCELED;  // undo 작업에서 발생하는 production
         }
         else orderItemStatus = OrderItemStatus.OUT_OF_STOCK;
 
-        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderId, customerAccountId, itemId, quantity);
+        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderItemDto, orderId);
         itemUpdateLogRepository.save(itemUpdateLog);
-        return itemUpdateLog.getOrderItemStatus();
+
+        orderItemDto.setOrderItemStatus(orderItemStatus);
+        return orderItemDto;
     }
 
     /**
@@ -152,21 +151,21 @@ public class ItemStockService {
      * groupByKey로 합계를 구해 DB에 반영 (여러 변경 요청을 모아 한 번에 DB에 반영)
      * 집계하는 과정에서 이벤트가 중복되지 않게 Tumbling window 사용
      */
-    private OrderItemStatus updateStockByKStream(Long orderId, Long customerAccountId, Long itemId, Long quantity) {
-        Item item = itemRepository.findById(itemId)
+    private OrderItemDto updateStockByKStream(OrderItemDto orderItemDto, Long orderId) {
+        Item item = itemRepository.findById(orderItemDto.getItemId())
                 .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
         // Redis에서 재고 차감 시도
         OrderItemStatus orderItemStatus;
-        if(isUpdatableStockByRedis(item.getId(), quantity)) {
-            orderItemStatus = (quantity < 0) ?
+        if(isUpdatableStockByRedis(item.getId(), orderItemDto.getQuantity())) {
+            orderItemStatus = (orderItemDto.getQuantity() < 0) ?
                     OrderItemStatus.SUCCEEDED  // consumption
                     : OrderItemStatus.CANCELED;  // undo 작업에서 발생하는 production
         }
         else orderItemStatus = OrderItemStatus.OUT_OF_STOCK;
 
         // undo 작업 판별하기 위해 DB에 기록
-        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderId, customerAccountId, itemId, quantity);
+        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderItemDto, orderId);
         itemUpdateLogRepository.save(itemUpdateLog);
 
         /*
@@ -176,10 +175,11 @@ public class ItemStockService {
         if(Objects.equals(OrderItemStatus.SUCCEEDED, itemUpdateLog.getOrderItemStatus())
                 || Objects.equals(OrderItemStatus.CANCELED, itemUpdateLog.getOrderItemStatus())) {
             final Long itemUpdateLogId = itemUpdateLog.getId();
-            sendMessageToKStream(itemId, quantity, itemUpdateLogId);
+            sendMessageToKStream(orderItemDto.getItemId(), orderItemDto.getQuantity(), itemUpdateLogId);
         }
 
-        return itemUpdateLog.getOrderItemStatus();
+        orderItemDto.setOrderItemStatus(orderItemStatus);
+        return orderItemDto;
     }
 
     private boolean isUpdatableStockByRedis(Long itemId, Long quantity) {
@@ -230,18 +230,11 @@ public class ItemStockService {
         for(ItemUpdateLog itemUpdateLog : itemUpdateLogs) {
             if(Objects.equals(OrderItemStatus.SUCCEEDED, itemUpdateLog.getOrderItemStatus())) {
                 try {
-                    /*
-                    updateStockByPessimisticLock(itemUpdateLog.getOrderId(), itemUpdateLog.getCustomerAccountId(),
-                            itemUpdateLog.getItemId(), -itemUpdateLog.getQuantity());
-                     */
-
-                    /*
-                    getDistributedLockAndUpdateStock(itemUpdateLog.getOrderId(), itemUpdateLog.getCustomerAccountId(),
-                            itemUpdateLog.getItemId(), -itemUpdateLog.getQuantity());
-                    */
-
-                    updateStockByKStream(itemUpdateLog.getOrderId(), itemUpdateLog.getCustomerAccountId(),
-                            itemUpdateLog.getItemId(), -itemUpdateLog.getQuantity());
+                    OrderItemDto orderItemDto = OrderItemDto.from(itemUpdateLog);
+                    orderItemDto.convertSign();
+                    //updateStockByPessimisticLock(orderItemDto, itemUpdateLog.getOrderId());
+                    //getDistributedLockAndUpdateStock(orderItemDto, itemUpdateLog.getOrderId());
+                    updateStockByKStream(orderItemDto, itemUpdateLog.getOrderId());
                 } catch (ItemException e) {
                     log.error(e.getMessage());
                 }

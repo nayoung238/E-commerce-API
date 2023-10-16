@@ -1,5 +1,6 @@
 package com.nayoung.itemservice.domain.item.log;
 
+import com.nayoung.itemservice.messagequeue.client.OrderItemDto;
 import com.nayoung.itemservice.messagequeue.client.OrderItemStatus;
 import lombok.*;
 
@@ -19,21 +20,16 @@ public class ItemUpdateLog {
     private OrderItemStatus orderItemStatus;
 
     private Long orderId;
-    private Long customerAccountId;
-
     private Long itemId;
     private Long quantity;
-
     private LocalDateTime logCreatedAt;
 
-    public static ItemUpdateLog from(OrderItemStatus orderItemStatus, Long orderId,
-                                     Long customerAccountId, Long itemId, Long quantity) {
+    public static ItemUpdateLog from(OrderItemStatus orderItemStatus, OrderItemDto orderItemDto, Long orderId) {
         return ItemUpdateLog.builder()
                 .orderItemStatus(orderItemStatus)
                 .orderId(orderId)
-                .customerAccountId(customerAccountId)
-                .itemId(itemId)
-                .quantity(orderItemStatus == OrderItemStatus.OUT_OF_STOCK ? 0 : quantity)
+                .itemId(orderItemDto.getItemId())
+                .quantity(orderItemStatus == OrderItemStatus.OUT_OF_STOCK ? 0 : orderItemDto.getQuantity())
                 .build();
     }
 

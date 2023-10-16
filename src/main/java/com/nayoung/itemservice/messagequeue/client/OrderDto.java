@@ -12,8 +12,12 @@ public class OrderDto {
 
     private Long id;
     private Long customerAccountId;
-    private List<OrderItemDto> orderItemDtos;
     private OrderItemStatus orderStatus;
+    private List<OrderItemDto> orderItemDtos;
     private Long totalPrice;
     private LocalDateTime createdAt;
+
+    public void setOrderStatus(OrderItemStatus orderStatus) {
+        this.orderStatus = orderStatus;
+    }
 }
