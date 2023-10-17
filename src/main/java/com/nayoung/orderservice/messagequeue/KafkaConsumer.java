@@ -24,7 +24,7 @@ public class KafkaConsumer {
     private final ItemServiceClient itemServiceClient;
     private final CircuitBreakerFactory circuitBreakerFactory;
 
-    @KafkaListener(topics = "e-commerce.order.order-details")
+    @KafkaListener(topics = KStreamToKTableJoinConfig.TEMPORARY_ORDER_TOPIC_NAME)
     public void updateOrderStatus(ConsumerRecord<String, OrderDto> record) {
         try {
             waitBasedOnTimestamp(record.timestamp());
