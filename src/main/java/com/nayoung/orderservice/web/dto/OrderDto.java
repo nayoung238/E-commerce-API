@@ -7,8 +7,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,13 +23,15 @@ public class OrderDto implements Serializable {
     private Long id;
     private OrderItemStatus orderStatus;
 
-    @NotBlank
+    @NotNull
+    @Valid
     private List<OrderItemDto> orderItemDtos;
 
-    @NotBlank
+    @NotNull
+    @Min(value = 1)
     private Long customerAccountId;
     private Long totalPrice;
-    private String createdAt;
+    private LocalDateTime createdAt;
 
     public static OrderDto fromOrder(Order order) {
         List<OrderItemDto> orderItemDtos = order.getOrderItems().parallelStream()
@@ -42,17 +47,11 @@ public class OrderDto implements Serializable {
                 .orderItemDtos(orderItemDtos)
                 .totalPrice(order.getTotalPrice())
                 .customerAccountId(order.getCustomerAccountId())
-                .createdAt(order.getCreatedAt().toString())
+                .createdAt(order.getCreatedAt())
                 .build();
     }
 
-    public static OrderDto fromFailedOrder(List<OrderItemDto> outOfStockItems) {
-        for(OrderItemDto orderItemDto : outOfStockItems)
-            orderItemDto.setOrderStatus(OrderItemStatus.OUT_OF_STOCK);
-
-        return OrderDto.builder()
-                .orderStatus(OrderItemStatus.FAILED)
-                .orderItemDtos(outOfStockItems)
-                .build();
+    public void setOrderStatus(OrderItemStatus orderItemStatus) {
+        this.orderStatus = orderItemStatus;
     }
 }

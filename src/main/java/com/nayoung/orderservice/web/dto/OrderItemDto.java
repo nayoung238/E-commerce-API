@@ -7,7 +7,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.io.Serializable;
 
 @Getter @Builder
@@ -17,16 +19,18 @@ public class OrderItemDto implements Serializable {
 
     private Long id;
 
-    @NotBlank
+    @NotNull
     private Long itemId;
 
-    @NotBlank
+    @NotNull
+    @Positive
     private Long quantity;
 
-    @NotBlank
+    @NotNull
+    @Min(value = 0)
     private Long price;
 
-    @NotBlank
+    @NotNull
     private Long shopId;
 
     private OrderItemStatus orderItemStatus;
