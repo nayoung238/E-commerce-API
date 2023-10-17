@@ -3,6 +3,7 @@ package com.nayoung.orderservice.domain;
 import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
 import com.nayoung.orderservice.exception.OrderStatusException;
+import com.nayoung.orderservice.messagequeue.KStreamKTableJoinConfig;
 import com.nayoung.orderservice.messagequeue.KafkaProducer;
 import com.nayoung.orderservice.messagequeue.client.ItemUpdateLogDto;
 import com.nayoung.orderservice.web.dto.OrderDto;
@@ -22,11 +23,37 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final KafkaProducer kafkaProducer;
 
+    /**
+     * 주문에 대한 재고 변경 결과(KStream) + waiting 상태의 주문(KTable)을 Join한 결과를 DB에 insert 하는 방식
+     * 1개의 주문 생성에 대해 DB 한 번 접근 (KStream, KTable Join 결과를 insert)
+     */
+    @Transactional
+    public OrderDto createByKStream(OrderDto orderDto) {
+        String KTableKey = orderDto.initializeEventId();
+        kafkaProducer.send(KStreamKTableJoinConfig.TEMPORARY_ORDER_TOPIC_NAME, KTableKey, orderDto);
+        return orderDto;
+    }
+
+    public void insertFinalOrderOnDB(OrderDto orderDto) {
+        Order order = Order.fromOrderDto(orderDto);
+        for(OrderItem orderItem : order.getOrderItems())
+            orderItem.setOrder(order);
+
+        orderRepository.save(order);
+    }
+
+    /**
+     * waiting 상태의 주문 생성(insert) -> 주문 상태 변경(update)하는 방식
+     * 1개의 주문 생성에 대해 DB 두 번 접근 (insert -> update)
+     */
     public OrderDto create(OrderDto orderDto) {
         Order order = Order.fromOrderDto(orderDto);
+        for(OrderItem orderItem : order.getOrderItems())
+            orderItem.setOrder(order);
+
         order = orderRepository.save(order);
 
-        kafkaProducer.send("e-commerce.order.order-details", OrderDto.fromOrder(order));
+        kafkaProducer.send(KStreamKTableJoinConfig.TEMPORARY_ORDER_TOPIC_NAME, null, OrderDto.fromOrder(order));
         return OrderDto.fromOrder(order);
     }
 

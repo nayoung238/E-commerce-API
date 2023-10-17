@@ -24,6 +24,7 @@ public class Order {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
     private Long id;
+    private String eventId;
 
     @Column(name = "customer_account_id")
     private Long customerAccountId;
@@ -36,36 +37,33 @@ public class Order {
 
     private Long totalPrice;
 
-    @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
-
-    private Order(Long customerAccountId, List<OrderItem> orderItems) {
-        for(OrderItem orderItem : orderItems) {
-            this.getOrderItems().add(orderItem);
-            orderItem.setOrder(this);
-        }
-        this.customerAccountId = customerAccountId;
-        this.totalPrice = getTotalPrice(orderItems);
-        this.orderStatus = OrderItemStatus.WAITING;
-    }
 
     protected static Order fromOrderDto(OrderDto orderDto) {
         List<OrderItem> orderItems = orderDto.getOrderItemDtos().stream()
                 .map(OrderItem::fromOrderItemDto)
                 .collect(Collectors.toList());
 
-        return new Order(orderDto.getCustomerAccountId(), orderItems);
+        return Order.builder()
+                .eventId(orderDto.getEventId())
+                .customerAccountId(orderDto.getCustomerAccountId())
+                .orderItems(orderItems)
+                .orderStatus(orderDto.getOrderStatus())
+                .totalPrice(getTotalPrice(orderItems))
+                .createdAt(orderDto.getCreatedAt())
+                .build();
     }
 
     public void updateOrderStatus(OrderItemStatus status) {
         this.orderStatus = status;
     }
 
-    private Long getTotalPrice(List<OrderItem> orderItems) {
+    private static Long getTotalPrice(List<OrderItem> orderItems) {
         assert(!orderItems.isEmpty());
         return orderItems.stream()
                 .map(OrderItem::getPrice)
-                .reduce(Long::sum).get();
+                .reduce(Long::sum)
+                .get();
     }
 }

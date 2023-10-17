@@ -16,22 +16,21 @@ public class KafkaProducer {
 
     private final KafkaTemplate<String, OrderDto> kafkaTemplate;
 
-    public void send(String kafkaTopic, OrderDto message) {
+    public void send(String kafkaTopic, String key, OrderDto value) {
         try {
-            sendMessage(kafkaTopic, message);
+            sendMessage(kafkaTopic, key, value);
         } catch(KafkaProducerException e) {
             log.error("Kafka Exception " + e.getMessage());
         }
     }
 
-    private void sendMessage(String topic, OrderDto message) {
-        kafkaTemplate.send(topic, message)
+    private void sendMessage(String topic, String key, OrderDto value) {
+        kafkaTemplate.send(topic, key, value)
                 .addCallback(result -> {
                     assert result != null;
                     RecordMetadata metadata = result.getRecordMetadata();
 
-                    // if(metadata != null && metadata.offset() != 0)
-                    log.info("Producing message Success topic {} partition {} offset {}",
+                    log.info("Producing message Success -> topic: {}, partition: {}, offset: {}",
                             metadata.topic(),
                             metadata.partition(),
                             metadata.offset());

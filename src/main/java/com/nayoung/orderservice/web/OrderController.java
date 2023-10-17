@@ -5,6 +5,7 @@ import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,8 +18,9 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/")
-    public ResponseEntity<?> create(@RequestBody OrderDto orderDto) {
-        OrderDto response = orderService.create(orderDto);
+    public ResponseEntity<?> create(@RequestBody @Validated OrderDto orderDto) {
+        //OrderDto response = orderService.create(orderDto);
+        OrderDto response = orderService.createByKStream(orderDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

@@ -34,10 +34,11 @@ public class OrderItem {
                 .quantity(orderItemDto.getQuantity())
                 .price(orderItemDto.getPrice())
                 .shopId(orderItemDto.getShopId())
+                .orderItemStatus(orderItemDto.getOrderItemStatus())
                 .build();
     }
 
-    protected void setOrder(Order order) {
+    public void setOrder(Order order) {
         this.order = order;
     }
 

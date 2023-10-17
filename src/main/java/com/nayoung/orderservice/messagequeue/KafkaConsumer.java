@@ -24,7 +24,24 @@ public class KafkaConsumer {
     private final ItemServiceClient itemServiceClient;
     private final CircuitBreakerFactory circuitBreakerFactory;
 
-    @KafkaListener(topics = KStreamToKTableJoinConfig.TEMPORARY_ORDER_TOPIC_NAME)
+    /**
+     * 주문에 대한 재고 변경 결과(KStream) + waiting 상태의 주문(KTable)을 Join한 결과(주문 상세)를 DB에 insert
+     * 1개의 주문 생성에 대해 DB 한 번 접근 (insert)
+     */
+    @KafkaListener(topics = KStreamKTableJoinConfig.FINAL_ORDER_CREATION_TOPIC_NAME)
+    public void createOrderOnDB(OrderDto orderDto) {
+        log.info("Consuming message success -> eventId: {}, orderStatus: {}",
+                orderDto.getEventId(),
+                orderDto.getOrderStatus());
+
+        orderService.insertFinalOrderOnDB(orderDto);
+    }
+
+    /**
+     * 주문에 대한 재고 변경 작업 결과를 직접 요청하고, 그 결과를 바탕으로 상태를 update하는 방식
+     * 1개의 주문 생성에 대해 DB 두 번 접근 (insert -> update)
+     */
+    //@KafkaListener(topics = KStreamKTableJoinConfig.TEMPORARY_ORDER_TOPIC_NAME)
     public void updateOrderStatus(ConsumerRecord<String, OrderDto> record) {
         try {
             waitBasedOnTimestamp(record.timestamp());

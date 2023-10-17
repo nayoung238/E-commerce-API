@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class OrderDto implements Serializable {
 
     private Long id;
+    private String eventId;
     private OrderItemStatus orderStatus;
 
     @NotNull
@@ -31,7 +32,7 @@ public class OrderDto implements Serializable {
     @Min(value = 1)
     private Long customerAccountId;
     private Long totalPrice;
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt;  // 주문 이벤트 중복 처리를 판별하기 위해 item-service에서 Key로 사용
 
     public static OrderDto fromOrder(Order order) {
         List<OrderItemDto> orderItemDtos = order.getOrderItems().parallelStream()
@@ -39,11 +40,13 @@ public class OrderDto implements Serializable {
                 .collect(Collectors.toList());
 
         for(OrderItemDto orderItemDto : orderItemDtos)
-            orderItemDto.setOrderStatus(OrderItemStatus.WAITING);
+            orderItemDto.setOrderStatus((orderItemDto.getOrderItemStatus() == null) ?
+                    OrderItemStatus.WAITING : orderItemDto.getOrderItemStatus());
 
         return OrderDto.builder()
                 .id(order.getId())
-                .orderStatus(OrderItemStatus.WAITING)
+                .eventId(order.getEventId())
+                .orderStatus((order.getOrderStatus() == null) ? OrderItemStatus.WAITING : order.getOrderStatus())
                 .orderItemDtos(orderItemDtos)
                 .totalPrice(order.getTotalPrice())
                 .customerAccountId(order.getCustomerAccountId())
@@ -53,5 +56,11 @@ public class OrderDto implements Serializable {
 
     public void setOrderStatus(OrderItemStatus orderItemStatus) {
         this.orderStatus = orderItemStatus;
+    }
+
+    public String initializeEventId() {
+        createdAt = LocalDateTime.now();
+        eventId = customerAccountId.toString() + ":" + createdAt;
+        return eventId;
     }
 }
