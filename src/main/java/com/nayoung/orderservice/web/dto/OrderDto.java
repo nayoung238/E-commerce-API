@@ -62,4 +62,8 @@ public class OrderDto implements Serializable {
     public void initializeEventId() {
         eventId = customerAccountId.toString() + ":" + UUID.randomUUID();
     }
+
+    public void initializeCreatedAt() {
+        createdAt = LocalDateTime.now();
+    }
 }

@@ -28,7 +28,18 @@ public class OrderService {
      */
     @Transactional
     public OrderDto createByKStream(OrderDto orderDto) {
-        orderDto.initializeEventId();  // KTable & KStream key
+        /*
+            eventId(String) -> KTable & KStream key
+            DTO 객체로 이벤트 생성하므로 이벤트 생성 시점에 order ID(PK) 값이 null
+            -> customerAccountId 와 randomUUID 조합으로 unique한 값 생성
+         */
+        orderDto.initializeEventId();
+
+        /*
+           createdAt(LocalDateTime) -> 이벤트 중복 처리 판별에 사용하는 값
+           Bean 생성하지 않고 DTO 객체로 이벤트 생성하므로 createdAt 직접 설정
+         */
+        orderDto.initializeCreatedAt();
         kafkaProducer.send(KStreamKTableJoinConfig.TEMPORARY_ORDER_TOPIC_NAME, orderDto.getEventId(), orderDto);
         return orderDto;
     }
