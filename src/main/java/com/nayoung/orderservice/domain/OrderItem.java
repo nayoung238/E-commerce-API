@@ -28,7 +28,17 @@ public class OrderItem {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    public static OrderItem fromOrderItemDto(OrderItemDto orderItemDto) {
+    public static OrderItem fromTemporaryOrderItemDto(OrderItemDto orderItemDto) {
+        return OrderItem.builder()
+                .itemId(orderItemDto.getItemId())
+                .quantity(orderItemDto.getQuantity())
+                .price(orderItemDto.getPrice())
+                .shopId(orderItemDto.getShopId())
+                .orderItemStatus(OrderItemStatus.WAITING)
+                .build();
+    }
+
+    public static OrderItem fromFinalOrderItemDto(OrderItemDto orderItemDto) {
         return OrderItem.builder()
                 .itemId(orderItemDto.getItemId())
                 .quantity(orderItemDto.getQuantity())
@@ -42,7 +52,7 @@ public class OrderItem {
         this.order = order;
     }
 
-    public void updateOrderStatus(OrderItemStatus orderItemStatus) {
+    public void setOrderItemStatus(OrderItemStatus orderItemStatus) {
         this.orderItemStatus = orderItemStatus;
     }
 }

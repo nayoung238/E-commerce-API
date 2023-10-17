@@ -13,6 +13,7 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Getter @Builder
@@ -58,9 +59,7 @@ public class OrderDto implements Serializable {
         this.orderStatus = orderItemStatus;
     }
 
-    public String initializeEventId() {
-        createdAt = LocalDateTime.now();
-        eventId = customerAccountId.toString() + ":" + createdAt;
-        return eventId;
+    public void initializeEventId() {
+        eventId = customerAccountId.toString() + ":" + UUID.randomUUID();
     }
 }

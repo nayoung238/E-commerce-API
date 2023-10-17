@@ -2,11 +2,10 @@ package com.nayoung.orderservice.domain;
 
 import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
-import com.nayoung.orderservice.exception.OrderStatusException;
 import com.nayoung.orderservice.messagequeue.KStreamKTableJoinConfig;
 import com.nayoung.orderservice.messagequeue.KafkaProducer;
-import com.nayoung.orderservice.messagequeue.client.ItemUpdateLogDto;
 import com.nayoung.orderservice.web.dto.OrderDto;
+import com.nayoung.orderservice.web.dto.OrderItemDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -29,13 +28,13 @@ public class OrderService {
      */
     @Transactional
     public OrderDto createByKStream(OrderDto orderDto) {
-        String KTableKey = orderDto.initializeEventId();
-        kafkaProducer.send(KStreamKTableJoinConfig.TEMPORARY_ORDER_TOPIC_NAME, KTableKey, orderDto);
+        orderDto.initializeEventId();  // KTable & KStream key
+        kafkaProducer.send(KStreamKTableJoinConfig.TEMPORARY_ORDER_TOPIC_NAME, orderDto.getEventId(), orderDto);
         return orderDto;
     }
 
     public void insertFinalOrderOnDB(OrderDto orderDto) {
-        Order order = Order.fromOrderDto(orderDto);
+        Order order = Order.fromFinalOrderDto(orderDto);
         for(OrderItem orderItem : order.getOrderItems())
             orderItem.setOrder(order);
 
@@ -46,46 +45,31 @@ public class OrderService {
      * waiting 상태의 주문 생성(insert) -> 주문 상태 변경(update)하는 방식
      * 1개의 주문 생성에 대해 DB 두 번 접근 (insert -> update)
      */
+    @Transactional
     public OrderDto create(OrderDto orderDto) {
-        Order order = Order.fromOrderDto(orderDto);
+        Order order = Order.fromTemporaryOrderDto(orderDto);
+        order.initializeEventId();
         for(OrderItem orderItem : order.getOrderItems())
             orderItem.setOrder(order);
 
-        order = orderRepository.save(order);
-
+        orderRepository.save(order);
         kafkaProducer.send(KStreamKTableJoinConfig.TEMPORARY_ORDER_TOPIC_NAME, null, OrderDto.fromOrder(order));
         return OrderDto.fromOrder(order);
     }
 
-    public OrderDto findOrderByOrderId(Long id) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
-
-        return OrderDto.fromOrder(order);
-    }
-
     @Transactional
-    public void updateOrderStatus(List<ItemUpdateLogDto> itemUpdateLogDtos) {
-        assert itemUpdateLogDtos != null;
-        try {
-            Long orderId = itemUpdateLogDtos.get(0).getOrderId();
-            Order order = orderRepository.findById(orderId)
+    public void updateOrderStatus(OrderDto orderDto) {
+        Order order = orderRepository.findById(orderDto.getId())
                     .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
-            HashMap<Long, OrderItemStatus> orderItemStatus = new HashMap<>();
-            for(ItemUpdateLogDto itemUpdateLogDto : itemUpdateLogDtos)
-                orderItemStatus.put(itemUpdateLogDto.getItemId(), itemUpdateLogDto.getOrderItemStatus());
+        order.setOrderStatus(orderDto.getOrderStatus());
 
-            for(OrderItem orderItem : order.getOrderItems())
-                orderItem.updateOrderStatus(orderItemStatus.get(orderItem.getItemId()));
+        HashMap<Long, OrderItemStatus> orderItemStatus = new HashMap<>();
+        for(OrderItemDto orderItemDto : orderDto.getOrderItemDtos())
+            orderItemStatus.put(orderItemDto.getItemId(), orderItemDto.getOrderItemStatus());
 
-            boolean isAllSucceeded = order.getOrderItems().stream()
-                     .allMatch(o -> Objects.equals(o.getOrderItemStatus(), OrderItemStatus.SUCCEEDED));
-            if(isAllSucceeded) order.updateOrderStatus(OrderItemStatus.SUCCEEDED);
-            else order.updateOrderStatus(OrderItemStatus.FAILED);
-        } catch(OrderStatusException e) {
-           e.printStackTrace();
-        }
+        for(OrderItem orderItem : order.getOrderItems())
+            orderItem.setOrderItemStatus(orderItemStatus.get(orderItem.getItemId()));
     }
 
     public List<OrderDto> findOrderByCustomerAccountIdAndOrderId(Long customerAccountId, Long cursorOrderId) {

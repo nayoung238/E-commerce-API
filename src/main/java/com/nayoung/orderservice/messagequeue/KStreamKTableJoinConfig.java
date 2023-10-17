@@ -24,7 +24,7 @@ public class KStreamKTableJoinConfig {
     private final String APPLICATION_ID_CONFIG = "order_application";
     public static final String TEMPORARY_ORDER_TOPIC_NAME = "e-commerce.order.temporary-order-details";
     public static final String FINAL_ORDER_CREATION_TOPIC_NAME = "e-commerce.order.final-order-details";
-    private static final String ITEM_UPDATE_RESULT_TOPIC_NAME = "e-commerce.item.item-update-result";
+    public static final String ITEM_UPDATE_RESULT_TOPIC_NAME = "e-commerce.item.item-update-result";
 
     @Bean
     public Properties kstramProperties() {

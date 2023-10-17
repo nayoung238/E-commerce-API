@@ -17,9 +17,14 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping("/")
+    @PostMapping("/v1")
     public ResponseEntity<?> create(@RequestBody @Validated OrderDto orderDto) {
-        //OrderDto response = orderService.create(orderDto);
+        OrderDto response = orderService.create(orderDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/v2")
+    public ResponseEntity<?> createByKStream(@RequestBody @Validated OrderDto orderDto) {
         OrderDto response = orderService.createByKStream(orderDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

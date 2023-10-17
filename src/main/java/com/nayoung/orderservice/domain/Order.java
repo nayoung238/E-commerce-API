@@ -12,6 +12,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Entity @Getter @Builder
@@ -37,12 +38,26 @@ public class Order {
 
     private Long totalPrice;
 
+    @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    protected static Order fromOrderDto(OrderDto orderDto) {
+    protected static Order fromTemporaryOrderDto(OrderDto orderDto) {
         List<OrderItem> orderItems = orderDto.getOrderItemDtos().stream()
-                .map(OrderItem::fromOrderItemDto)
+                .map(OrderItem::fromTemporaryOrderItemDto)
+                .collect(Collectors.toList());
+
+        return Order.builder()
+                .customerAccountId(orderDto.getCustomerAccountId())
+                .orderItems(orderItems)
+                .orderStatus(OrderItemStatus.WAITING)
+                .totalPrice(getTotalPrice(orderItems))
+                .build();
+    }
+
+    protected static Order fromFinalOrderDto(OrderDto orderDto) {
+        List<OrderItem> orderItems = orderDto.getOrderItemDtos().stream()
+                .map(OrderItem::fromFinalOrderItemDto)
                 .collect(Collectors.toList());
 
         return Order.builder()
@@ -55,7 +70,7 @@ public class Order {
                 .build();
     }
 
-    public void updateOrderStatus(OrderItemStatus status) {
+    public void setOrderStatus(OrderItemStatus status) {
         this.orderStatus = status;
     }
 
@@ -65,5 +80,9 @@ public class Order {
                 .map(OrderItem::getPrice)
                 .reduce(Long::sum)
                 .get();
+    }
+
+    public void initializeEventId() {
+        eventId = customerAccountId.toString() + ":" + UUID.randomUUID();
     }
 }
