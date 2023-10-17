@@ -18,7 +18,6 @@ import java.util.Properties;
 public class KStreamConfig {
 
     private final String APPLICATION_ID_CONFIG = "item_stock_application";
-    public static final String ITEM_LOG_TOPIC = "e-commerce.item.item-update-log";
     private final ItemStockService itemStockService;
 
     @Bean
@@ -34,7 +33,7 @@ public class KStreamConfig {
     @Bean
     public void sumQuantityOfItems() {
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, Long> stream = builder.stream(ITEM_LOG_TOPIC);
+        KStream<String, Long> stream = builder.stream(KafkaProducerConfig.ITEM_LOG_TOPIC);
 
         KTable<Windowed<String>, Long> aggregatedStock = stream.groupByKey()
                 .windowedBy(TimeWindows.ofSizeAndGrace(Duration.ofSeconds(5), Duration.ofDays(1)))

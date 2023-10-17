@@ -15,6 +15,7 @@ public class ItemUpdateLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String eventId;
 
     @Enumerated(EnumType.STRING)
     private OrderItemStatus orderItemStatus;
@@ -24,8 +25,9 @@ public class ItemUpdateLog {
     private Long quantity;
     private LocalDateTime logCreatedAt;
 
-    public static ItemUpdateLog from(OrderItemStatus orderItemStatus, OrderItemDto orderItemDto, Long orderId) {
+    public static ItemUpdateLog from(OrderItemStatus orderItemStatus, OrderItemDto orderItemDto, Long orderId, String eventId) {
         return ItemUpdateLog.builder()
+                .eventId(eventId)
                 .orderItemStatus(orderItemStatus)
                 .orderId(orderId)
                 .itemId(orderItemDto.getItemId())

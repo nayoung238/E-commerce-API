@@ -22,6 +22,7 @@ public class OrderItemDto {
         return OrderItemDto.builder()
                 .itemId(itemUpdateLog.getItemId())
                 .quantity(itemUpdateLog.getQuantity())
+                .orderItemStatus(itemUpdateLog.getOrderItemStatus())
                 .build();
     }
 
