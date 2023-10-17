@@ -1,6 +1,6 @@
 package com.nayoung.accountservice.web.dto;
 
-import com.nayoung.accountservice.client.OrderStatus;
+import com.nayoung.accountservice.client.OrderItemStatus;
 import lombok.Data;
 
 @Data
@@ -10,5 +10,5 @@ public class OrderItemResponse {
     private Long quantity;
     private Long price;
     private Long shopId;
-    private OrderStatus orderStatus;
+    private OrderItemStatus orderStatus;
 }

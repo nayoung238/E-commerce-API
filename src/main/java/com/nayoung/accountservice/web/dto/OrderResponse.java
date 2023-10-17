@@ -1,6 +1,6 @@
 package com.nayoung.accountservice.web.dto;
 
-import com.nayoung.accountservice.client.OrderStatus;
+import com.nayoung.accountservice.client.OrderItemStatus;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 public class OrderResponse {
     private Long orderId;
-    private OrderStatus orderStatus;
+    private OrderItemStatus orderStatus;
 
     private List<OrderItemResponse> orderItemResponses;
     private Long totalPrice;
