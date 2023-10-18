@@ -40,10 +40,6 @@ public class OrderDto implements Serializable {
                 .map(OrderItemDto::fromOrderItem)
                 .collect(Collectors.toList());
 
-        for(OrderItemDto orderItemDto : orderItemDtos)
-            orderItemDto.setOrderStatus((orderItemDto.getOrderItemStatus() == null) ?
-                    OrderItemStatus.WAITING : orderItemDto.getOrderItemStatus());
-
         return OrderDto.builder()
                 .id(order.getId())
                 .eventId(order.getEventId())

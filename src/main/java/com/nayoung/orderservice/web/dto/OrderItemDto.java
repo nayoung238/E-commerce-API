@@ -42,6 +42,7 @@ public class OrderItemDto implements Serializable {
                 .quantity(orderItem.getQuantity())
                 .price(orderItem.getPrice())
                 .shopId(orderItem.getShopId())
+                .orderItemStatus((orderItem.getOrderItemStatus() == null) ? OrderItemStatus.WAITING : orderItem.getOrderItemStatus())
                 .build();
     }
 
