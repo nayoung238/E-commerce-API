@@ -1,9 +1,6 @@
 server:
   port: 0
 
-gateway:
-  ip: 172.19.0.2
-
 spring:
   application:
     name: account-service
@@ -13,7 +10,7 @@ spring:
     show-sql: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql:3306/account_service?useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3307/account_service
     username: root
     password: nayoung1234
   zipkin:
@@ -34,3 +31,7 @@ eureka:
 
 order_service:
   url: http://127.0.0.1:8080/order-service/%s/orders
+
+logging.level:
+  com.nayoung.accountservice: DEBUG
+  org.hibernate.SQL: debug
