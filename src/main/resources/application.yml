@@ -10,9 +10,22 @@ spring:
     show-sql: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3307/order_service
+    url: jdbc:mysql://127.0.0.1:3306/order_service
     username: root
-    password: nayoung1234
+    password: 1234
+  kafka:
+    bootstrap-servers:
+      - localhost:9092
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: com.nayoung.orderservice.messagequeue.OrderDtoSerializer
+    consumer:
+      group-id: orderServiceGroup
+      key-deserializer: org.apache.kafka.common.serialization.StringSerializer
+      value-deserializer: com.nayoung.orderservice.messagequeue.OrderDtoDeserializer
+    streams:
+      application-id: order_application
   zipkin:
     base-url: http://localhost:9411
     enabled: true
