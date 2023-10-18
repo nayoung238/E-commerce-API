@@ -3,7 +3,7 @@ package com.nayoung.accountservice.web.dto;
 import lombok.Data;
 
 @Data
-public class SignUpRequest {
+public class SignUpDto {
 
     private String email;
     private String password;

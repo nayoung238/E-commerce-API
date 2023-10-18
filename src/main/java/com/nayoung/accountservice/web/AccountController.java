@@ -1,8 +1,8 @@
 package com.nayoung.accountservice.web;
 
 import com.nayoung.accountservice.domain.AccountService;
-import com.nayoung.accountservice.web.dto.AccountResponse;
-import com.nayoung.accountservice.web.dto.SignUpRequest;
+import com.nayoung.accountservice.web.dto.AccountDto;
+import com.nayoung.accountservice.web.dto.SignUpDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -18,14 +18,14 @@ public class AccountController {
     private final Environment env;
 
     @PostMapping("/sign-up")
-    public ResponseEntity<?> signup(@RequestBody SignUpRequest request) {
-        AccountResponse response = accountService.createAccount(request);
+    public ResponseEntity<?> signup(@RequestBody SignUpDto request) {
+        AccountDto response = accountService.createAccount(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping(value = {"/{accountId}/{cursorOrderId}","/{accountId}" })
     public ResponseEntity<?> getAccountById(@PathVariable Long accountId, @PathVariable(required = false) Long cursorOrderId) {
-        AccountResponse response = accountService.getAccountById(accountId, cursorOrderId);
+        AccountDto response = accountService.getAccountById(accountId, cursorOrderId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

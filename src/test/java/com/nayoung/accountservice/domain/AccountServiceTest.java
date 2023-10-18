@@ -1,7 +1,7 @@
 package com.nayoung.accountservice.domain;
 
-import com.nayoung.accountservice.web.dto.AccountResponse;
-import com.nayoung.accountservice.web.dto.SignUpRequest;
+import com.nayoung.accountservice.web.dto.AccountDto;
+import com.nayoung.accountservice.web.dto.SignUpDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -21,12 +21,12 @@ public class AccountServiceTest {
 
     @Test
     void createAccount() {
-        SignUpRequest request = new SignUpRequest();
+        SignUpDto request = new SignUpDto();
         request.setEmail("abc@gmail.com");
         request.setName("evelyn82ny");
         request.setPassword("password1234");
 
-        AccountResponse response = accountService.createAccount(request);
+        AccountDto response = accountService.createAccount(request);
         Assertions.assertEquals(request.getName(), response.getName());
         Assertions.assertEquals(1L, response.getAccountId());
     }

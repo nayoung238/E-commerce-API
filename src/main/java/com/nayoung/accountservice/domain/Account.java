@@ -1,6 +1,6 @@
 package com.nayoung.accountservice.domain;
 
-import com.nayoung.accountservice.web.dto.SignUpRequest;
+import com.nayoung.accountservice.web.dto.SignUpDto;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,13 +25,13 @@ public class Account {
     private String password;
     private String name;
 
-    private Account (SignUpRequest signUpRequest) {
+    private Account (SignUpDto signUpRequest) {
         this.email = signUpRequest.getEmail();
         this.password = signUpRequest.getPassword();
         this.name = signUpRequest.getName();
     }
 
-    public static Account fromAccountDto(SignUpRequest signUpRequest) {
+    public static Account fromAccountDto(SignUpDto signUpRequest) {
         return new Account(signUpRequest);
     }
 }
