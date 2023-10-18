@@ -30,7 +30,7 @@ public class KafkaConsumer {
      * 주문에 대한 '재고 변경 결과 이벤트'를 바탕으로 상태를 update하는 방식
      * 1개의 주문 생성에 대해 DB 두 번 접근 (insert -> update)
      */
-    @KafkaListener(topics = KStreamKTableJoinConfig.ITEM_UPDATE_RESULT_TOPIC_NAME)
+    //@KafkaListener(topics = KStreamKTableJoinConfig.ITEM_UPDATE_RESULT_TOPIC_NAME)
     public void updateOrderStatus(OrderDto orderDto) {
         log.info("Consuming message success -> orderId: {}, orderStatus: {}",
                 orderDto.getId(),
