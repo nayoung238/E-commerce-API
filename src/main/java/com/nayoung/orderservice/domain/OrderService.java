@@ -83,11 +83,11 @@ public class OrderService {
             orderItem.setOrderItemStatus(orderItemStatus.get(orderItem.getItemId()));
     }
 
-    public List<OrderDto> findOrderByCustomerAccountIdAndOrderId(Long customerAccountId, Long cursorOrderId) {
+    public List<OrderDto> findOrderByCustomerAccountIdAndOrderId(Long customerAccountId, Long orderId) {
         PageRequest pageRequest = PageRequest.of(0, 5);
-        List<Order> orders = new ArrayList<>();
-        if(cursorOrderId != null)
-            orders = orderRepository.findByCustomerAccountIdAndIdLessThanOrderByIdDesc(customerAccountId, cursorOrderId, pageRequest);
+        List<Order> orders;
+        if(orderId != null)
+            orders = orderRepository.findByCustomerAccountIdAndIdLessThanOrderByIdDesc(customerAccountId, orderId, pageRequest);
         else
             orders = orderRepository.findByCustomerAccountIdOrderByIdDesc(customerAccountId, pageRequest);
 
