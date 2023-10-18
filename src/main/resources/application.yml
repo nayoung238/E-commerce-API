@@ -20,23 +20,9 @@ spring:
     sampler:
       probability: 1.0
 
-resilience4j:
-  retry:
-    configs:
-      default:
-        max-attempts: 4
-        waitDuration: 5000
-        enable-exponential-backoff: true
-        exponential-backoff-multiplier: 2
-        retry-exceptions:
-          - feign.FeignException
-    instances:
-      orderDetailsResult:
-        base-config: default
-
 logging:
   level:
-    com.nayoung.orderservice.openfeign: DEBUG
+    com.nayoung.orderservice: DEBUG
 
 eureka:
   instance:
