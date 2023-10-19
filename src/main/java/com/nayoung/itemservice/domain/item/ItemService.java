@@ -150,15 +150,13 @@ public class ItemService {
         if(itemUpdateLogs.isEmpty())
             throw new OrderException(ExceptionCode.NOT_FOUND_ORDER_DETAILS);
 
-        Map<Long, ItemUpdateLog> uniqueItemUpdateLogs = new HashMap<>();
+        Set<Long> itemId = new HashSet<>();
         itemUpdateLogs.sort((Comparator.comparing(ItemUpdateLog::getId)));
-        for(ItemUpdateLog itemUpdateLog : itemUpdateLogs)
-            uniqueItemUpdateLogs.put(itemUpdateLog.getItemId(), itemUpdateLog);
-
-        List<ItemUpdateLogDto> itemUpdateLogDtos = new ArrayList<>();
-        for(ItemUpdateLog itemUpdateLog : uniqueItemUpdateLogs.values())
-            itemUpdateLogDtos.add(ItemUpdateLogDto.fromItemUpdateLog(itemUpdateLog));
-
-        return itemUpdateLogDtos;
+        return itemUpdateLogs.stream()
+                .filter(i -> !itemId.contains(i.getItemId()))
+                .map(i -> {
+                    itemId.add(i.getItemId());
+                    return ItemUpdateLogDto.fromItemUpdateLog(i);})
+                .collect(Collectors.toList());
     }
 }

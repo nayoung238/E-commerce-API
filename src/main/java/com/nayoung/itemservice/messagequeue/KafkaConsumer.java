@@ -18,9 +18,8 @@ public class KafkaConsumer {
     public void updateStock(OrderDto orderDto) {
         log.info("Consuming message Success -> eventId:{}", orderDto.getEventId());
 
-        for(OrderItemDto orderItemDto : orderDto.getOrderItemDtos())
-            orderItemDto.convertSign();
-
+        orderDto.getOrderItemDtos()
+                .forEach(OrderItemDto::convertSign);
         itemStockService.updateStock(orderDto);
     }
 }

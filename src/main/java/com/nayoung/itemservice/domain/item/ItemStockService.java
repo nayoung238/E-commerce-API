@@ -14,8 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +40,7 @@ public class ItemStockService {
         /*
             Redis에서 order:yyyy-mm-dd'T'HH(key)애 eventId(value)의 존재 여부 파악
             addEventId method로 Redis에 eventID를 추가했을 때 1을 return 받아야 최초 요청
+            최초 요청만 재고 변경 작업 진행
          */
         String[] redisKey = orderDto.getCreatedAt().toString().split(":");  // key -> order:yyyy-mm-dd'T'HH
         if(orderRedisRepository.addEventId(redisKey[0], orderDto.getEventId()) == 1) {
@@ -49,26 +49,36 @@ public class ItemStockService {
                     .map(o -> stockUpdateService.updateStock(o, orderDto.getId(), orderDto.getEventId()))
                     .collect(Collectors.toList());
 
-            boolean isAllSucceeded = result.stream()
-                    .allMatch(o -> Objects.equals(OrderItemStatus.SUCCEEDED, o.getOrderItemStatus()));
-
-            if(isAllSucceeded)
-                orderDto.setOrderStatus(OrderItemStatus.SUCCEEDED);
-            else {
-                orderDto.setOrderStatus(OrderItemStatus.FAILED);
+            if (!isAllSucceeded(result))
                 undo(orderDto.getId(), orderDto.getEventId());
-
-                List<OrderItemDto> orderItemDtos = itemUpdateLogRepository.findAllByEventId(orderDto.getEventId())
-                        .stream()
-                        .map(OrderItemDto::from)
-                        .collect(Collectors.toList());
-
-                orderDto.setOrderItemDtos(orderItemDtos);
-            }
-            kafkaProducer.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC_NAME, orderDto.getEventId(), orderDto);
         }
+
+        List<OrderItemDto> orderItemDtos = getOrderItemDtosByEventId(orderDto.getEventId());
+        orderDto.setOrderItemDtos(orderItemDtos);
+
+        if(isAllSucceeded(orderDto.getOrderItemDtos())) orderDto.setOrderStatus(OrderItemStatus.SUCCEEDED);
+        else orderDto.setOrderStatus(OrderItemStatus.FAILED);
+
+        kafkaProducer.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC_NAME, orderDto.getEventId(), orderDto);
     }
 
+    private boolean isAllSucceeded(List<OrderItemDto> orderItemDtos) {
+        return orderItemDtos.stream()
+                .allMatch(o -> Objects.equals(OrderItemStatus.SUCCEEDED, o.getOrderItemStatus()));
+    }
+
+    private List<OrderItemDto> getOrderItemDtosByEventId(String eventId) {
+        List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByEventId(eventId);
+
+        Set<Long> itemId = new HashSet<>();
+        itemUpdateLogs.sort(Comparator.comparing(ItemUpdateLog::getId));
+        return itemUpdateLogs.stream()
+                .filter(i -> !itemId.contains(i.getItemId()))
+                .map(i -> {
+                    itemId.add(i.getItemId());
+                    return OrderItemDto.from(i);})
+                .collect(Collectors.toList());
+    }
 
     @Transactional
     public void updateStockOnDB(Long itemId, Long quantity) {
@@ -79,20 +89,16 @@ public class ItemStockService {
 
     private void undo(Long orderId, String eventId) {
         List<ItemUpdateLog> itemUpdateLogs;
-        if(orderId != null) itemUpdateLogs = itemUpdateLogRepository.findAllByOrderId(orderId);
+        if(orderId != null) itemUpdateLogs =  itemUpdateLogRepository.findAllByOrderId(orderId);
         else if(eventId != null) itemUpdateLogs = itemUpdateLogRepository.findAllByEventId(eventId);
         else throw new RuntimeException();
 
-        for(ItemUpdateLog itemUpdateLog : itemUpdateLogs) {
-            if(Objects.equals(OrderItemStatus.SUCCEEDED, itemUpdateLog.getOrderItemStatus())) {
-                try {
-                    OrderItemDto orderItemDto = OrderItemDto.from(itemUpdateLog);
+        itemUpdateLogs.stream()
+                .filter(i -> Objects.equals(OrderItemStatus.SUCCEEDED, i.getOrderItemStatus()))
+                .forEach(i -> {
+                    OrderItemDto orderItemDto = OrderItemDto.from(i);
                     orderItemDto.convertSign();
                     stockUpdateService.updateStock(orderItemDto, orderId, eventId);
-                } catch (ItemException e) {
-                    log.error(e.getMessage());
-                }
-            }
-        }
+                });
     }
 }
