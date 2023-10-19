@@ -72,7 +72,7 @@ public class ItemStockService {
         List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByEventId(eventId);
 
         Set<Long> itemId = new HashSet<>();
-        itemUpdateLogs.sort(Comparator.comparing(ItemUpdateLog::getId));
+        itemUpdateLogs.sort(Comparator.comparing(ItemUpdateLog::getId).reversed());
         return itemUpdateLogs.stream()
                 .filter(i -> !itemId.contains(i.getItemId()))
                 .map(i -> {
