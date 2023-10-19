@@ -46,8 +46,8 @@ public class OrderService {
 
     public void insertFinalOrderOnDB(OrderDto orderDto) {
         Order order = Order.fromFinalOrderDto(orderDto);
-        for(OrderItem orderItem : order.getOrderItems())
-            orderItem.setOrder(order);
+        order.getOrderItems()
+                .forEach(o -> o.setOrder(order));
 
         orderRepository.save(order);
     }
@@ -60,8 +60,9 @@ public class OrderService {
     public OrderDto create(OrderDto orderDto) {
         Order order = Order.fromTemporaryOrderDto(orderDto);
         order.initializeEventId();
-        for(OrderItem orderItem : order.getOrderItems())
-            orderItem.setOrder(order);
+
+        order.getOrderItems()
+                .forEach(o -> o.setOrder(order));
 
         orderRepository.save(order);
         kafkaProducer.send(KStreamKTableJoinConfig.TEMPORARY_ORDER_TOPIC_NAME, null, OrderDto.fromOrder(order));
@@ -75,12 +76,12 @@ public class OrderService {
 
         order.setOrderStatus(orderDto.getOrderStatus());
 
-        HashMap<Long, OrderItemStatus> orderItemStatus = new HashMap<>();
-        for(OrderItemDto orderItemDto : orderDto.getOrderItemDtos())
-            orderItemStatus.put(orderItemDto.getItemId(), orderItemDto.getOrderItemStatus());
+        HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();
+        orderDto.getOrderItemDtos()
+                .forEach(o -> orderItemStatusHashMap.put(o.getItemId(), o.getOrderItemStatus()));
 
-        for(OrderItem orderItem : order.getOrderItems())
-            orderItem.setOrderItemStatus(orderItemStatus.get(orderItem.getItemId()));
+        order.getOrderItems()
+                .forEach(o -> o.setOrderItemStatus(orderItemStatusHashMap.get(o.getItemId())));
     }
 
     public List<OrderDto> findOrderByCustomerAccountIdAndOrderId(Long customerAccountId, Long orderId) {

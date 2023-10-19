@@ -1,7 +1,5 @@
 package com.nayoung.orderservice.messagequeue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,16 +33,5 @@ public class KafkaProducer {
                             metadata.partition(),
                             metadata.offset());
                     }, exception -> log.error("Producing message Failure " + exception.getMessage()));
-    }
-
-    private String getMessage(OrderDto orderDto) {
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonInString = "";
-        try {
-            jsonInString = mapper.writeValueAsString(orderDto);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return jsonInString;
     }
 }
