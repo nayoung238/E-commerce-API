@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,11 +47,11 @@ public class ItemStockService {
         if(orderRedisRepository.addEventId(redisKey[0], orderDto.getEventId()) == 1) {
             List<OrderItemDto> result = orderDto.getOrderItemDtos().stream()
                     .filter(orderItem -> orderItem.getQuantity() < 0L)
-                    .map(o -> stockUpdateService.updateStock(o, orderDto.getId(), orderDto.getEventId()))
+                    .map(o -> stockUpdateService.updateStock(o, orderDto.getEventId()))
                     .collect(Collectors.toList());
 
             if (!isAllSucceeded(result))
-                undo(orderDto.getId(), orderDto.getEventId());
+                undo(orderDto.getEventId());
         }
 
         List<OrderItemDto> orderItemDtos = getOrderItemDtosByEventId(orderDto.getEventId());
@@ -87,18 +88,15 @@ public class ItemStockService {
         item.updateStock(quantity);
     }
 
-    private void undo(Long orderId, String eventId) {
-        List<ItemUpdateLog> itemUpdateLogs;
-        if(orderId != null) itemUpdateLogs =  itemUpdateLogRepository.findAllByOrderId(orderId);
-        else if(eventId != null) itemUpdateLogs = itemUpdateLogRepository.findAllByEventId(eventId);
-        else throw new RuntimeException();
+    private void undo(@NotNull String eventId) {
+        List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByEventId(eventId);
 
         itemUpdateLogs.stream()
                 .filter(i -> Objects.equals(OrderItemStatus.SUCCEEDED, i.getOrderItemStatus()))
                 .forEach(i -> {
                     OrderItemDto orderItemDto = OrderItemDto.from(i);
                     orderItemDto.convertSign();
-                    stockUpdateService.updateStock(orderItemDto, orderId, eventId);
+                    stockUpdateService.updateStock(orderItemDto, eventId);
                 });
     }
 }

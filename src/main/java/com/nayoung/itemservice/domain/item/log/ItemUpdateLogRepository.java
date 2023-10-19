@@ -6,7 +6,5 @@ import java.util.List;
 
 public interface ItemUpdateLogRepository extends JpaRepository<ItemUpdateLog, Long> {
 
-    List<ItemUpdateLog> findAllByOrderId(Long orderId);
-
     List<ItemUpdateLog> findAllByEventId(String eventId);
 }

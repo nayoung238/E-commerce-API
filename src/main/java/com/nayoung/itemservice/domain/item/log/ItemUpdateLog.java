@@ -20,16 +20,14 @@ public class ItemUpdateLog {
     @Enumerated(EnumType.STRING)
     private OrderItemStatus orderItemStatus;
 
-    private Long orderId;
     private Long itemId;
     private Long quantity;
     private LocalDateTime logCreatedAt;
 
-    public static ItemUpdateLog from(OrderItemStatus orderItemStatus, OrderItemDto orderItemDto, Long orderId, String eventId) {
+    public static ItemUpdateLog from(OrderItemStatus orderItemStatus, OrderItemDto orderItemDto, String eventId) {
         return ItemUpdateLog.builder()
                 .eventId(eventId)
                 .orderItemStatus(orderItemStatus)
-                .orderId(orderId)
                 .itemId(orderItemDto.getItemId())
                 .quantity(orderItemStatus == OrderItemStatus.OUT_OF_STOCK ? 0 : orderItemDto.getQuantity())
                 .build();

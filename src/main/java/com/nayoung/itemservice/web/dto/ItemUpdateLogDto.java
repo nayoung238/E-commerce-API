@@ -10,7 +10,6 @@ public class ItemUpdateLogDto {
 
     private Long id;
     private OrderItemStatus orderItemStatus;
-    private Long orderId;
     private Long itemId;
     private Long quantity;
 
@@ -18,7 +17,6 @@ public class ItemUpdateLogDto {
         return ItemUpdateLogDto.builder()
                 .id(itemUpdateLog.getId())
                 .orderItemStatus(itemUpdateLog.getOrderItemStatus())
-                .orderId(itemUpdateLog.getOrderId())
                 .itemId(itemUpdateLog.getItemId())
                 .quantity(itemUpdateLog.getQuantity())
                 .build();

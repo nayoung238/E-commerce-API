@@ -28,7 +28,7 @@ public class StockUpdateByPessimisticLock implements StockUpdate {
      * -> Redis Distributed lock에 lease time 설정하는 방식으로 해결 (updateStockByRedisson method)
      */
     @Override
-    public OrderItemDto updateStock(OrderItemDto orderItemDto, Long orderId, String eventId) {
+    public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
         OrderItemStatus orderItemStatus;
         try {
             Item item = itemRepository.findByIdWithPessimisticLock(orderItemDto.getItemId())
@@ -41,7 +41,7 @@ public class StockUpdateByPessimisticLock implements StockUpdate {
             orderItemStatus = OrderItemStatus.OUT_OF_STOCK;
         }
 
-        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderItemDto, orderId, eventId);
+        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderItemDto, eventId);
         itemUpdateLogRepository.save(itemUpdateLog);
 
         orderItemDto.setOrderItemStatus(orderItemStatus);

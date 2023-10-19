@@ -34,7 +34,7 @@ public class StockUpdateByKStream implements StockUpdate {
      * 집계하는 과정에서 이벤트가 중복되지 않게 Tumbling window 사용
      */
     @Override
-    public OrderItemDto updateStock(OrderItemDto orderItemDto, Long orderId, String eventId) {
+    public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
         Item item = itemRepository.findById(orderItemDto.getItemId())
                 .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
@@ -48,7 +48,7 @@ public class StockUpdateByKStream implements StockUpdate {
         else orderItemStatus = OrderItemStatus.OUT_OF_STOCK;
 
         // undo 작업 판별하기 위해 DB에 기록
-        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderItemDto, orderId, eventId);
+        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderItemDto, eventId);
         itemUpdateLogRepository.save(itemUpdateLog);
 
         /*

@@ -143,20 +143,4 @@ public class ItemService {
                 .map(CompletableFuture::join)
                 .collect(Collectors.toList());
     }
-
-    public List<ItemUpdateLogDto> findAllItemUpdateLogByOrderId(Long orderId) {
-        List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByOrderId(orderId);
-
-        if(itemUpdateLogs.isEmpty())
-            throw new OrderException(ExceptionCode.NOT_FOUND_ORDER_DETAILS);
-
-        Set<Long> itemId = new HashSet<>();
-        itemUpdateLogs.sort((Comparator.comparing(ItemUpdateLog::getId)));
-        return itemUpdateLogs.stream()
-                .filter(i -> !itemId.contains(i.getItemId()))
-                .map(i -> {
-                    itemId.add(i.getItemId());
-                    return ItemUpdateLogDto.fromItemUpdateLog(i);})
-                .collect(Collectors.toList());
-    }
 }

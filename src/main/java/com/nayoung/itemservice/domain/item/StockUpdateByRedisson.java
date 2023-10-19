@@ -34,7 +34,7 @@ public class StockUpdateByRedisson implements StockUpdate {
      * -> Optimistic Lock을 사용해 DB 반영 시 충돌 감지해 동시성 문제 해결
      */
     @Override
-    public OrderItemDto updateStock(OrderItemDto orderItemDto, Long orderId, String eventId) {
+    public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
         RLock lock = redissonClient.getLock(generateKey(orderItemDto.getItemId()));
         try {
             boolean available = lock.tryLock(10, 1, TimeUnit.SECONDS);
@@ -42,7 +42,7 @@ public class StockUpdateByRedisson implements StockUpdate {
                 log.error("Lock 획득 실패");
                 orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
             }
-            return updateStockByRedisson(orderItemDto, orderId, eventId);
+            return updateStockByRedisson(orderItemDto, eventId);
         } catch (InterruptedException e) {
             e.printStackTrace();
             orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
@@ -56,7 +56,7 @@ public class StockUpdateByRedisson implements StockUpdate {
         return REDISSON_ITEM_LOCK_PREFIX + key.toString();
     }
 
-    private OrderItemDto updateStockByRedisson(OrderItemDto orderItemDto, Long orderId, String eventId) {
+    private OrderItemDto updateStockByRedisson(OrderItemDto orderItemDto, String eventId) {
         Item item = itemRepository.findById(orderItemDto.getItemId())
                 .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
@@ -69,7 +69,7 @@ public class StockUpdateByRedisson implements StockUpdate {
         }
         else orderItemStatus = OrderItemStatus.OUT_OF_STOCK;
 
-        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderItemDto, orderId, eventId);
+        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderItemDto, eventId);
         itemUpdateLogRepository.save(itemUpdateLog);
 
         orderItemDto.setOrderItemStatus(orderItemStatus);

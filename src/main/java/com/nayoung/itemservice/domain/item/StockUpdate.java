@@ -4,5 +4,5 @@ import com.nayoung.itemservice.messagequeue.client.OrderItemDto;
 
 public interface StockUpdate {
 
-    OrderItemDto updateStock(OrderItemDto orderItemDto, Long orderId, String eventId);
+    OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId);
 }
