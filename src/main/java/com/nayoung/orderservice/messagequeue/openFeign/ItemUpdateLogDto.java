@@ -1,4 +1,4 @@
-package com.nayoung.orderservice.messagequeue.client;
+package com.nayoung.orderservice.messagequeue.openFeign;
 
 import com.nayoung.orderservice.domain.OrderItemStatus;
 import lombok.Getter;
@@ -7,8 +7,8 @@ import lombok.Getter;
 public class ItemUpdateLogDto {
 
     private Long id;
+    private Long eventId;
     private OrderItemStatus orderItemStatus;
-    private Long orderId;
     private Long itemId;
     private Long quantity;
 }
