@@ -1,8 +1,8 @@
 package com.nayoung.accountservice.domain;
 
-import com.nayoung.accountservice.openFeign.OrderServiceClient;
+import com.nayoung.accountservice.openfeign.OrderServiceClient;
 import com.nayoung.accountservice.web.dto.AccountDto;
-import com.nayoung.accountservice.openFeign.client.OrderDto;
+import com.nayoung.accountservice.openfeign.client.OrderDto;
 import com.nayoung.accountservice.web.dto.SignUpDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
