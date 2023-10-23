@@ -4,7 +4,7 @@ import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
 import com.nayoung.orderservice.messagequeue.KafkaProducer;
 import com.nayoung.orderservice.messagequeue.KafkaProducerConfig;
-import com.nayoung.orderservice.messagequeue.openFeign.ItemUpdateLogDto;
+import com.nayoung.orderservice.messagequeue.openfeign.ItemUpdateLogDto;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.nayoung.orderservice.messagequeue.openFeign;
+package com.nayoung.orderservice.messagequeue.openfeign;
 
 import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.cloud.openfeign.FeignClient;

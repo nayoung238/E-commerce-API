@@ -1,4 +1,4 @@
-package com.nayoung.orderservice.messagequeue.openFeign;
+package com.nayoung.orderservice.messagequeue.openfeign;
 
 import com.nayoung.orderservice.domain.OrderItemStatus;
 import lombok.Getter;

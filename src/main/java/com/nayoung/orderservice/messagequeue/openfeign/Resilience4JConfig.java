@@ -1,4 +1,4 @@
-package com.nayoung.orderservice.messagequeue.openFeign;
+package com.nayoung.orderservice.messagequeue.openfeign;
 
 import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
