@@ -33,7 +33,7 @@ public class OrderDto implements Serializable {
     @Min(value = 1)
     private Long customerAccountId;
     private Long totalPrice;
-    private LocalDateTime createdAt;  // 주문 이벤트 중복 처리를 판별하기 위해 item-service에서 Key로 사용
+    private LocalDateTime createdAt;  // 주문 이벤트 중복 처리를 판별하기 위해 item-service에서 Redis Key로 사용
 
     public static OrderDto fromOrder(Order order) {
         List<OrderItemDto> orderItemDtos = order.getOrderItems().parallelStream()
