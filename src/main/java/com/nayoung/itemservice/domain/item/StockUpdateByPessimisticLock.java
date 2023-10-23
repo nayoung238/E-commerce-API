@@ -10,6 +10,7 @@ import com.nayoung.itemservice.messagequeue.client.OrderItemStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,13 +29,16 @@ public class StockUpdateByPessimisticLock implements StockUpdate {
      * -> Redis Distributed lock에 lease time 설정하는 방식으로 해결 (updateStockByRedisson method)
      */
     @Override
+    @Transactional
     public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
         OrderItemStatus orderItemStatus;
         try {
             Item item = itemRepository.findByIdWithPessimisticLock(orderItemDto.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
             item.updateStock(orderItemDto.getQuantity());
-            orderItemStatus = OrderItemStatus.SUCCEEDED;
+            orderItemStatus = (orderItemDto.getQuantity() < 0) ?
+                    OrderItemStatus.SUCCEEDED  // consumption
+                    : OrderItemStatus.CANCELED;  // undo 작업에서 발생하는 production
         } catch (ItemException e) {
             orderItemStatus = OrderItemStatus.FAILED;
         } catch(StockException e) {

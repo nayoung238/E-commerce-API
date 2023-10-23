@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.core.KafkaProducerException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -34,6 +35,7 @@ public class StockUpdateByKStream implements StockUpdate {
      * 집계하는 과정에서 이벤트가 중복되지 않게 Tumbling window 사용
      */
     @Override
+    @Transactional
     public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
         Item item = itemRepository.findById(orderItemDto.getItemId())
                 .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));

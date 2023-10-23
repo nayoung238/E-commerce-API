@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +35,7 @@ public class StockUpdateByRedisson implements StockUpdate {
      * -> Optimistic Lock을 사용해 DB 반영 시 충돌 감지해 동시성 문제 해결
      */
     @Override
+    @Transactional
     public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
         RLock lock = redissonClient.getLock(generateKey(orderItemDto.getItemId()));
         try {
