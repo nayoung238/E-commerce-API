@@ -16,6 +16,10 @@ import java.util.Map;
 @Configuration
 public class KafkaProducerConfig {
 
+    public static final String TEMPORARY_ORDER_TOPIC_NAME = "e-commerce.order.temporary-order-details";
+    public static final String TEMPORARY_RETRY_ORDER_TOPIC_NAME = "e-commerce.order.temporary-retry-order-details";
+    public static final String RETRY_REQUEST_ORDER_ITEM_UPDATE_RESULT_TOPIC_NAME = "e-commerce.order.retry-request-order-item-update-result";
+
     @Bean
     public ProducerFactory<String, OrderDto> producerFactory() {
         Map<String, Object> properties = new HashMap<>();
