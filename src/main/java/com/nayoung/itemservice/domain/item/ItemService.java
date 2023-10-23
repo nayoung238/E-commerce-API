@@ -45,6 +45,16 @@ public class ItemService {
         return ItemDto.fromItem(item);
     }
 
+    public List<ItemUpdateLogDto> findAllItemUpdateLogByEventId(String eventId) {
+        List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByEventId(eventId);
+        if(itemUpdateLogs.isEmpty())
+            throw new ItemException(ExceptionCode.NOT_FOUND_ITEM_UPDATE_LOG);
+
+        return itemUpdateLogs.stream()
+                .map(ItemUpdateLogDto::fromItemUpdateLog)
+                .collect(Collectors.toList());
+    }
+
     public ItemDto findItemByItemId(Long itemId, String customerRating) {
         DiscountCode customerDiscountCode = DiscountCode.getDiscountCode(customerRating);
         Item item = itemRepository.findById(itemId)

@@ -16,7 +16,8 @@ import java.util.Map;
 @Configuration
 public class KafkaConsumerConfig {
 
-    public static final String TEMPORARY_ORDER_TOPIC_NAME = "e-commerce.order.temporary-order-details";
+    public static final String TEMPORARY_ORDER_TOPIC = "e-commerce.order.temporary-order-details";
+    public static final String TEMPORARY_RETRY_ORDER_TOPIC = "e-commerce.order.temporary-retry-order-details";
 
     @Bean
     public ConsumerFactory<String, String> consumerFactory() {

@@ -1,6 +1,7 @@
 package com.nayoung.itemservice.web;
 
 import com.nayoung.itemservice.domain.item.ItemService;
+import com.nayoung.itemservice.exception.ItemException;
 import com.nayoung.itemservice.web.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,5 +33,15 @@ public class ItemController {
     public ResponseEntity<?> create(@RequestBody ItemDto request) {
         ItemDto response = itemService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/item-update-log/{eventId}")
+    public ResponseEntity<?> findAllItemUpdateLogByEventId(@PathVariable String eventId) {
+        try {
+            List<ItemUpdateLogDto> itemUpdateLogDtoList = itemService.findAllItemUpdateLogByEventId(eventId);
+            return ResponseEntity.status(HttpStatus.OK).body(itemUpdateLogDtoList);
+        } catch (ItemException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
+        }
     }
 }

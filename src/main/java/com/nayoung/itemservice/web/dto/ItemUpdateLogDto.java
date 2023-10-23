@@ -9,6 +9,7 @@ import lombok.Getter;
 public class ItemUpdateLogDto {
 
     private Long id;
+    private String eventId;
     private OrderItemStatus orderItemStatus;
     private Long itemId;
     private Long quantity;
@@ -16,6 +17,7 @@ public class ItemUpdateLogDto {
     public static ItemUpdateLogDto fromItemUpdateLog(ItemUpdateLog itemUpdateLog) {
         return ItemUpdateLogDto.builder()
                 .id(itemUpdateLog.getId())
+                .eventId(itemUpdateLog.getEventId())
                 .orderItemStatus(itemUpdateLog.getOrderItemStatus())
                 .itemId(itemUpdateLog.getItemId())
                 .quantity(itemUpdateLog.getQuantity())

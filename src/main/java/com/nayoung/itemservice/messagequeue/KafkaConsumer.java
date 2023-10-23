@@ -14,9 +14,12 @@ public class KafkaConsumer {
 
     private final ItemStockService itemStockService;
 
-    @KafkaListener(topics = KafkaConsumerConfig.TEMPORARY_ORDER_TOPIC_NAME)
+    @KafkaListener(topics = {KafkaConsumerConfig.TEMPORARY_ORDER_TOPIC,
+                            KafkaConsumerConfig.TEMPORARY_RETRY_ORDER_TOPIC})
     public void updateStock(OrderDto orderDto) {
-        log.info("Consuming message Success -> eventId:{}", orderDto.getEventId());
+        log.info("Consuming message Success -> Topic: {}, Event Id:{}",
+                KafkaConsumerConfig.TEMPORARY_ORDER_TOPIC,
+                orderDto.getEventId());
 
         orderDto.getOrderItemDtos()
                 .forEach(OrderItemDto::convertSign);
