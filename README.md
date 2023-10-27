@@ -1,7 +1,7 @@
 ## E-commerce project: Order-service
 
 ![](/_img/architecture_231027.png)
-![](/_img/dbdiagram_230422.png)
+![](/_img/dbdiagram_231027.png)
 <br>
 
 ### 사용 기술
