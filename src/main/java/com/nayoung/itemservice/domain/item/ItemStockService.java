@@ -36,14 +36,13 @@ public class ItemStockService {
      *
      * 중복 처리를 막기 위해 redis에서 이미 처리된 주문 이벤트인지 먼저 파악 (order ID를 멱등키로 사용)
      */
-    @Transactional
     public void updateStock(OrderDto orderDto) {
         /*
             Redis에서 order:yyyy-mm-dd'T'HH(key)애 eventId(value)의 존재 여부 파악
             addEventId method로 Redis에 eventID를 추가했을 때 1을 return 받아야 최초 요청
             최초 요청만 재고 변경 작업 진행
          */
-        String[] redisKey = orderDto.getCreatedAt().toString().split(":");  // key -> order:yyyy-mm-dd'T'HH
+        String[] redisKey = orderDto.getCreatedAt().toString().split(":");  // key[0] -> order:yyyy-mm-dd'T'HH
         if(orderRedisRepository.addEventId(redisKey[0], orderDto.getEventId()) == 1) {
             List<OrderItemDto> result = orderDto.getOrderItemDtos().stream()
                     .filter(orderItem -> orderItem.getQuantity() < 0L)
