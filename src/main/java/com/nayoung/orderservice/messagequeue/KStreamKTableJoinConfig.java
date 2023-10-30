@@ -2,8 +2,6 @@ package com.nayoung.orderservice.messagequeue;
 
 import com.nayoung.orderservice.domain.OrderItemStatus;
 import com.nayoung.orderservice.web.dto.OrderDto;
-import com.nayoung.orderservice.web.dto.OrderItemDto;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -17,14 +15,13 @@ import org.springframework.kafka.annotation.EnableKafka;
 import java.util.HashMap;
 import java.util.Properties;
 
-@EnableKafka @Slf4j
+@EnableKafka
 @Configuration
 public class KStreamKTableJoinConfig {
 
     private final String APPLICATION_ID_CONFIG = "order_application";
-    public static final String TEMPORARY_ORDER_TOPIC_NAME = "e-commerce.order.temporary-order-details";
-    public static final String FINAL_ORDER_CREATION_TOPIC_NAME = "e-commerce.order.final-order-details";
-    public static final String ITEM_UPDATE_RESULT_TOPIC_NAME = "e-commerce.item.item-update-result";
+    public static final String FINAL_ORDER_CREATION_TOPIC = "e-commerce.order.final-order-details";
+    public static final String ITEM_UPDATE_RESULT_TOPIC = "e-commerce.item.item-update-result";
 
     @Bean
     public Properties kstramProperties() {
@@ -39,11 +36,11 @@ public class KStreamKTableJoinConfig {
     @Bean
     public void createOrder() {
         StreamsBuilder builder = new StreamsBuilder();
-        KTable<String, OrderDto> orderKTable = builder.table(TEMPORARY_ORDER_TOPIC_NAME);
-        KStream<String, OrderDto> itemUpdateResultStream = builder.stream(ITEM_UPDATE_RESULT_TOPIC_NAME);
+        KTable<String, OrderDto> orderKTable = builder.table(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC);
+        KStream<String, OrderDto> itemUpdateResultStream = builder.stream(ITEM_UPDATE_RESULT_TOPIC);
 
         itemUpdateResultStream.join(orderKTable, (result, order) -> setOrderStatus(order, result))
-                .to(FINAL_ORDER_CREATION_TOPIC_NAME);
+                .to(FINAL_ORDER_CREATION_TOPIC);
 
         KafkaStreams kafkaStreams = new KafkaStreams(builder.build(), kstramProperties());
         kafkaStreams.start();
