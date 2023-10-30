@@ -35,7 +35,6 @@ public class StockUpdateByKStream implements StockUpdate {
      * 집계하는 과정에서 이벤트가 중복되지 않게 Tumbling window 사용
      */
     @Override
-    @Transactional
     public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
         Item item = itemRepository.findById(orderItemDto.getItemId())
                 .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
@@ -78,7 +77,7 @@ public class StockUpdateByKStream implements StockUpdate {
 
     private void sendMessageToKStream(Long itemId, Long quantity, Long itemUpdateLogId) {
         try {
-            kafkaProducer.sendMessage(KafkaProducerConfig.ITEM_LOG_TOPIC, String.valueOf(itemId), quantity);
+            kafkaProducer.sendMessage(KafkaProducerConfig.ITEM_UPDATE_LOG_TOPIC, String.valueOf(itemId), quantity);
             setLogCreatedAt(itemUpdateLogId);  // broker에 log 적재한 후의 시간 기록
         } catch(KafkaProducerException e) {
             log.error("Kafka Exception " + e.getMessage());

@@ -29,7 +29,6 @@ public class StockUpdateByPessimisticLock implements StockUpdate {
      * -> Redis Distributed lock에 lease time 설정하는 방식으로 해결 (updateStockByRedisson method)
      */
     @Override
-    @Transactional
     public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
         OrderItemStatus orderItemStatus;
         try {

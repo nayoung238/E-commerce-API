@@ -36,6 +36,7 @@ public class ItemStockService {
      *
      * 중복 처리를 막기 위해 redis에서 이미 처리된 주문 이벤트인지 먼저 파악 (order ID를 멱등키로 사용)
      */
+    @Transactional
     public void updateStock(OrderDto orderDto) {
         /*
             Redis에서 order:yyyy-mm-dd'T'HH(key)애 eventId(value)의 존재 여부 파악
@@ -59,7 +60,7 @@ public class ItemStockService {
         if(isAllSucceeded(orderDto.getOrderItemDtos())) orderDto.setOrderStatus(OrderItemStatus.SUCCEEDED);
         else orderDto.setOrderStatus(OrderItemStatus.FAILED);
 
-        kafkaProducer.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC_NAME, orderDto.getEventId(), orderDto);
+        kafkaProducer.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
     }
 
     private boolean isAllSucceeded(List<OrderItemDto> orderItemDtos) {
