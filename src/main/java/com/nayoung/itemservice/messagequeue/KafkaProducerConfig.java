@@ -18,8 +18,8 @@ import java.util.Map;
 @Configuration
 public class KafkaProducerConfig {
 
-    public static final String ITEM_LOG_TOPIC = "e-commerce.item.item-update-log";
-    public static final String ITEM_UPDATE_RESULT_TOPIC_NAME = "e-commerce.item.item-update-result";
+    public static final String ITEM_UPDATE_LOG_TOPIC = "e-commerce.item.item-update-log";
+    public static final String ITEM_UPDATE_RESULT_TOPIC = "e-commerce.item.item-update-result";
 
     @Bean
     public ProducerFactory<String, Long> itemLogProducerFactory() {

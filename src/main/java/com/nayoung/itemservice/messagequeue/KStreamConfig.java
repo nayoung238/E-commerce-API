@@ -33,7 +33,7 @@ public class KStreamConfig {
     @Bean
     public void sumQuantityOfItems() {
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, Long> stream = builder.stream(KafkaProducerConfig.ITEM_LOG_TOPIC);
+        KStream<String, Long> stream = builder.stream(KafkaProducerConfig.ITEM_UPDATE_LOG_TOPIC);
 
         KTable<Windowed<String>, Long> aggregatedStock = stream.groupByKey()
                 .windowedBy(TimeWindows.ofSizeAndGrace(Duration.ofSeconds(5), Duration.ofDays(1)))
