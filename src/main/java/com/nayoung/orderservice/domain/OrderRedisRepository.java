@@ -1,4 +1,4 @@
-package com.nayoung.orderservice.messagequeue;
+package com.nayoung.orderservice.domain;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
