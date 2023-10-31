@@ -4,107 +4,74 @@ import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
 import com.nayoung.orderservice.messagequeue.KafkaProducer;
 import com.nayoung.orderservice.messagequeue.KafkaProducerConfig;
-import com.nayoung.orderservice.messagequeue.openfeign.ItemUpdateLogDto;
+import com.nayoung.orderservice.openfeign.ItemServiceClient;
+import com.nayoung.orderservice.openfeign.ItemUpdateLogDto;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service @Slf4j
+@Service
+@Slf4j
 @RequiredArgsConstructor
-public class OrderService {
+public abstract class OrderService {
 
-    private final OrderRepository orderRepository;
-    private final KafkaProducer kafkaProducer;
+    public final OrderRepository orderRepository;
+    private final OrderRedisRepository orderRedisRepository;
+    public final KafkaProducer kafkaProducer;
+    private final ItemServiceClient itemServiceClient;
+    private final CircuitBreakerFactory circuitBreakerFactory;
+
+    public abstract OrderDto create(OrderDto orderDto);
+    public abstract void checkFinalStatusOfOrder(ConsumerRecord<String, OrderDto> record);
+    public abstract void requestOrderItemUpdateResult(ConsumerRecord<String, OrderDto> record);
 
     /**
-     * 주문에 대한 재고 변경 결과(KStream) + waiting 상태의 주문(KTable)을 Join한 결과를 DB에 insert 하는 방식
-     * 1개의 주문 생성에 대해 DB 한 번 접근 (KStream, KTable Join 결과를 insert)
+     * DB 주문 상태가 확정(succeeded/failed) 되었는지 확인
+     * -> 확정되지 않으면 item-service로 결과 직접 요청
      */
-    @Transactional
-    public OrderDto createByKStream(OrderDto orderDto) {
-        /*
-            eventId(String) -> KTable & KStream key
-            DTO 객체로 이벤트 생성하므로 이벤트 생성 시점에 order ID(PK) 값이 null
-            -> customerAccountId 와 randomUUID 조합으로 unique한 값 생성
-         */
-        orderDto.initializeEventId();
-
-        /*
-           createdAt(LocalDateTime) -> 이벤트 중복 처리 판별에 사용하는 값
-           Bean 생성하지 않고 DTO 객체로 이벤트 생성하므로 createdAt 직접 설정
-         */
-        orderDto.initializeCreatedAt();
-        kafkaProducer.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC_NAME, orderDto.getEventId(), orderDto);
-        return orderDto;
-    }
-
-    @Transactional
-    public void insertFinalOrderOnDB(OrderDto orderDto) {
-        Order order = Order.fromFinalOrderDto(orderDto);
-        order.getOrderItems()
-                .forEach(o -> o.setOrder(order));
-
-        orderRepository.save(order);
+    public void waitBasedOnTimestamp(long recordTimestamp) throws InterruptedException {
+        Instant recordAppendTime = Instant.ofEpochMilli(recordTimestamp);
+        Instant now = Instant.now();
+        while(now.toEpochMilli() - recordAppendTime.toEpochMilli() < 5000) {
+            Thread.sleep(1000);
+            now = Instant.now();
+        }
     }
 
     /**
-     * waiting 상태의 주문 생성(insert) -> 주문 상태 변경(update)하는 방식
-     * 1개의 주문 생성에 대해 DB 두 번 접근 (insert -> update)
+     * 30,000ms 동안 최대 4번 결과 요청 (Resilience4j retry 사용)
+     * Resilience4j CircuitBreaker 실패율 측정
+     * -> Feign Exception 발생 및 30,000ms 이내 응답 여부
      */
-    @Transactional
-    public OrderDto create(OrderDto orderDto) {
-        Order order = Order.fromTemporaryOrderDto(orderDto);
-        order.initializeEventId();
-
-        order.getOrderItems()
-                .forEach(o -> o.setOrder(order));
-
-        orderRepository.save(order);
-        kafkaProducer.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC_NAME, null, OrderDto.fromOrder(order));
-        return OrderDto.fromOrder(order);
+    public List<ItemUpdateLogDto> getAllOrderItemUpdateResultByEventId(String eventId) {
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
+        return circuitBreaker.run(() -> itemServiceClient.findAllOrderItemUpdateResultByEventId(eventId), throwable -> new ArrayList<>());
     }
 
-    @Transactional
-    public void updateOrderStatusByOrderDto(OrderDto orderDto) {
-        Order order = orderRepository.findById(orderDto.getId())
-                    .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
-
-        order.setOrderStatus(orderDto.getOrderStatus());
-
-        HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();
-        orderDto.getOrderItemDtos()
-                .forEach(o -> orderItemStatusHashMap.put(o.getItemId(), o.getOrderItemStatus()));
-
-        order.getOrderItems()
-                .forEach(o -> o.setOrderItemStatus(orderItemStatusHashMap.get(o.getItemId())));
+    public void resendKafkaMessage(String key, OrderDto value) {
+        String[] redisKey = value.getCreatedAt().toString().split(":");  // key[0] -> order-event:yyyy-mm-dd'T'HH
+        if(isFirstEvent(redisKey[0], value.getEventId()))
+            kafkaProducer.send(KafkaProducerConfig.TEMPORARY_RETRY_ORDER_TOPIC, key, value);
+        else {
+            updateOrderStatusToFailedByEventId(value.getEventId());
+            // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요
+        }
     }
 
-    @Transactional
-    public void updateOrderStatusByItemUpdateLogDtoList(String eventId, List<ItemUpdateLogDto> itemUpdateLogDtoList) {
-        Order order = orderRepository.findByEventId(eventId)
-                .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
-
-        HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();
-        itemUpdateLogDtoList
-                .forEach(i -> orderItemStatusHashMap.put(i.getItemId(), i.getOrderItemStatus()));
-
-        order.getOrderItems()
-                .forEach(o -> o.setOrderItemStatus(orderItemStatusHashMap.get(o.getItemId())));
-
-        boolean isAllSucceeded = order.getOrderItems().stream()
-                .allMatch(o -> Objects.equals(OrderItemStatus.SUCCEEDED, o.getOrderItemStatus()));
-        if(isAllSucceeded) order.setOrderStatus(OrderItemStatus.SUCCEEDED);
-        else order.setOrderStatus(OrderItemStatus.FAILED);
+    private boolean isFirstEvent(String key, String eventId) {
+        return orderRedisRepository.addEventId(key, eventId) == 1;
     }
 
-    @Transactional
-    public void updateOrderStatusToFailedByEventId(String eventId) {
+    private void updateOrderStatusToFailedByEventId(String eventId) {
         Order order = orderRepository.findByEventId(eventId)
                 .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 

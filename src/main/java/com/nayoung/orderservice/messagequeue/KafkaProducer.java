@@ -14,6 +14,14 @@ public class KafkaProducer {
 
     private final KafkaTemplate<String, OrderDto> kafkaTemplate;
 
+    public void send(String kafkaTopic, OrderDto value) {
+        try {
+            sendMessage(kafkaTopic, null, value);
+        } catch(KafkaProducerException e) {
+            log.error("Kafka Exception " + e.getMessage());
+        }
+    }
+
     public void send(String kafkaTopic, String key, OrderDto value) {
         try {
             sendMessage(kafkaTopic, key, value);

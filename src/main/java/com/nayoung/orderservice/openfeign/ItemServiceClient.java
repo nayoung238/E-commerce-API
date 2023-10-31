@@ -12,5 +12,5 @@ public interface ItemServiceClient {
 
     @Retry(name = Resilience4JConfig.ORDER_ITEM_UPDATE_RESULT)
     @GetMapping("/item-update-log/{eventId}")
-    List<ItemUpdateLogDto> getAllOrderItemUpdateResult(@PathVariable String eventId);
+    List<ItemUpdateLogDto> findAllOrderItemUpdateResultByEventId(@PathVariable String eventId);
 }
