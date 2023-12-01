@@ -4,30 +4,21 @@ import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.springframework.kafka.core.KafkaProducerException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service @Slf4j
 @RequiredArgsConstructor
-public class KafkaProducer {
+public class KafkaProducerService {
 
     private final KafkaTemplate<String, OrderDto> kafkaTemplate;
 
     public void send(String kafkaTopic, OrderDto value) {
-        try {
-            sendMessage(kafkaTopic, null, value);
-        } catch(KafkaProducerException e) {
-            log.error("Kafka Exception " + e.getMessage());
-        }
+        sendMessage(kafkaTopic, null, value);
     }
 
     public void send(String kafkaTopic, String key, OrderDto value) {
-        try {
-            sendMessage(kafkaTopic, key, value);
-        } catch(KafkaProducerException e) {
-            log.error("Kafka Exception " + e.getMessage());
-        }
+        sendMessage(kafkaTopic, key, value);
     }
 
     private void sendMessage(String topic, String key, OrderDto value) {
@@ -40,6 +31,6 @@ public class KafkaProducer {
                             metadata.topic(),
                             metadata.partition(),
                             metadata.offset());
-                    }, exception -> log.error("Producing message Failure " + exception.getMessage()));
+                    }, exception -> log.error("Producing message Failure -> " + exception.getMessage()));
     }
 }

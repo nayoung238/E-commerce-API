@@ -2,7 +2,7 @@ package com.nayoung.orderservice.domain;
 
 import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
-import com.nayoung.orderservice.messagequeue.KafkaProducer;
+import com.nayoung.orderservice.messagequeue.KafkaProducerService;
 import com.nayoung.orderservice.messagequeue.KafkaProducerConfig;
 import com.nayoung.orderservice.openfeign.ItemServiceClient;
 import com.nayoung.orderservice.openfeign.ItemUpdateLogDto;
@@ -10,7 +10,6 @@ import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +24,7 @@ import java.util.*;
 public class OrderServiceV1 extends OrderService {
 
     public OrderServiceV1(OrderRepository orderRepository, OrderRedisRepository orderRedisRepository,
-                          KafkaProducer kafkaProducer,
+                          KafkaProducerService kafkaProducer,
                           ItemServiceClient itemServiceClient, CircuitBreakerFactory circuitBreakerFactory) {
         super(orderRepository, orderRedisRepository, kafkaProducer, itemServiceClient, circuitBreakerFactory);
     }

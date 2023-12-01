@@ -2,7 +2,7 @@ package com.nayoung.orderservice.domain;
 
 import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
-import com.nayoung.orderservice.messagequeue.KafkaProducer;
+import com.nayoung.orderservice.messagequeue.KafkaProducerService;
 import com.nayoung.orderservice.messagequeue.KafkaProducerConfig;
 import com.nayoung.orderservice.openfeign.ItemServiceClient;
 import com.nayoung.orderservice.openfeign.ItemUpdateLogDto;
@@ -26,7 +26,7 @@ public abstract class OrderService {
 
     public final OrderRepository orderRepository;
     private final OrderRedisRepository orderRedisRepository;
-    public final KafkaProducer kafkaProducer;
+    public final KafkaProducerService kafkaProducer;
     private final ItemServiceClient itemServiceClient;
     private final CircuitBreakerFactory circuitBreakerFactory;
 

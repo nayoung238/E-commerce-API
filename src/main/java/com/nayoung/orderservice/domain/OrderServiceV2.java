@@ -1,7 +1,7 @@
 package com.nayoung.orderservice.domain;
 
 import com.nayoung.orderservice.messagequeue.KStreamKTableJoinConfig;
-import com.nayoung.orderservice.messagequeue.KafkaProducer;
+import com.nayoung.orderservice.messagequeue.KafkaProducerService;
 import com.nayoung.orderservice.messagequeue.KafkaProducerConfig;
 import com.nayoung.orderservice.openfeign.ItemServiceClient;
 import com.nayoung.orderservice.openfeign.ItemUpdateLogDto;
@@ -13,10 +13,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -27,7 +24,7 @@ import java.util.Optional;
 public class OrderServiceV2 extends OrderService {
 
     public OrderServiceV2(OrderRepository orderRepository, OrderRedisRepository orderRedisRepository,
-                          KafkaProducer kafkaProducer,
+                          KafkaProducerService kafkaProducer,
                           ItemServiceClient itemServiceClient, CircuitBreakerFactory circuitBreakerFactory) {
         super(orderRepository, orderRedisRepository, kafkaProducer, itemServiceClient, circuitBreakerFactory);
     }
