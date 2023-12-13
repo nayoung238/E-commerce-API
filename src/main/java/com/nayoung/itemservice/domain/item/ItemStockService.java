@@ -63,6 +63,14 @@ public class ItemStockService {
         kafkaProducer.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
     }
 
+    @Transactional
+    public void updateStock(Long itemId, Long quantity) {
+        Item item = itemRepository.findByIdWithPessimisticLock(itemId)
+                .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+
+        item.updateStock(quantity);
+    }
+
     private boolean isAllSucceeded(List<OrderItemDto> orderItemDtos) {
         return orderItemDtos.stream()
                 .allMatch(o -> Objects.equals(OrderItemStatus.SUCCEEDED, o.getOrderItemStatus()));
@@ -79,13 +87,6 @@ public class ItemStockService {
                     itemId.add(i.getItemId());
                     return OrderItemDto.from(i);})
                 .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public void updateStockOnDB(Long itemId, Long quantity) {
-        Item item = itemRepository.findByIdWithPessimisticLock(itemId)
-                .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
-        item.updateStock(quantity);
     }
 
     private void undo(@NotNull String eventId) {
