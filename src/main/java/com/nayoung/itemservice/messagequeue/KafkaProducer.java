@@ -37,10 +37,11 @@ public class KafkaProducer {
                     .addCallback(result -> {
                         assert result != null;
                         RecordMetadata metadata = result.getRecordMetadata();
-                        log.info("Producing message Success -> topic: {}, partition: {}, offset: {}",
+                        log.info("Producing message Success -> topic: {}, partition: {}, offset: {}, event Id: {}",
                                 metadata.topic(),
                                 metadata.partition(),
-                                metadata.offset());
+                                metadata.offset(),
+                                value.getEventId());
                     }, exception -> log.error("Producing message Failure " + exception.getMessage()));
         } catch (KafkaProducerException e) {
             throw e;
