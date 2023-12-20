@@ -10,14 +10,13 @@ import com.nayoung.itemservice.messagequeue.client.OrderItemDto;
 import com.nayoung.itemservice.messagequeue.client.OrderItemStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.core.KafkaProducerException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-@Service @Primary
+@Service
 @RequiredArgsConstructor
 @Slf4j
 public class StockUpdateByKStream implements StockUpdate {
