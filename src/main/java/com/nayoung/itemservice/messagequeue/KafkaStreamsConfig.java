@@ -1,9 +1,12 @@
 package com.nayoung.itemservice.messagequeue;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.state.WindowStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
@@ -16,6 +19,7 @@ import java.util.Map;
 
 @Configuration
 @EnableKafkaStreams
+@Slf4j
 public class KafkaStreamsConfig {
 
     private final String APPLICATION_ID_CONFIG = "item_stock_application";
@@ -30,12 +34,21 @@ public class KafkaStreamsConfig {
         return new KafkaStreamsConfiguration(props);
     }
 
+
     @Bean
-    public KTable<Windowed<String>, Long> addUpQuantityOfItems(StreamsBuilder streamsBuilder) {
+    public KStream<Windowed<String>, Long> addUpQuantityOfItems(StreamsBuilder streamsBuilder) {
         KStream<String, Long> stream = streamsBuilder.stream(KafkaProducerConfig.ITEM_UPDATE_LOG_TOPIC);
 
         return stream.groupByKey()
-                .windowedBy(TimeWindows.ofSizeAndGrace(Duration.ofSeconds(3), Duration.ofDays(1)))
-                .reduce(Long::sum);
+                .windowedBy(TimeWindows.ofSizeAndGrace(Duration.ofSeconds(5), Duration.ofSeconds(5)))
+                .reduce(Long::sum,
+                        Materialized
+                                .<String, Long, WindowStore<Bytes, byte[]>>as("total-quantity")
+                                .withKeySerde(Serdes.String())
+                                .withValueSerde(Serdes.Long()))
+                .suppress(Suppressed.untilWindowCloses(Suppressed.BufferConfig.unbounded()))
+                .toStream()
+                .peek(((key, value) ->
+                        log.info("Kafka Windowed: " + key.window().startTime()+ " - " + key.window().endTime())));
     }
 }
