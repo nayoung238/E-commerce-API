@@ -21,11 +21,11 @@ public class StockUpdateByPessimisticLock implements StockUpdate {
 
     /**
      * Exclusive Lock 사용
-     * 모든 요청이 X-Lock을 획득하기 위해 대기 -> 대기로 인해 지연 시간 발생
+     * 모든 요청이 X-Lock을 획득하기 위해 대기 -> 대기로 인한 지연 시간 발생
      * 재고 변경 작업의 지연은 주문 상태 확정의 지연으로 이어짐
      *
-     * DB X-Lock을 획득한 노드가 죽는 경우 락을 자동 반납하지 않아 다른 요청은 무한정 대기할 수 있음
-     * -> Redis Distributed lock에 lease time 설정하는 방식으로 해결 (updateStockByRedisson method)
+     * DB X-Lock을 획득한 노드가 죽는 경우 락을 자동 반납하지 않아 다른 요청은 무한정 대기하는 문제 발생
+     * -> Redis Distributed lock에 lease time 설정해 문제 해결
      */
     @Override
     public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {

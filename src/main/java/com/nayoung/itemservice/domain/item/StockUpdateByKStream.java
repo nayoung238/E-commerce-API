@@ -31,6 +31,9 @@ public class StockUpdateByKStream implements StockUpdate {
      * 재고 변경 로그를 KStream(Key: Item ID, Value: Quantity)에 추가
      * groupByKey로 합계를 구해 DB에 반영 (여러 변경 요청을 모아 한 번에 DB에 반영)
      * 집계하는 과정에서 이벤트가 중복되지 않게 Tumbling window 사용
+     *
+     * -> Late event까지 고려하는 적절한 Grace Period를 설정할 수 없음
+     *    정확한 집계 불가능하여 더 이상 해당 방식을 사용하지 않음
      */
     @Override
     public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
@@ -51,8 +54,10 @@ public class StockUpdateByKStream implements StockUpdate {
         itemUpdateLogRepository.save(itemUpdateLog);
 
         /*
-            consumption(SUCCEEDED)이거나 UNDO 작업에서 발생하는 production(CANCELED)이면 재고가 변경되어야 하므로
-            KStream에 재고 변경 데이터 추가
+            consumption(SUCCEEDED)이거나 UNDO 작업에서 발생하는 production(CANCELED)이면
+            재고가 변경되어야 하므로 변경 데이터 이벤트로 생성 -> 생성된 이벤트 KStream으로 집계
+
+            -> but, Late event까지 고려하는 적절한 Grace Period를 설정할 수 없음 (정확한 집계 불가능)
          */
         if(Objects.equals(OrderItemStatus.SUCCEEDED, itemUpdateLog.getOrderItemStatus())
                 || Objects.equals(OrderItemStatus.CANCELED, itemUpdateLog.getOrderItemStatus())) {
