@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 @Service @Primary
 @RequiredArgsConstructor
 @Slf4j
-public class StockUpdateByRedisson implements StockUpdate {
+public class StockUpdateByRedis implements StockUpdate {
 
     private final ItemRepository itemRepository;
     private final ItemUpdateLogRepository itemUpdateLogRepository;
@@ -43,7 +43,7 @@ public class StockUpdateByRedisson implements StockUpdate {
                 log.error("Lock 획득 실패");
                 orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
             }
-            return updateStockByRedisson(orderItemDto, eventId);
+            return updateStockInRedis(orderItemDto, eventId);
         } catch (InterruptedException e) {
             e.printStackTrace();
             orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
@@ -57,7 +57,7 @@ public class StockUpdateByRedisson implements StockUpdate {
         return REDISSON_ITEM_LOCK_PREFIX + key.toString();
     }
 
-    private OrderItemDto updateStockByRedisson(OrderItemDto orderItemDto, String eventId) {
+    private OrderItemDto updateStockInRedis(OrderItemDto orderItemDto, String eventId) {
         Item item = itemRepository.findById(orderItemDto.getItemId())
                 .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
