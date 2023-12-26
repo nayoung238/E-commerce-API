@@ -1,7 +1,5 @@
 package com.nayoung.itemservice.domain.item;
 
-import com.nayoung.itemservice.domain.item.log.ItemUpdateLog;
-import com.nayoung.itemservice.domain.item.log.ItemUpdateLogRepository;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
 import com.nayoung.itemservice.exception.StockException;
@@ -10,6 +8,17 @@ import com.nayoung.itemservice.messagequeue.client.OrderItemStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Exclusive Lock 사용
+ * 모든 요청이 X-Lock을 획득하기 위해 대기 -> 지연 시간 발생
+ * 재고 변경 작업의 지연은 주문 생성 지연으로 이어짐
+ *
+ * DB X-Lock을 획득한 노드가 죽는 경우 락을 자동 반납하지 않음
+ * -> 같은 데이터를 수정하는 다른 요청은 무한 대기하는 문제 발생
+ * -> Redis Distributed lock에 lease time 설정해 문제 해결
+ */
 
 @Service
 @RequiredArgsConstructor
@@ -17,36 +26,24 @@ import org.springframework.stereotype.Service;
 public class StockUpdateByPessimisticLock implements StockUpdate {
 
     private final ItemRepository itemRepository;
-    private final ItemUpdateLogRepository itemUpdateLogRepository;
 
-    /**
-     * Exclusive Lock 사용
-     * 모든 요청이 X-Lock을 획득하기 위해 대기 -> 대기로 인한 지연 시간 발생
-     * 재고 변경 작업의 지연은 주문 상태 확정의 지연으로 이어짐
-     *
-     * DB X-Lock을 획득한 노드가 죽는 경우 락을 자동 반납하지 않아 다른 요청은 무한정 대기하는 문제 발생
-     * -> Redis Distributed lock에 lease time 설정해 문제 해결
-     */
     @Override
+    @Transactional
     public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
-        OrderItemStatus orderItemStatus;
         try {
             Item item = itemRepository.findByIdWithPessimisticLock(orderItemDto.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+
             item.updateStock(orderItemDto.getQuantity());
-            orderItemStatus = (orderItemDto.getQuantity() < 0) ?
+
+            orderItemDto.setOrderItemStatus((orderItemDto.getQuantity() < 0) ?
                     OrderItemStatus.SUCCEEDED  // consumption
-                    : OrderItemStatus.CANCELED;  // undo 작업에서 발생하는 production
+                    : OrderItemStatus.CANCELED); // production (undo)
         } catch (ItemException e) {
-            orderItemStatus = OrderItemStatus.FAILED;
+            orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
         } catch(StockException e) {
-            orderItemStatus = OrderItemStatus.OUT_OF_STOCK;
+            orderItemDto.setOrderItemStatus(OrderItemStatus.OUT_OF_STOCK);
         }
-
-        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderItemDto, eventId);
-        itemUpdateLogRepository.save(itemUpdateLog);
-
-        orderItemDto.setOrderItemStatus(orderItemStatus);
         return orderItemDto;
     }
 }
