@@ -10,12 +10,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
-@Service @Primary
+@Service
 @RequiredArgsConstructor
 @Slf4j
 public class StockUpdateByRedis implements StockUpdate {
