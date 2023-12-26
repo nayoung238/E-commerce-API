@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class KafkaStreamsStockUpdateService {
+public class AggregationResultDeliveryService {
 
     private final ItemStockService itemStockService;
 
@@ -19,8 +19,8 @@ public class KafkaStreamsStockUpdateService {
     public void updateStock(KStream<Windowed<String>, Long> windowedLongKStream) {
         windowedLongKStream.foreach((key, value) -> {
             Long itemId = Long.valueOf(key.key());
-            log.info("Update Stock By Kafka Streams -> itemId " + itemId + ", quantity " + value);
-            itemStockService.updateStock(itemId, value);
+            log.info("Aggregation results using Kafka streams -> itemId " + itemId + ", quantity " + value);
+            itemStockService.updateStockWithPessimisticLock(itemId, value);
         });
     }
 }

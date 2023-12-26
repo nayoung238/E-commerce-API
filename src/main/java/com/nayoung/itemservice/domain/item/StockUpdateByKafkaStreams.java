@@ -16,56 +16,46 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+/**
+ * Kafka Streams 이용해 이벤트 집계 후 DB에 반영하는 방식
+ * -> 재고 변경 데이터를 event로 생성 및 Kafka Streams로 이벤트 집계 후 DB 반영
+ *
+ * Late event까지 고려하는 적절한 Grace Period를 설정할 수 없음
+ * -> 네트워크 지연 예측 불가
+ * -> 정확한 집계 불가능 (더 이상 해당 방식을 사용하지 않음)
+ */
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class StockUpdateByKStream implements StockUpdate {
+public class StockUpdateByKafkaStreams implements StockUpdate {
 
     private final ItemRepository itemRepository;
     private final ItemUpdateLogRepository itemUpdateLogRepository;
     private final ItemRedisRepository itemRedisRepository;
     private final KafkaProducer kafkaProducer;
 
-    /**
-     * Kafka KStream을 이용해 집계하는 방식
-     * 재고 변경 로그를 KStream(Key: Item ID, Value: Quantity)에 추가
-     * groupByKey로 합계를 구해 DB에 반영 (여러 변경 요청을 모아 한 번에 DB에 반영)
-     * 집계하는 과정에서 이벤트가 중복되지 않게 Tumbling window 사용
-     *
-     * -> Late event까지 고려하는 적절한 Grace Period를 설정할 수 없음
-     *    정확한 집계 불가능하여 더 이상 해당 방식을 사용하지 않음
-     */
     @Override
     public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
         Item item = itemRepository.findById(orderItemDto.getItemId())
                 .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
         // Redis에서 재고 차감 시도
-        OrderItemStatus orderItemStatus;
         if(isUpdatableStockByRedis(item.getId(), orderItemDto.getQuantity())) {
-            orderItemStatus = (orderItemDto.getQuantity() < 0) ?
+            orderItemDto.setOrderItemStatus((orderItemDto.getQuantity() < 0) ?
                     OrderItemStatus.SUCCEEDED  // consumption
-                    : OrderItemStatus.CANCELED;  // undo 작업에서 발생하는 production
+                    : OrderItemStatus.CANCELED);  // production (undo)
         }
-        else orderItemStatus = OrderItemStatus.OUT_OF_STOCK;
+        else orderItemDto.setOrderItemStatus(OrderItemStatus.OUT_OF_STOCK);
 
         // undo 작업 판별하기 위해 DB에 기록
-        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemStatus, orderItemDto, eventId);
+        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemDto.getOrderItemStatus(), orderItemDto, eventId);
         itemUpdateLogRepository.save(itemUpdateLog);
 
-        /*
-            consumption(SUCCEEDED)이거나 UNDO 작업에서 발생하는 production(CANCELED)이면
-            재고가 변경되어야 하므로 변경 데이터 이벤트로 생성 -> 생성된 이벤트 KStream으로 집계
-
-            -> but, Late event까지 고려하는 적절한 Grace Period를 설정할 수 없음 (정확한 집계 불가능)
-         */
-        if(Objects.equals(OrderItemStatus.SUCCEEDED, itemUpdateLog.getOrderItemStatus())
-                || Objects.equals(OrderItemStatus.CANCELED, itemUpdateLog.getOrderItemStatus())) {
-            final Long itemUpdateLogId = itemUpdateLog.getId();
-            sendMessageToKStream(orderItemDto.getItemId(), orderItemDto.getQuantity(), itemUpdateLogId);
+        if(Objects.equals(OrderItemStatus.SUCCEEDED, orderItemDto.getOrderItemStatus())  // consumption
+                || Objects.equals(OrderItemStatus.CANCELED, orderItemDto.getOrderItemStatus())) {  // production (undo)
+            sendMessageToKafka(orderItemDto.getItemId(), orderItemDto.getQuantity());
         }
-
-        orderItemDto.setOrderItemStatus(orderItemStatus);
         return orderItemDto;
     }
 
@@ -78,13 +68,12 @@ public class StockUpdateByKStream implements StockUpdate {
         return false;
     }
 
-    private void sendMessageToKStream(Long itemId, Long quantity, Long itemUpdateLogId) {
+    private void sendMessageToKafka(Long itemId, Long quantity) {
         try {
             kafkaProducer.sendMessage(KafkaProducerConfig.ITEM_UPDATE_LOG_TOPIC, String.valueOf(itemId), quantity);
-            setLogCreatedAt(itemUpdateLogId);  // broker에 log 적재한 후의 시간 기록
         } catch(KafkaProducerException e) {
             log.error("Kafka Exception " + e.getMessage());
-            // TODO: broker에 적재되지 못하면 logCreatedAt 값이 null -> null 값만 batch 처리
+            // TODO: broker에 적재되지 못한 이벤트 처리
         }
     }
 
