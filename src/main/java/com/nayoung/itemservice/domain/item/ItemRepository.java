@@ -1,6 +1,5 @@
 package com.nayoung.itemservice.domain.item;
 
-import com.nayoung.itemservice.domain.shop.Shop;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -16,6 +15,4 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     Optional<Item> findByIdWithPessimisticLock(Long id);
 
     List<Item> findAllByName(String name);
-
-    Optional<Item> findByShopAndName(Shop shop, String name);
 }
