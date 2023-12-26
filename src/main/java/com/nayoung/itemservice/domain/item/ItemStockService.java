@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,46 +28,41 @@ public class ItemStockService {
     private final OrderRedisRepository orderRedisRepository;
     private final StockUpdate stockUpdateService;
 
-    /**
-     * producer에서 이벤트 유실이라 판단하면 재시도 대상이라 판단해 재전송함
-     * 만약 이벤트가 유실되지 않았는데 같은 주문에 대한 이벤트가 재전송되면 consumer는 같은 주문을 중복 처리하게 됨
-     * (이벤트 유실에 대한 원인을 제대로 파악할 수 없어서 이미 처리한 이벤트가 재시도 대상이 될 수 있음)
-     *
-     * 중복 처리를 막기 위해 redis에서 이미 처리된 주문 이벤트인지 먼저 파악 (order ID를 멱등키로 사용)
-     */
     @Transactional
     public void updateStock(OrderDto orderDto) {
-        /*
-            Redis에서 order:yyyy-mm-dd'T'HH(key)애 eventId(value)의 존재 여부 파악
-            addEventId method로 Redis에 eventID를 추가했을 때 1을 return 받아야 최초 요청
-            최초 요청만 재고 변경 작업 진행
-         */
-        String[] redisKey = orderDto.getCreatedAt().toString().split(":");  // key[0] -> order:yyyy-mm-dd'T'HH
-        if(orderRedisRepository.addEventId(redisKey[0], orderDto.getEventId()) == 1) {
+        if (isFirstEvent(orderDto)) {  // 최초 요청만 재고 변경 진행
             List<OrderItemDto> result = orderDto.getOrderItemDtos().stream()
-                    .filter(orderItem -> orderItem.getQuantity() < 0L)
+                    .filter(orderItem -> orderItem.getQuantity() < 0L)  // consumption
                     .map(o -> stockUpdateService.updateStock(o, orderDto.getEventId()))
                     .collect(Collectors.toList());
 
-            if (!isAllSucceeded(result))
-                undo(orderDto.getEventId());
+            if (isAllSucceeded(result)) {
+                orderDto.setOrderStatus(OrderItemStatus.SUCCEEDED);
+                orderDto.setOrderItemDtos(result);
+            } else {
+                orderDto.setOrderStatus(OrderItemStatus.FAILED);
+                orderDto.setOrderItemDtos(undo(orderDto.getEventId(), result));
+            }
         }
-
-        List<OrderItemDto> orderItemDtos = getOrderItemDtosByEventId(orderDto.getEventId());
-        orderDto.setOrderItemDtos(orderItemDtos);
-
-        if(isAllSucceeded(orderDto.getOrderItemDtos())) orderDto.setOrderStatus(OrderItemStatus.SUCCEEDED);
-        else orderDto.setOrderStatus(OrderItemStatus.FAILED);
-
+        else {
+            // TODO: first event가 아니면 결과만 return
+        }
         kafkaProducer.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
     }
 
-    @Transactional
-    public void updateStock(Long itemId, Long quantity) {
-        Item item = itemRepository.findByIdWithPessimisticLock(itemId)
-                .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+    private boolean isFirstEvent(OrderDto orderDto) {
+        String redisKey = getRedisKey(orderDto);
+        return orderRedisRepository.addEventId(redisKey, orderDto.getEventId()) == 1;
+    }
 
-        item.updateStock(quantity);
+    private String getRedisKey(OrderDto orderDto) {
+        String[] keys;
+        if(orderDto.getCreatedAt() != null)
+            keys = orderDto.getCreatedAt().toString().split(":");
+        else
+            keys = orderDto.getRequestedAt().toString().split(":");
+
+        return keys[0]; // yyyy-mm-dd'T'HH
     }
 
     private boolean isAllSucceeded(List<OrderItemDto> orderItemDtos) {
@@ -89,15 +83,23 @@ public class ItemStockService {
                 .collect(Collectors.toList());
     }
 
-    private void undo(@NotNull String eventId) {
-        List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByEventId(eventId);
-
-        itemUpdateLogs.stream()
-                .filter(i -> Objects.equals(OrderItemStatus.SUCCEEDED, i.getOrderItemStatus()))
-                .forEach(i -> {
-                    OrderItemDto orderItemDto = OrderItemDto.from(i);
-                    orderItemDto.convertSign();
-                    stockUpdateService.updateStock(orderItemDto, eventId);
+    private List<OrderItemDto> undo(String eventId, List<OrderItemDto> orderItemDtos) {
+        orderItemDtos.stream()
+                .filter(o -> Objects.equals(OrderItemStatus.SUCCEEDED, o.getOrderItemStatus()))
+                .forEach(o -> {
+                    o.convertSign();
+                    stockUpdateService.updateStock(o, eventId);
+                    o.setOrderItemStatus(OrderItemStatus.CANCELED);
                 });
+
+        return orderItemDtos;
+    }
+
+    @Transactional
+    public void updateStockWithPessimisticLock(Long itemId, Long quantity) {
+        Item item = itemRepository.findByIdWithPessimisticLock(itemId)
+                .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+
+        item.updateStock(quantity);
     }
 }
