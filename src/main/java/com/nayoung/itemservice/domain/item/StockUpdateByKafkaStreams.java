@@ -1,7 +1,5 @@
 package com.nayoung.itemservice.domain.item;
 
-import com.nayoung.itemservice.domain.item.log.ItemUpdateLog;
-import com.nayoung.itemservice.domain.item.log.ItemUpdateLogRepository;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
 import com.nayoung.itemservice.messagequeue.KafkaProducer;
@@ -31,7 +29,6 @@ import java.util.Objects;
 public class StockUpdateByKafkaStreams implements StockUpdate {
 
     private final ItemRepository itemRepository;
-    private final ItemUpdateLogRepository itemUpdateLogRepository;
     private final ItemRedisRepository itemRedisRepository;
     private final KafkaProducer kafkaProducer;
 
@@ -48,14 +45,12 @@ public class StockUpdateByKafkaStreams implements StockUpdate {
         }
         else orderItemDto.setOrderItemStatus(OrderItemStatus.OUT_OF_STOCK);
 
-        // undo 작업 판별하기 위해 DB에 기록
-        ItemUpdateLog itemUpdateLog = ItemUpdateLog.from(orderItemDto.getOrderItemStatus(), orderItemDto, eventId);
-        itemUpdateLogRepository.save(itemUpdateLog);
-
         if(Objects.equals(OrderItemStatus.SUCCEEDED, orderItemDto.getOrderItemStatus())  // consumption
                 || Objects.equals(OrderItemStatus.CANCELED, orderItemDto.getOrderItemStatus())) {  // production (undo)
             sendMessageToKafka(orderItemDto.getItemId(), orderItemDto.getQuantity());
         }
+
+        // TODO: Redis 재고 변경 데이터 관리
         return orderItemDto;
     }
 
@@ -75,11 +70,5 @@ public class StockUpdateByKafkaStreams implements StockUpdate {
             log.error("Kafka Exception " + e.getMessage());
             // TODO: broker에 적재되지 못한 이벤트 처리
         }
-    }
-
-    private void setLogCreatedAt(Long id) {
-        ItemUpdateLog itemUpdateLog = itemUpdateLogRepository.findById(id).orElseThrow();
-        itemUpdateLog.setLogCreatedAt(LocalDateTime.now());
-        itemUpdateLogRepository.save(itemUpdateLog);
     }
 }
