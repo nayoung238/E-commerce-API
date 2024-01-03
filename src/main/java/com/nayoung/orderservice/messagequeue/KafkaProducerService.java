@@ -23,14 +23,15 @@ public class KafkaProducerService {
 
     private void sendMessage(String topic, String key, OrderDto value) {
         kafkaTemplate.send(topic, key, value)
-                .addCallback(result -> {
-                    assert result != null;
-                    RecordMetadata metadata = result.getRecordMetadata();
-
-                    log.info("Producing message Success -> topic: {}, partition: {}, offset: {}",
-                            metadata.topic(),
-                            metadata.partition(),
-                            metadata.offset());
-                    }, exception -> log.error("Producing message Failure -> " + exception.getMessage()));
+                .addCallback(
+                        result -> {  // SuccessCallback
+                            assert result != null;
+                            RecordMetadata metadata = result.getRecordMetadata();
+                            log.info("Producing message Success -> topic: {}, partition: {}, offset: {}, event Id: {}",
+                                    metadata.topic(),
+                                    metadata.partition(),
+                                    metadata.offset(),
+                                    value.getEventId());},
+                        exception -> log.error("Producing message Failure -> " + exception.getMessage()));  // FailureCallback
     }
 }
