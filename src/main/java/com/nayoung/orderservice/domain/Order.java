@@ -25,6 +25,8 @@ public class Order {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
     private Long id;
+
+    @Column(unique = true)
     private String eventId;
 
     @Column(name = "customer_account_id")
@@ -35,8 +37,6 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     private OrderItemStatus orderStatus;
-
-    private Long totalPrice;
 
     @CreatedDate
     @Column(updatable = false)
@@ -51,7 +51,6 @@ public class Order {
                 .customerAccountId(orderDto.getCustomerAccountId())
                 .orderItems(orderItems)
                 .orderStatus(OrderItemStatus.WAITING)
-                .totalPrice(getTotalPrice(orderItems))
                 .build();
     }
 
@@ -65,7 +64,6 @@ public class Order {
                 .customerAccountId(orderDto.getCustomerAccountId())
                 .orderItems(orderItems)
                 .orderStatus(orderDto.getOrderStatus())
-                .totalPrice(getTotalPrice(orderItems))
                 .createdAt(orderDto.getCreatedAt())
                 .build();
     }
@@ -74,15 +72,7 @@ public class Order {
         this.orderStatus = status;
     }
 
-    private static Long getTotalPrice(List<OrderItem> orderItems) {
-        assert(!orderItems.isEmpty());
-        return orderItems.stream()
-                .map(OrderItem::getPrice)
-                .reduce(Long::sum)
-                .get();
-    }
-
-    public void initializeEventId() {
-        eventId = customerAccountId.toString() + ":" + UUID.randomUUID();
+    protected void setEventId(String eventId) {
+        this.eventId = eventId;
     }
 }
