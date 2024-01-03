@@ -15,6 +15,7 @@ import org.springframework.kafka.config.KafkaStreamsConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @EnableKafkaStreams
 @Configuration
@@ -22,6 +23,7 @@ public class KStreamKTableJoinConfig {
 
     public static final String FINAL_ORDER_CREATION_TOPIC = "e-commerce.order.final-order-details";
     public static final String ORDER_ITEM_UPDATE_RESULT_TOPIC = "e-commerce.item.item-update-result";
+    private final String STATE_DIR = "/tmp/kafka-streams/";
 
     @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
     public KafkaStreamsConfiguration kafkaStreamsProperties() {
@@ -30,6 +32,9 @@ public class KStreamKTableJoinConfig {
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, OrderSerde.class);
+
+        String[] split = UUID.randomUUID().toString().split("-");
+        props.put(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + split[0]);
         return new KafkaStreamsConfiguration(props);
     }
 
