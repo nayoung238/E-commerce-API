@@ -32,25 +32,16 @@ public class OrderServiceV2 extends OrderService {
     @Override
     @Transactional
     public OrderDto create(OrderDto orderDto) {
-        /*
-            eventId(String) -> KTable & KStream key
-            DTO 객체로 이벤트 생성하므로 이벤트 생성 시점에 order ID(PK) 값이 null
-            -> customerAccountId 와 randomUUID 조합으로 unique한 값 생성
-         */
-        orderDto.initializeEventId();
-
-        /*
-           createdAt(LocalDateTime) -> 이벤트 중복 처리 판별에 사용하는 값
-           Bean 생성하지 않고 DTO 객체로 이벤트 생성하므로 createdAt 직접 설정
-         */
-        orderDto.initializeCreatedAt();
+        orderDto.setEventId(setEventId(orderDto.getCustomerAccountId()));
+        orderDto.initializeRequestedAt();
         orderDto.setOrderStatus(OrderItemStatus.WAITING);
         kafkaProducer.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, orderDto.getEventId(), orderDto);
         return orderDto;
     }
 
     @KafkaListener(topics = KStreamKTableJoinConfig.FINAL_ORDER_CREATION_TOPIC)
-    public void createOrderOnDB(ConsumerRecord<String, OrderDto> record) {
+    @Transactional
+    public void create(ConsumerRecord<String, OrderDto> record) {
         log.info("Consuming message success -> Topic: {}, Event Id: {}, Order Status: {}",
                 record.topic(),
                 record.value().getEventId(),
@@ -92,7 +83,7 @@ public class OrderServiceV2 extends OrderService {
 
         List<ItemUpdateLogDto> itemUpdateLogDtos = getAllOrderItemUpdateResultByEventId(record.key());
         if(!itemUpdateLogDtos.isEmpty())
-            kafkaProducer.send(KStreamKTableJoinConfig.ITEM_UPDATE_RESULT_TOPIC, record.key(), record.value());
+            kafkaProducer.send(KStreamKTableJoinConfig.ORDER_ITEM_UPDATE_RESULT_TOPIC, record.key(), record.value());
         else resendKafkaMessage(record.key(), record.value());
     }
 }

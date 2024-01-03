@@ -34,6 +34,16 @@ public abstract class OrderService {
     public abstract void checkFinalStatusOfOrder(ConsumerRecord<String, OrderDto> record);
     public abstract void requestOrderItemUpdateResult(ConsumerRecord<String, OrderDto> record);
 
+    /*
+        eventId(String) -> KTable & KStream key
+        DTO 객체로 이벤트 생성하므로 이벤트 생성 시점에 order ID(PK) 값이 null
+        -> customerAccountId 와 randomUUID 조합으로 unique한 값 생성
+    */
+    public String setEventId(Long customerAccountId) {
+        String[] uuid = UUID.randomUUID().toString().split("-");
+        return customerAccountId.toString() + "-" + uuid[0];
+    }
+
     /**
      * DB 주문 상태가 확정(succeeded/failed) 되었는지 확인
      * -> 확정되지 않으면 item-service로 결과 직접 요청

@@ -33,7 +33,7 @@ public class OrderServiceV1 extends OrderService {
     @Transactional
     public OrderDto create(OrderDto orderDto) {
         Order order = Order.fromTemporaryOrderDto(orderDto);
-        order.initializeEventId();
+        order.setEventId(setEventId(orderDto.getCustomerAccountId()));
 
         order.getOrderItems()
                 .forEach(o -> o.setOrder(order));
@@ -43,25 +43,22 @@ public class OrderServiceV1 extends OrderService {
         return OrderDto.fromOrder(order);
     }
 
-    //@KafkaListener(topics = KStreamKTableJoinConfig.ITEM_UPDATE_RESULT_TOPIC)
+    //@KafkaListener(topics = KStreamKTableJoinConfig.ORDER_ITEM_UPDATE_RESULT_TOPIC)
     @Transactional
     public void updateOrderStatus(ConsumerRecord<String, OrderDto> record) {
-        log.info("Consuming message success -> Topic: {}, Order Id: {}, Order Status: {}",
+        log.info("Consuming message success -> Topic: {}, order Id: {}, event Id: {}, Order Status: {}",
                 record.topic(),
                 record.value().getId(),
+                record.value().getEventId(),
                 record.value().getOrderStatus());
 
-        updateOrderStatusByOrderDto(record.value());
-    }
-
-    private void updateOrderStatusByOrderDto(OrderDto orderDto) {
-        Order order = orderRepository.findById(orderDto.getId())
+        Order order = orderRepository.findById(record.value().getId())
                 .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
-        order.setOrderStatus(orderDto.getOrderStatus());
+        order.setOrderStatus(record.value().getOrderStatus());
 
         HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();
-        orderDto.getOrderItemDtos()
+        record.value().getOrderItemDtos()
                 .forEach(o -> orderItemStatusHashMap.put(o.getItemId(), o.getOrderItemStatus()));
 
         order.getOrderItems()
@@ -103,7 +100,7 @@ public class OrderServiceV1 extends OrderService {
         List<ItemUpdateLogDto> itemUpdateLogDtos = getAllOrderItemUpdateResultByEventId(record.value().getEventId());
         if(!itemUpdateLogDtos.isEmpty())
             updateOrderStatusByItemUpdateLogDtoList(record.value().getEventId(), itemUpdateLogDtos);
-        else resendKafkaMessage(record.key(), record.value());
+        else resendKafkaMessage(null, record.value());
     }
 
     private void updateOrderStatusByItemUpdateLogDtoList(String eventId, List<ItemUpdateLogDto> itemUpdateLogDtoList) {
