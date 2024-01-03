@@ -16,9 +16,8 @@ public class OrderItem {
     private Long id;
 
     private Long itemId;
+
     private Long quantity;
-    private Long price;
-    private Long shopId;
 
     @Enumerated(EnumType.STRING)
     private OrderItemStatus orderItemStatus;
@@ -32,8 +31,6 @@ public class OrderItem {
         return OrderItem.builder()
                 .itemId(orderItemDto.getItemId())
                 .quantity(orderItemDto.getQuantity())
-                .price(orderItemDto.getPrice())
-                .shopId(orderItemDto.getShopId())
                 .orderItemStatus(OrderItemStatus.WAITING)
                 .build();
     }
@@ -42,8 +39,6 @@ public class OrderItem {
         return OrderItem.builder()
                 .itemId(orderItemDto.getItemId())
                 .quantity(orderItemDto.getQuantity())
-                .price(orderItemDto.getPrice())
-                .shopId(orderItemDto.getShopId())
                 .orderItemStatus(orderItemDto.getOrderItemStatus())
                 .build();
     }

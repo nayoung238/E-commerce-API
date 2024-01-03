@@ -13,7 +13,6 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Getter @Builder
@@ -22,7 +21,9 @@ import java.util.stream.Collectors;
 public class OrderDto implements Serializable {
 
     private Long id;
+
     private String eventId;
+
     private OrderItemStatus orderStatus;
 
     @NotNull
@@ -32,8 +33,10 @@ public class OrderDto implements Serializable {
     @NotNull
     @Min(value = 1)
     private Long customerAccountId;
-    private Long totalPrice;
-    private LocalDateTime createdAt;  // 주문 이벤트 중복 처리를 판별하기 위해 item-service에서 Redis Key로 사용
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime requestedAt;  // item-service에서 주문 이벤트 중복 처리를 판별하기 위한 redis key
 
     public static OrderDto fromOrder(Order order) {
         List<OrderItemDto> orderItemDtos = order.getOrderItems().parallelStream()
@@ -45,7 +48,6 @@ public class OrderDto implements Serializable {
                 .eventId(order.getEventId())
                 .orderStatus((order.getOrderStatus() == null) ? OrderItemStatus.WAITING : order.getOrderStatus())
                 .orderItemDtos(orderItemDtos)
-                .totalPrice(order.getTotalPrice())
                 .customerAccountId(order.getCustomerAccountId())
                 .createdAt(order.getCreatedAt())
                 .build();
@@ -55,11 +57,11 @@ public class OrderDto implements Serializable {
         this.orderStatus = orderItemStatus;
     }
 
-    public void initializeEventId() {
-        eventId = customerAccountId.toString() + ":" + UUID.randomUUID();
+    public void initializeRequestedAt() {
+        this.requestedAt = LocalDateTime.now();
     }
 
-    public void initializeCreatedAt() {
-        createdAt = LocalDateTime.now();
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
     }
 }
