@@ -42,6 +42,8 @@ public class Order {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    private LocalDateTime requestedAt;
+
     protected static Order fromTemporaryOrderDto(OrderDto orderDto) {
         List<OrderItem> orderItems = orderDto.getOrderItemDtos().stream()
                 .map(OrderItem::fromTemporaryOrderItemDto)
@@ -51,6 +53,7 @@ public class Order {
                 .customerAccountId(orderDto.getCustomerAccountId())
                 .orderItems(orderItems)
                 .orderStatus(OrderItemStatus.WAITING)
+                .requestedAt(LocalDateTime.now())
                 .build();
     }
 
@@ -65,6 +68,7 @@ public class Order {
                 .orderItems(orderItems)
                 .orderStatus(orderDto.getOrderStatus())
                 .createdAt(orderDto.getCreatedAt())
+                .requestedAt(orderDto.getRequestedAt())
                 .build();
     }
 

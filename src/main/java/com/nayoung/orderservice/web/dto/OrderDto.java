@@ -50,6 +50,7 @@ public class OrderDto implements Serializable {
                 .orderItemDtos(orderItemDtos)
                 .customerAccountId(order.getCustomerAccountId())
                 .createdAt(order.getCreatedAt())
+                .requestedAt(order.getRequestedAt())
                 .build();
     }
 
