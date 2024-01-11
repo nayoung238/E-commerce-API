@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 @Service @Slf4j
@@ -21,17 +22,25 @@ public class KafkaProducerService {
         sendMessage(kafkaTopic, key, value);
     }
 
-    private void sendMessage(String topic, String key, OrderDto value) {
+    private void sendMessage(String topic, String key, @Payload(required = false) OrderDto value) {
         kafkaTemplate.send(topic, key, value)
                 .addCallback(
-                        result -> {  // SuccessCallback
+                        result -> {
                             assert result != null;
                             RecordMetadata metadata = result.getRecordMetadata();
-                            log.info("Producing message Success -> topic: {}, partition: {}, offset: {}, event Id: {}",
-                                    metadata.topic(),
-                                    metadata.partition(),
-                                    metadata.offset(),
-                                    value.getEventId());},
-                        exception -> log.error("Producing message Failure -> " + exception.getMessage()));  // FailureCallback
+                            if(result.getProducerRecord().value() == null) {
+                                log.info("Tombstone Record -> topic: {}, partition: {}, event Id: {}",
+                                        metadata.topic(),
+                                        metadata.partition(),
+                                        result.getProducerRecord().key());
+                            }
+                            else {
+                                log.info("Producing message Success -> topic: {}, partition: {}, offset: {}, event Id: {}",
+                                        metadata.topic(),
+                                        metadata.partition(),
+                                        metadata.offset(),
+                                        result.getProducerRecord().key());
+                            }},
+                        exception -> log.error("Producing message Failure -> " + exception.getMessage()));
     }
 }

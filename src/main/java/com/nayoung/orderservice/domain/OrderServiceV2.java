@@ -52,6 +52,7 @@ public class OrderServiceV2 extends OrderService {
                 .forEach(o -> o.setOrder(order));
 
         orderRepository.save(order);
+        kafkaProducer.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, order.getEventId(), null);
     }
 
     @Override
