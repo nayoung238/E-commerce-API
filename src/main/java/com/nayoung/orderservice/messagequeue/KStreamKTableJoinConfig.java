@@ -13,6 +13,8 @@ import org.springframework.kafka.annotation.EnableKafkaStreams;
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -34,16 +36,15 @@ public class KStreamKTableJoinConfig {
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, OrderSerde.class);
 
         String[] split = UUID.randomUUID().toString().split("-");
-        props.put(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + split[0]);
+        props.put(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm")) + "-" + split[0]);
         return new KafkaStreamsConfiguration(props);
     }
 
     @Bean
     public KStream<String, OrderDto> createOrder(StreamsBuilder streamsBuilder) {
         KTable<String, OrderDto> requestedOrder = streamsBuilder.table(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC);
-        KStream<String, OrderDto> itemUpdateResult = streamsBuilder.stream(ORDER_ITEM_UPDATE_RESULT_TOPIC);
-
-        return itemUpdateResult.join(requestedOrder, (result, order) -> setOrderStatus(order, result));
+        KStream<String, OrderDto> orderItemUpdateResult = streamsBuilder.stream(ORDER_ITEM_UPDATE_RESULT_TOPIC);
+        return orderItemUpdateResult.join(requestedOrder, (result, order) -> setOrderStatus(order, result));
     }
 
     private OrderDto setOrderStatus(OrderDto orderDto, OrderDto result) {
