@@ -44,7 +44,7 @@ public class Order {
 
     private LocalDateTime requestedAt;
 
-    protected static Order fromTemporaryOrderDto(OrderDto orderDto) {
+    public static Order fromTemporaryOrderDto(OrderDto orderDto) {
         List<OrderItem> orderItems = orderDto.getOrderItemDtos().stream()
                 .map(OrderItem::fromTemporaryOrderItemDto)
                 .collect(Collectors.toList());
@@ -57,7 +57,7 @@ public class Order {
                 .build();
     }
 
-    protected static Order fromFinalOrderDto(OrderDto orderDto) {
+    public static Order fromFinalOrderDto(OrderDto orderDto) {
         List<OrderItem> orderItems = orderDto.getOrderItemDtos().stream()
                 .map(OrderItem::fromFinalOrderItemDto)
                 .collect(Collectors.toList());
@@ -76,7 +76,7 @@ public class Order {
         this.orderStatus = status;
     }
 
-    protected void setEventId(String eventId) {
+    public void setEventId(String eventId) {
         this.eventId = eventId;
     }
 }

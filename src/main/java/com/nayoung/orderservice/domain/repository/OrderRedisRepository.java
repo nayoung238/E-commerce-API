@@ -1,4 +1,4 @@
-package com.nayoung.orderservice.domain;
+package com.nayoung.orderservice.domain.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

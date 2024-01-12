@@ -1,7 +1,7 @@
 package com.nayoung.orderservice.web;
 
-import com.nayoung.orderservice.domain.OrderServiceV1;
-import com.nayoung.orderservice.domain.OrderServiceV2;
+import com.nayoung.orderservice.domain.service.OrderServiceV1;
+import com.nayoung.orderservice.domain.service.OrderServiceV2;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

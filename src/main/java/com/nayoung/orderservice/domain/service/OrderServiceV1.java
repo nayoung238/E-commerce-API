@@ -1,5 +1,9 @@
-package com.nayoung.orderservice.domain;
+package com.nayoung.orderservice.domain.service;
 
+import com.nayoung.orderservice.domain.Order;
+import com.nayoung.orderservice.domain.OrderItemStatus;
+import com.nayoung.orderservice.domain.repository.OrderRedisRepository;
+import com.nayoung.orderservice.domain.repository.OrderRepository;
 import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
 import com.nayoung.orderservice.messagequeue.KafkaProducerService;

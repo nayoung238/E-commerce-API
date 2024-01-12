@@ -1,5 +1,9 @@
-package com.nayoung.orderservice.domain;
+package com.nayoung.orderservice.domain.service;
 
+import com.nayoung.orderservice.domain.Order;
+import com.nayoung.orderservice.domain.OrderItemStatus;
+import com.nayoung.orderservice.domain.repository.OrderRedisRepository;
+import com.nayoung.orderservice.domain.repository.OrderRepository;
 import com.nayoung.orderservice.messagequeue.KStreamKTableJoinConfig;
 import com.nayoung.orderservice.messagequeue.KafkaProducerService;
 import com.nayoung.orderservice.messagequeue.KafkaProducerConfig;
@@ -14,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * KStream(주문에 대한 재고 변경 결과) + KTable(waiting 상태의 주문) Join 한 결과(주문 상세)를 DB에 insert 하는 방식 (v2)
@@ -59,17 +62,17 @@ public class OrderServiceV2 extends OrderService {
     @KafkaListener(topics = {KafkaProducerConfig.TEMPORARY_ORDER_TOPIC,
                             KafkaProducerConfig.TEMPORARY_RETRY_ORDER_TOPIC})
     public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderDto> record) {
-        log.info("Consuming message success -> Topic: {}, Order Id: {}, Event Id: {}",
+        log.info("Consuming message success -> Topic: {}, Event Id: {}",
                 record.topic(),
-                record.value().getId(),
                 record.value().getEventId());
 
         try {
             waitBasedOnTimestamp(record.timestamp());
 
-            Optional<Order> order = orderRepository.findByEventId(record.value().getEventId());
-            if (order.isEmpty())
+            boolean isExist = orderRepository.existsByEventId(record.key());
+            if (!isExist) {
                 kafkaProducer.send(KafkaProducerConfig.RETRY_REQUEST_ORDER_ITEM_UPDATE_RESULT_TOPIC, record.key(), record.value());
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
