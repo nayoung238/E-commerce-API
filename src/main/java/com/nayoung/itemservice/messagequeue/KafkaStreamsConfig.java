@@ -22,12 +22,10 @@ import java.util.Map;
 @Slf4j
 public class KafkaStreamsConfig {
 
-    private final String APPLICATION_ID_CONFIG = "item_stock_application";
-
     @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
     public KafkaStreamsConfiguration kafkaStreamsConfiguration() {
         Map<String, Object> props = new HashMap<>();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, APPLICATION_ID_CONFIG);
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "item_application");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.Long().getClass());
@@ -39,14 +37,18 @@ public class KafkaStreamsConfig {
     public KStream<Windowed<String>, Long> addUpQuantityOfItems(StreamsBuilder streamsBuilder) {
         KStream<String, Long> stream = streamsBuilder.stream(KafkaProducerConfig.ITEM_UPDATE_LOG_TOPIC);
 
-        return stream.groupByKey()
+        return stream
+                .groupByKey()
                 .windowedBy(TimeWindows.ofSizeAndGrace(Duration.ofSeconds(5), Duration.ofSeconds(5)))
                 .reduce(Long::sum,
                         Materialized
                                 .<String, Long, WindowStore<Bytes, byte[]>>as("total-quantity")
                                 .withKeySerde(Serdes.String())
-                                .withValueSerde(Serdes.Long()))
-                .suppress(Suppressed.untilWindowCloses(Suppressed.BufferConfig.unbounded()))
+                                .withValueSerde(Serdes.Long())
+                                .withRetention(Duration.ofMinutes(1))
+                                //.withLoggingEnabled(Collections.singletonMap("min.insync.replicas", "1"))
+                                )
+                .suppress(Suppressed.untilWindowCloses(Suppressed.BufferConfig.unbounded().shutDownWhenFull()))
                 .toStream()
                 .peek(((key, value) ->
                         log.info("Kafka Windowed: " + key.window().startTime()+ " - " + key.window().endTime())));
