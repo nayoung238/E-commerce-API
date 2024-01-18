@@ -6,10 +6,10 @@ import com.nayoung.orderservice.domain.repository.OrderRedisRepository;
 import com.nayoung.orderservice.domain.repository.OrderRepository;
 import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
-import com.nayoung.orderservice.messagequeue.KafkaProducerService;
-import com.nayoung.orderservice.messagequeue.KafkaProducerConfig;
+import com.nayoung.orderservice.kafka.producer.KafkaProducerService;
+import com.nayoung.orderservice.kafka.producer.KafkaProducerConfig;
 import com.nayoung.orderservice.openfeign.ItemServiceClient;
-import com.nayoung.orderservice.openfeign.ItemUpdateLogDto;
+import com.nayoung.orderservice.openfeign.dto.ItemUpdateLogDto;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -73,23 +73,24 @@ public class OrderServiceV1 extends OrderService {
     //@KafkaListener(topics = {KafkaProducerConfig.TEMPORARY_ORDER_TOPIC,
     //                         KafkaProducerConfig.TEMPORARY_RETRY_ORDER_TOPIC})
     public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderDto> record) {
-        log.info("Consuming message success -> Topic: {}, Order Id: {}, Event Id: {}",
-                record.topic(),
-                record.value().getId(),
-                record.value().getEventId());
+        if(record.value() != null) {
+            log.info("Consuming message success -> Topic: {}, Order Id: {}, Event Id: {}",
+                    record.topic(),
+                    record.value().getId(),
+                    record.value().getEventId());
 
-        try {
-            waitBasedOnTimestamp(record.timestamp());
+            try {
+                waitBasedOnTimestamp(record.timestamp());
 
-            Optional<Order> order = orderRepository.findByEventId(record.value().getEventId());
-            if(order.isPresent()) {
-                if(Objects.equals(OrderItemStatus.WAITING,order.get().getOrderStatus())) {
-                    kafkaProducer.send(KafkaProducerConfig.RETRY_REQUEST_ORDER_ITEM_UPDATE_RESULT_TOPIC, record.value());
-                }
+                Optional<Order> order = orderRepository.findByEventId(record.value().getEventId());
+                if (order.isPresent()) {
+                    if (Objects.equals(OrderItemStatus.WAITING, order.get().getOrderStatus())) {
+                        kafkaProducer.send(KafkaProducerConfig.RETRY_REQUEST_ORDER_ITEM_UPDATE_RESULT_TOPIC, record.value());
+                    }
+                } else kafkaProducer.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, record.value());
+            } catch (InterruptedException e) {
+                log.error(e.getMessage());
             }
-            else kafkaProducer.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, record.value());
-        } catch(InterruptedException e) {
-            e.printStackTrace();
         }
     }
 

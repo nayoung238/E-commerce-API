@@ -4,11 +4,11 @@ import com.nayoung.orderservice.domain.Order;
 import com.nayoung.orderservice.domain.OrderItemStatus;
 import com.nayoung.orderservice.domain.repository.OrderRedisRepository;
 import com.nayoung.orderservice.domain.repository.OrderRepository;
-import com.nayoung.orderservice.messagequeue.KStreamKTableJoinConfig;
-import com.nayoung.orderservice.messagequeue.KafkaProducerService;
-import com.nayoung.orderservice.messagequeue.KafkaProducerConfig;
+import com.nayoung.orderservice.kafka.streams.KStreamKTableJoinConfig;
+import com.nayoung.orderservice.kafka.producer.KafkaProducerService;
+import com.nayoung.orderservice.kafka.producer.KafkaProducerConfig;
 import com.nayoung.orderservice.openfeign.ItemServiceClient;
-import com.nayoung.orderservice.openfeign.ItemUpdateLogDto;
+import com.nayoung.orderservice.openfeign.dto.ItemUpdateLogDto;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -62,19 +62,21 @@ public class OrderServiceV2 extends OrderService {
     @KafkaListener(topics = {KafkaProducerConfig.TEMPORARY_ORDER_TOPIC,
                             KafkaProducerConfig.TEMPORARY_RETRY_ORDER_TOPIC})
     public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderDto> record) {
-        log.info("Consuming message success -> Topic: {}, Event Id: {}",
-                record.topic(),
-                record.value().getEventId());
+        if(record.value() != null) {
+            log.info("Consuming message success -> Topic: {}, Event Id: {}",
+                    record.topic(),
+                    record.value().getEventId());
 
-        try {
-            waitBasedOnTimestamp(record.timestamp());
+            try {
+                waitBasedOnTimestamp(record.timestamp());
 
-            boolean isExist = orderRepository.existsByEventId(record.key());
-            if (!isExist) {
-                kafkaProducer.send(KafkaProducerConfig.RETRY_REQUEST_ORDER_ITEM_UPDATE_RESULT_TOPIC, record.key(), record.value());
+                boolean isExist = orderRepository.existsByEventId(record.key());
+                if (!isExist) {
+                    kafkaProducer.send(KafkaProducerConfig.RETRY_REQUEST_ORDER_ITEM_UPDATE_RESULT_TOPIC, record.key(), record.value());
+                }
+            } catch (InterruptedException e) {
+                log.error(e.getMessage());
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
