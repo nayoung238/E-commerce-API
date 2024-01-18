@@ -1,6 +1,8 @@
-package com.nayoung.orderservice.messagequeue;
+package com.nayoung.orderservice.kafka.streams;
 
 import com.nayoung.orderservice.domain.OrderItemStatus;
+import com.nayoung.orderservice.kafka.dto.OrderSerde;
+import com.nayoung.orderservice.kafka.producer.KafkaProducerConfig;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;

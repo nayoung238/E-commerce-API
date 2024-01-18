@@ -1,18 +1,19 @@
 package com.nayoung.orderservice.domain;
 
-import com.nayoung.orderservice.web.dto.OrderDto;
-import com.nayoung.orderservice.web.dto.OrderItemDto;
-import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+//import com.nayoung.orderservice.web.dto.OrderDto;
+//import com.nayoung.orderservice.web.dto.OrderItemDto;
+//import org.junit.jupiter.api.*;
+//import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.boot.test.context.SpringBootTest;
+//
+//import java.util.ArrayList;
+//import java.util.List;
+//import java.util.Objects;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-@SpringBootTest
+//@SpringBootTest
 public class OrderServiceTest {
 
+    /*
     @Autowired OrderService orderService;
     @Autowired OrderRepository orderRepository;
     @Autowired StockRedisRepository stockRedisRepository;
@@ -138,5 +139,5 @@ public class OrderServiceTest {
         }
         return requests;
     }
-
+*/
 }

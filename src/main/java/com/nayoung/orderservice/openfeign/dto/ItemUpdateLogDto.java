@@ -1,4 +1,4 @@
-package com.nayoung.orderservice.openfeign;
+package com.nayoung.orderservice.openfeign.dto;
 
 import com.nayoung.orderservice.domain.OrderItemStatus;
 import lombok.Getter;

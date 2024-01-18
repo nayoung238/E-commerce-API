@@ -1,4 +1,4 @@
-package com.nayoung.orderservice.messagequeue;
+package com.nayoung.orderservice.kafka.dto;
 
 import com.nayoung.orderservice.web.dto.OrderDto;
 import org.apache.kafka.common.serialization.Deserializer;

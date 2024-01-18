@@ -1,4 +1,4 @@
-package com.nayoung.orderservice.messagequeue;
+package com.nayoung.orderservice.kafka.streams;
 
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
