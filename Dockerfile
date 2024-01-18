@@ -1,4 +1,4 @@
-FROM openjdk:21-ea-11-jdk-slim
+FROM openjdk:11-jdk-slim
 
 VOLUME /tmp
 
