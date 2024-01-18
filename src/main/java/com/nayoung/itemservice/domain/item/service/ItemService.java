@@ -1,7 +1,10 @@
-package com.nayoung.itemservice.domain.item;
+package com.nayoung.itemservice.domain.item.service;
 
-import com.nayoung.itemservice.domain.item.log.ItemUpdateLog;
-import com.nayoung.itemservice.domain.item.log.ItemUpdateLogRepository;
+import com.nayoung.itemservice.domain.item.Item;
+import com.nayoung.itemservice.domain.item.ItemUpdateLog;
+import com.nayoung.itemservice.domain.item.repository.ItemRedisRepository;
+import com.nayoung.itemservice.domain.item.repository.ItemRepository;
+import com.nayoung.itemservice.domain.item.repository.ItemUpdateLogRepository;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
 import com.nayoung.itemservice.web.dto.*;
@@ -9,10 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service

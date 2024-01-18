@@ -1,6 +1,6 @@
-package com.nayoung.itemservice.messagequeue;
+package com.nayoung.itemservice.kafka.streams;
 
-import com.nayoung.itemservice.domain.item.ItemStockService;
+import com.nayoung.itemservice.domain.item.service.ItemStockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.kstream.KStream;

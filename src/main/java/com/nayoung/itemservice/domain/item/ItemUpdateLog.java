@@ -1,13 +1,14 @@
-package com.nayoung.itemservice.domain.item.log;
+package com.nayoung.itemservice.domain.item;
 
-import com.nayoung.itemservice.messagequeue.client.OrderItemDto;
-import com.nayoung.itemservice.messagequeue.client.OrderItemStatus;
+import com.nayoung.itemservice.kafka.dto.OrderItemDto;
+import com.nayoung.itemservice.kafka.dto.OrderItemStatus;
+import jakarta.persistence.*;
 import lombok.*;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity @Getter @Builder
+@Entity
+@Getter @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ItemUpdateLog {

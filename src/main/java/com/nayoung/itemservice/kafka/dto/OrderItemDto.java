@@ -1,6 +1,6 @@
-package com.nayoung.itemservice.messagequeue.client;
+package com.nayoung.itemservice.kafka.dto;
 
-import com.nayoung.itemservice.domain.item.log.ItemUpdateLog;
+import com.nayoung.itemservice.domain.item.ItemUpdateLog;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

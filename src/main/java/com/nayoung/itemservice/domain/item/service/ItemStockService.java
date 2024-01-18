@@ -1,14 +1,17 @@
-package com.nayoung.itemservice.domain.item;
+package com.nayoung.itemservice.domain.item.service;
 
-import com.nayoung.itemservice.domain.item.log.ItemUpdateLog;
-import com.nayoung.itemservice.domain.item.log.ItemUpdateLogRepository;
+import com.nayoung.itemservice.domain.item.Item;
+import com.nayoung.itemservice.domain.item.ItemUpdateLog;
+import com.nayoung.itemservice.domain.item.repository.ItemRepository;
+import com.nayoung.itemservice.domain.item.repository.ItemUpdateLogRepository;
+import com.nayoung.itemservice.domain.item.repository.OrderRedisRepository;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
-import com.nayoung.itemservice.messagequeue.KafkaProducer;
-import com.nayoung.itemservice.messagequeue.KafkaProducerConfig;
-import com.nayoung.itemservice.messagequeue.client.OrderDto;
-import com.nayoung.itemservice.messagequeue.client.OrderItemDto;
-import com.nayoung.itemservice.messagequeue.client.OrderItemStatus;
+import com.nayoung.itemservice.kafka.producer.KafkaProducer;
+import com.nayoung.itemservice.kafka.producer.KafkaProducerConfig;
+import com.nayoung.itemservice.kafka.dto.OrderDto;
+import com.nayoung.itemservice.kafka.dto.OrderItemDto;
+import com.nayoung.itemservice.kafka.dto.OrderItemStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

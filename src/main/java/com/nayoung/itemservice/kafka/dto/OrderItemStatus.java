@@ -1,4 +1,4 @@
-package com.nayoung.itemservice.messagequeue.client;
+package com.nayoung.itemservice.kafka.dto;
 
 public enum OrderItemStatus {
 

@@ -1,9 +1,12 @@
-package com.nayoung.itemservice.domain.item;
+package com.nayoung.itemservice.kafka;
 
+//import com.nayoung.itemservice.domain.item.Item;
 //import com.nayoung.itemservice.domain.item.repository.ItemRepository;
+//import com.nayoung.itemservice.domain.item.service.ItemService;
+//import com.nayoung.itemservice.domain.item.RedissonItemService;
+//import com.nayoung.itemservice.domain.item.ItemUpdateLog;
 //import com.nayoung.itemservice.domain.item.repository.ItemUpdateLogRepository;
 //import com.nayoung.itemservice.domain.item.repository.ItemUpdateStatus;
-//import com.nayoung.itemservice.domain.item.service.ItemService;
 //import com.nayoung.itemservice.domain.shop.ShopRepository;
 //import com.nayoung.itemservice.domain.shop.ShopService;
 //import com.nayoung.itemservice.exception.ExceptionCode;
@@ -22,9 +25,10 @@ package com.nayoung.itemservice.domain.item;
 //import java.util.stream.Collectors;
 //
 //@SpringBootTest
-//class RedissonItemServiceTest {
+//class KafkaConsumerTest {
 //
-//    @Autowired private RedissonItemService redissonItemService;
+//    @Autowired
+//    private RedissonItemService redissonItemService;
 //    @Autowired private ItemService itemService;
 //    @Autowired private ItemRepository itemRepository;
 //    @Autowired private ItemUpdateLogRepository itemUpdateLogRepository;
@@ -70,8 +74,8 @@ package com.nayoung.itemservice.domain.item;
 //        Map<Long, Long> previousStockMap = getPreviousStock(itemStockUpdateDtos);
 //
 //        List<ItemStockUpdateDto> response = itemStockUpdateDtos.parallelStream()
-//                        .map(i -> redissonItemService.updateStock(i))
-//                                .collect(Collectors.toList());
+//                .map(i -> redissonItemService.updateStock(i))
+//                .collect(Collectors.toList());
 //
 //        Assertions.assertTrue(response.stream()
 //                .allMatch(i -> Objects.equals(ItemUpdateStatus.SUCCEED, i.getItemUpdateStatus())));

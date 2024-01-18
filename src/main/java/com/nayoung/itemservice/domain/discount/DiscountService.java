@@ -1,7 +1,7 @@
 package com.nayoung.itemservice.domain.discount;
 
 //import com.nayoung.itemservice.domain.item.Item;
-//import com.nayoung.itemservice.domain.item.ItemRepository;
+//import com.nayoung.itemservice.domain.item.repository.ItemRepository;
 //import com.nayoung.itemservice.exception.ExceptionCode;
 //import com.nayoung.itemservice.exception.ItemException;
 //import com.nayoung.itemservice.web.dto.DiscountCreationRequest;

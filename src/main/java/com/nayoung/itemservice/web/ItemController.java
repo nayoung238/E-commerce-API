@@ -1,7 +1,7 @@
 package com.nayoung.itemservice.web;
 
-import com.nayoung.itemservice.domain.item.ItemService;
-import com.nayoung.itemservice.domain.item.ItemStockService;
+import com.nayoung.itemservice.domain.item.service.ItemService;
+import com.nayoung.itemservice.domain.item.service.ItemStockService;
 import com.nayoung.itemservice.exception.ItemException;
 import com.nayoung.itemservice.web.dto.*;
 import lombok.RequiredArgsConstructor;

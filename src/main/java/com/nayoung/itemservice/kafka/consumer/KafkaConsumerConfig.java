@@ -1,5 +1,6 @@
-package com.nayoung.itemservice.messagequeue;
+package com.nayoung.itemservice.kafka.consumer;
 
+import com.nayoung.itemservice.kafka.dto.OrderDtoDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;

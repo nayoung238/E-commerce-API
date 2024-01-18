@@ -1,4 +1,4 @@
-package com.nayoung.itemservice.domain.item;
+package com.nayoung.itemservice.domain.item.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

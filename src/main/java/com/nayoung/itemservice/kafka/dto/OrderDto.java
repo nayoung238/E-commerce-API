@@ -1,4 +1,4 @@
-package com.nayoung.itemservice.messagequeue.client;
+package com.nayoung.itemservice.kafka.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,6 +1,7 @@
-package com.nayoung.itemservice.messagequeue;
+package com.nayoung.itemservice.kafka.producer;
 
-import com.nayoung.itemservice.messagequeue.client.OrderDto;
+import com.nayoung.itemservice.kafka.dto.OrderDto;
+import com.nayoung.itemservice.kafka.dto.OrderDtoSerializer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;

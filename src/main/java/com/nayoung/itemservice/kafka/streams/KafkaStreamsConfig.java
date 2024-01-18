@@ -1,5 +1,6 @@
-package com.nayoung.itemservice.messagequeue;
+package com.nayoung.itemservice.kafka.streams;
 
+import com.nayoung.itemservice.kafka.producer.KafkaProducerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;

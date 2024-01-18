@@ -1,17 +1,19 @@
-package com.nayoung.itemservice.domain.item;
+package com.nayoung.itemservice.domain.item.service;
 
+import com.nayoung.itemservice.domain.item.Item;
+import com.nayoung.itemservice.domain.item.repository.ItemRedisRepository;
+import com.nayoung.itemservice.domain.item.repository.ItemRepository;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
-import com.nayoung.itemservice.messagequeue.KafkaProducer;
-import com.nayoung.itemservice.messagequeue.KafkaProducerConfig;
-import com.nayoung.itemservice.messagequeue.client.OrderItemDto;
-import com.nayoung.itemservice.messagequeue.client.OrderItemStatus;
+import com.nayoung.itemservice.kafka.producer.KafkaProducer;
+import com.nayoung.itemservice.kafka.producer.KafkaProducerConfig;
+import com.nayoung.itemservice.kafka.dto.OrderItemDto;
+import com.nayoung.itemservice.kafka.dto.OrderItemStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaProducerException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**

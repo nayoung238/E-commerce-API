@@ -1,7 +1,7 @@
 package com.nayoung.itemservice.web.dto;
 
-import com.nayoung.itemservice.domain.item.log.ItemUpdateLog;
-import com.nayoung.itemservice.messagequeue.client.OrderItemStatus;
+import com.nayoung.itemservice.domain.item.ItemUpdateLog;
+import com.nayoung.itemservice.kafka.dto.OrderItemStatus;
 import lombok.Builder;
 import lombok.Getter;
 
