@@ -1,13 +1,11 @@
-package com.nayoung.orderservice.openfeign;
+package com.nayoung.orderservice.resilience4j;
 
 import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
-import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
-import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigBuilder;
 import org.springframework.cloud.client.circuitbreaker.Customizer;
@@ -17,12 +15,9 @@ import org.springframework.context.annotation.Configuration;
 import java.time.Duration;
 
 @Configuration
-@RequiredArgsConstructor
 public class Resilience4JConfig {
 
     public static final String ORDER_ITEM_UPDATE_RESULT = "orderItemUpdateResult";
-    private final RetryRegistry retryRegistry;
-
     @Bean
     public Customizer<Resilience4JCircuitBreakerFactory> circuitBreakerConfig() {
         CircuitBreakerConfig circuitBreakerConfig = CircuitBreakerConfig.custom()
@@ -52,6 +47,6 @@ public class Resilience4JConfig {
                 .retryExceptions(FeignException.class)
                 .build();
 
-        return retryRegistry.retry(ORDER_ITEM_UPDATE_RESULT, config);
+        return Retry.of(ORDER_ITEM_UPDATE_RESULT, config);
     }
 }

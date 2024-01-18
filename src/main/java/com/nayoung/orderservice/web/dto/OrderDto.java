@@ -2,14 +2,14 @@ package com.nayoung.orderservice.web.dto;
 
 import com.nayoung.orderservice.domain.Order;
 import com.nayoung.orderservice.domain.OrderItemStatus;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;

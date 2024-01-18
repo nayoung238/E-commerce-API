@@ -1,6 +1,7 @@
 package com.nayoung.orderservice.domain;
 
 import com.nayoung.orderservice.web.dto.OrderDto;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -8,21 +9,20 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Entity @Getter @Builder
+@Entity
+@Getter @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "orders")
 @EntityListeners(AuditingEntityListener.class)
 public class Order {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
     private Long id;
 
@@ -33,7 +33,7 @@ public class Order {
     private Long customerAccountId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<OrderItem> orderItems = new ArrayList<>();
+    private List<OrderItem> orderItems;
 
     @Enumerated(EnumType.STRING)
     private OrderItemStatus orderStatus;

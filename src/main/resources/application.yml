@@ -18,11 +18,11 @@ spring:
     producer:
       acks: all
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: com.nayoung.orderservice.messagequeue.OrderDtoSerializer
+      value-serializer: com.nayoung.orderservice.kafka.dto.OrderDtoSerializer
     consumer:
       group-id: orderServiceGroup
       key-deserializer: org.apache.kafka.common.serialization.StringSerializer
-      value-deserializer: com.nayoung.orderservice.messagequeue.OrderDtoDeserializer
+      value-deserializer: com.nayoung.orderservice.kafka.dto.OrderDtoDeserializer
     streams:
       application-id: order_application
   zipkin:
@@ -31,6 +31,16 @@ spring:
   sleuth:
     sampler:
       probability: 1.0
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 5000
+            logger-level: full
 
 logging:
   level:
@@ -39,11 +49,43 @@ logging:
 eureka:
   instance:
     instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+#    prefer-ip-address: true
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://127.0.0.1:8061/eureka
+    healthcheck:
+      enabled: true
 
-item_service:
-  url: http://127.0.0.1:8080/item-service/%s
+#resilience4j:
+#  retry:
+#    configs:
+#      deault:
+#        max-attempts: 4
+#        wait-duration:
+#          seconds: 2000
+#        enable-exponential-backoff: true
+#        exponential-backoff-multiplier: 2
+#        retry-exceptions:
+#          - feign.FeignException
+#    instances:
+#      order-result:
+#        base-config: default
+#
+#  circuitbreaker:
+#    configs:
+#      default:
+#        sliding-window-type: count_based
+#        sliding-window-size: 3
+#        minimum-number-of-calls: 2
+#        wait-duration-in-open-state:
+#          seconds: 10
+#        failure-rate-threshold: 30
+#        record-exceptions:
+#          - feign.FeignException
+#          - java.net.ConnectException
+#          - java.util.concurrent.TimeoutException
+#    instances:
+#      order-result:
+#        base-config: default

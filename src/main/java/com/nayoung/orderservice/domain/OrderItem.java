@@ -2,11 +2,11 @@ package com.nayoung.orderservice.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nayoung.orderservice.web.dto.OrderItemDto;
+import jakarta.persistence.*;
 import lombok.*;
 
-import javax.persistence.*;
-
-@Entity @Getter @Builder
+@Entity
+@Getter @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderItem {

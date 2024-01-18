@@ -2,13 +2,12 @@ package com.nayoung.orderservice.web.dto;
 
 import com.nayoung.orderservice.domain.OrderItem;
 import com.nayoung.orderservice.domain.OrderItemStatus;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 import java.io.Serializable;
 
 @Getter @Builder
@@ -22,7 +21,6 @@ public class OrderItemDto implements Serializable {
     private Long itemId;
 
     @NotNull
-    @Positive
     private Long quantity;
 
     private OrderItemStatus orderItemStatus;
