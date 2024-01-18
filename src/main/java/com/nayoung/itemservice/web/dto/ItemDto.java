@@ -1,14 +1,12 @@
 package com.nayoung.itemservice.web.dto;
 
 import com.nayoung.itemservice.domain.item.Item;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
 
 @Getter @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class ItemDto {
 
     private Boolean isExist;

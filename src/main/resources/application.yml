@@ -21,13 +21,13 @@ spring:
     producer:
       acks: all
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: com.nayoung.itemservice.messagequeue.OrderDtoSerializer
+      value-serializer: com.nayoung.itemservice.kafka.dto.OrderDtoSerializer
     consumer:
       group-id: orderServiceGroup
       key-deserializer: org.apache.kafka.common.serialization.StringSerializer
       value-deserializer:
         - org.apache.kafka.common.serialization.LongSerializer
-        - com.nayoung.itemservice.messagequeue.OrderDtoDeserializer
+        - com.nayoung.itemservice.kafka.dto.OrderDtoDeserializer
     streams:
       application-id: item_application
   zipkin:
@@ -48,4 +48,4 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://localhost:8061/eureka

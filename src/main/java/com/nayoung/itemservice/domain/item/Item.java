@@ -4,12 +4,12 @@ import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.StockException;
 import com.nayoung.itemservice.web.dto.ItemDto;
 import com.nayoung.itemservice.web.dto.ItemInfoUpdateRequest;
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.util.StringUtils;
 
-import javax.persistence.*;
-
-@Entity @Builder
+@Entity
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter

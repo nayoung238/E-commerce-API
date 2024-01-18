@@ -2,9 +2,8 @@ package com.nayoung.itemservice.domain.shop;
 
 import com.nayoung.itemservice.domain.shop.location.LocationCode;
 import com.nayoung.itemservice.web.dto.ShopDto;
+import jakarta.persistence.*;
 import lombok.*;
-
-import javax.persistence.*;
 
 @Entity
 @Getter @Builder
