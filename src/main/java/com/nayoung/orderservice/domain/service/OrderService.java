@@ -6,16 +6,13 @@ import com.nayoung.orderservice.domain.repository.OrderRedisRepository;
 import com.nayoung.orderservice.domain.repository.OrderRepository;
 import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
-import com.nayoung.orderservice.messagequeue.KafkaProducerService;
-import com.nayoung.orderservice.messagequeue.KafkaProducerConfig;
-import com.nayoung.orderservice.openfeign.ItemServiceClient;
-import com.nayoung.orderservice.openfeign.ItemUpdateLogDto;
+import com.nayoung.orderservice.kafka.producer.KafkaProducerService;
+import com.nayoung.orderservice.kafka.producer.KafkaProducerConfig;
+import com.nayoung.orderservice.openfeign.dto.ItemUpdateLogDto;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -31,8 +28,6 @@ public abstract class OrderService {
     public final OrderRepository orderRepository;
     private final OrderRedisRepository orderRedisRepository;
     public final KafkaProducerService kafkaProducer;
-    private final ItemServiceClient itemServiceClient;
-    private final CircuitBreakerFactory circuitBreakerFactory;
 
     public abstract OrderDto create(OrderDto orderDto);
     public abstract void checkFinalStatusOfOrder(ConsumerRecord<String, OrderDto> record);
@@ -67,12 +62,13 @@ public abstract class OrderService {
      * -> Feign Exception 발생 및 30,000ms 이내 응답 여부
      */
     public List<ItemUpdateLogDto> getAllOrderItemUpdateResultByEventId(String eventId) {
-        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
-        return circuitBreaker.run(() -> itemServiceClient.findAllOrderItemUpdateResultByEventId(eventId), throwable -> new ArrayList<>());
+        return null;
+//        org.springframework.cloud.client.circuitbreaker.CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
+//        return circuitBreaker.run(() -> itemServiceClient.findAllOrderItemUpdateResultByEventId(eventId), throwable -> new ArrayList<>());
     }
 
     public void resendKafkaMessage(String key, OrderDto value) {
-        String[] redisKey = value.getCreatedAt().toString().split(":");  // key[0] -> order-event:yyyy-mm-dd'T'HH
+        String[] redisKey = value.getRequestedAt().toString().split(":");  // key[0] -> order-event:yyyy-mm-dd'T'HH
         if(isFirstEvent(redisKey[0], value.getEventId()))
             kafkaProducer.send(KafkaProducerConfig.TEMPORARY_RETRY_ORDER_TOPIC, key, value);
         else {

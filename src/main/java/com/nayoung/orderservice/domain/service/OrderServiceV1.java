@@ -8,12 +8,12 @@ import com.nayoung.orderservice.exception.ExceptionCode;
 import com.nayoung.orderservice.exception.OrderException;
 import com.nayoung.orderservice.kafka.producer.KafkaProducerService;
 import com.nayoung.orderservice.kafka.producer.KafkaProducerConfig;
-import com.nayoung.orderservice.openfeign.ItemServiceClient;
+import com.nayoung.orderservice.kafka.streams.KStreamKTableJoinConfig;
 import com.nayoung.orderservice.openfeign.dto.ItemUpdateLogDto;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,9 +28,8 @@ import java.util.*;
 public class OrderServiceV1 extends OrderService {
 
     public OrderServiceV1(OrderRepository orderRepository, OrderRedisRepository orderRedisRepository,
-                          KafkaProducerService kafkaProducer,
-                          ItemServiceClient itemServiceClient, CircuitBreakerFactory circuitBreakerFactory) {
-        super(orderRepository, orderRedisRepository, kafkaProducer, itemServiceClient, circuitBreakerFactory);
+                          KafkaProducerService kafkaProducer) {
+        super(orderRepository, orderRedisRepository, kafkaProducer);
     }
 
     @Override
@@ -38,7 +37,6 @@ public class OrderServiceV1 extends OrderService {
     public OrderDto create(OrderDto orderDto) {
         Order order = Order.fromTemporaryOrderDto(orderDto);
         order.setEventId(setEventId(orderDto.getCustomerAccountId()));
-
         order.getOrderItems()
                 .forEach(o -> o.setOrder(order));
 
@@ -56,17 +54,17 @@ public class OrderServiceV1 extends OrderService {
                 record.value().getEventId(),
                 record.value().getOrderStatus());
 
-        Order order = orderRepository.findById(record.value().getId())
-                .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
+        Optional<Order> order = orderRepository.findByEventId(record.value().getEventId());
+        if(order.isPresent()) {
+            order.get().setOrderStatus(record.value().getOrderStatus());
 
-        order.setOrderStatus(record.value().getOrderStatus());
+            HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();
+            record.value().getOrderItemDtos()
+                    .forEach(o -> orderItemStatusHashMap.put(o.getItemId(), o.getOrderItemStatus()));
 
-        HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();
-        record.value().getOrderItemDtos()
-                .forEach(o -> orderItemStatusHashMap.put(o.getItemId(), o.getOrderItemStatus()));
-
-        order.getOrderItems()
-                .forEach(o -> o.setOrderItemStatus(orderItemStatusHashMap.get(o.getItemId())));
+            order.get().getOrderItems()
+                    .forEach(o -> o.setOrderItemStatus(orderItemStatusHashMap.get(o.getItemId())));
+        }
     }
 
     @Override

@@ -7,12 +7,10 @@ import com.nayoung.orderservice.domain.repository.OrderRepository;
 import com.nayoung.orderservice.kafka.streams.KStreamKTableJoinConfig;
 import com.nayoung.orderservice.kafka.producer.KafkaProducerService;
 import com.nayoung.orderservice.kafka.producer.KafkaProducerConfig;
-import com.nayoung.orderservice.openfeign.ItemServiceClient;
 import com.nayoung.orderservice.openfeign.dto.ItemUpdateLogDto;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +25,8 @@ import java.util.List;
 public class OrderServiceV2 extends OrderService {
 
     public OrderServiceV2(OrderRepository orderRepository, OrderRedisRepository orderRedisRepository,
-                          KafkaProducerService kafkaProducer,
-                          ItemServiceClient itemServiceClient, CircuitBreakerFactory circuitBreakerFactory) {
-        super(orderRepository, orderRedisRepository, kafkaProducer, itemServiceClient, circuitBreakerFactory);
+                          KafkaProducerService kafkaProducer) {
+        super(orderRepository, orderRedisRepository, kafkaProducer);
     }
 
     @Override
@@ -43,7 +40,6 @@ public class OrderServiceV2 extends OrderService {
     }
 
     @KafkaListener(topics = KStreamKTableJoinConfig.FINAL_ORDER_CREATION_TOPIC)
-    @Transactional
     public void create(ConsumerRecord<String, OrderDto> record) {
         log.info("Consuming message success -> Topic: {}, Event Id: {}, Order Status: {}",
                 record.topic(),
@@ -55,6 +51,8 @@ public class OrderServiceV2 extends OrderService {
                 .forEach(o -> o.setOrder(order));
 
         orderRepository.save(order);
+
+        // Tombstone record 설정
         kafkaProducer.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, order.getEventId(), null);
     }
 
