@@ -39,8 +39,6 @@ dependencies {
     implementation 'org.apache.kafka:kafka-streams'
 
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
-    implementation 'org.springframework.cloud:spring-cloud-sleuth-zipkin'
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
