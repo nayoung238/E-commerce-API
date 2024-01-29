@@ -25,12 +25,6 @@ spring:
       value-deserializer: com.nayoung.orderservice.kafka.dto.OrderDtoDeserializer
     streams:
       application-id: order_application
-  zipkin:
-    base-url: http://localhost:9411
-    enabled: true
-  sleuth:
-    sampler:
-      probability: 1.0
   main:
     allow-bean-definition-overriding: true
   cloud:
@@ -40,11 +34,11 @@ spring:
           default:
             connect-timeout: 5000
             read-timeout: 5000
-            logger-level: full
+            logger-level: basic
 
 logging:
   level:
-    com.nayoung.orderservice: DEBUG
+    com.nayoung.orderservice: debug
 
 eureka:
   instance:
