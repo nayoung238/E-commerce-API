@@ -5,7 +5,7 @@ import com.nayoung.itemservice.domain.item.repository.ItemRedisRepository;
 import com.nayoung.itemservice.domain.item.repository.ItemRepository;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
-import com.nayoung.itemservice.kafka.producer.KafkaProducer;
+import com.nayoung.itemservice.kafka.producer.KafkaProducerService;
 import com.nayoung.itemservice.kafka.producer.KafkaProducerConfig;
 import com.nayoung.itemservice.kafka.dto.OrderItemDto;
 import com.nayoung.itemservice.kafka.dto.OrderItemStatus;
@@ -32,7 +32,7 @@ public class StockUpdateByKafkaStreams implements StockUpdate {
 
     private final ItemRepository itemRepository;
     private final ItemRedisRepository itemRedisRepository;
-    private final KafkaProducer kafkaProducer;
+    private final KafkaProducerService kafkaProducerService;
 
     @Override
     public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
@@ -67,7 +67,7 @@ public class StockUpdateByKafkaStreams implements StockUpdate {
 
     private void sendMessageToKafka(Long itemId, Long quantity) {
         try {
-            kafkaProducer.sendMessage(KafkaProducerConfig.ITEM_UPDATE_LOG_TOPIC, String.valueOf(itemId), quantity);
+            kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_LOG_TOPIC, String.valueOf(itemId), quantity);
         } catch(KafkaProducerException e) {
             log.error("Kafka Exception " + e.getMessage());
             // TODO: broker에 적재되지 못한 이벤트 처리

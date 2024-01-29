@@ -7,7 +7,7 @@ import com.nayoung.itemservice.domain.item.repository.ItemUpdateLogRepository;
 import com.nayoung.itemservice.domain.item.repository.OrderRedisRepository;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
-import com.nayoung.itemservice.kafka.producer.KafkaProducer;
+import com.nayoung.itemservice.kafka.producer.KafkaProducerService;
 import com.nayoung.itemservice.kafka.producer.KafkaProducerConfig;
 import com.nayoung.itemservice.kafka.dto.OrderDto;
 import com.nayoung.itemservice.kafka.dto.OrderItemDto;
@@ -27,7 +27,7 @@ public class ItemStockService {
 
     private final ItemRepository itemRepository;
     private final ItemUpdateLogRepository itemUpdateLogRepository;
-    private final KafkaProducer kafkaProducer;
+    private final KafkaProducerService kafkaProducerService;
     private final OrderRedisRepository orderRedisRepository;
     private final StockUpdate stockUpdateService;
 
@@ -50,7 +50,7 @@ public class ItemStockService {
         else {
             // TODO: first event가 아니면 결과만 return
         }
-        kafkaProducer.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
+        kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
     }
 
     private boolean isFirstEvent(OrderDto orderDto) {

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service @Slf4j
 @RequiredArgsConstructor
-public class KafkaConsumer {
+public class KafkaConsumerService {
 
     private final ItemStockService itemStockService;
 
@@ -25,7 +25,7 @@ public class KafkaConsumer {
 
             record.value().getOrderItemDtos()
                     .forEach(OrderItemDto::convertSign);
-            itemStockService.updateStock(record.value());
+           itemStockService.updateStock(record.value());
         }
     }
 }

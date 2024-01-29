@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service @Slf4j
 @RequiredArgsConstructor
-public class KafkaProducer {
+public class KafkaProducerService {
 
     private final KafkaTemplate<String, Long> stockQuantityTemplate;
     private final KafkaTemplate<String, OrderDto> orderDtoKafkaTemplate;
