@@ -1,12 +1,12 @@
 package com.nayoung.itemservice.domain.item.service;
 
 import com.nayoung.itemservice.domain.item.Item;
-import com.nayoung.itemservice.domain.item.ItemUpdateLog;
 import com.nayoung.itemservice.domain.item.repository.ItemRedisRepository;
 import com.nayoung.itemservice.domain.item.repository.ItemRepository;
-import com.nayoung.itemservice.domain.item.repository.ItemUpdateLogRepository;
+import com.nayoung.itemservice.domain.item.repository.OrderRedisRepository;
 import com.nayoung.itemservice.exception.ExceptionCode;
-import com.nayoung.itemservice.exception.ItemException;
+import com.nayoung.itemservice.exception.OrderException;
+import com.nayoung.itemservice.kafka.dto.OrderItemStatus;
 import com.nayoung.itemservice.web.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 public class ItemService {
 
     private final ItemRepository itemRepository;
-    private final ItemUpdateLogRepository itemUpdateLogRepository;
     private final ItemRedisRepository itemRedisRepository;
+    private final OrderRedisRepository orderRedisRepository;
 
     public ItemDto create(ItemDto itemDto) {
         Item item = Item.fromItemDto(itemDto);
@@ -40,14 +40,12 @@ public class ItemService {
         return ItemDto.fromItem(item);
     }
 
-    public List<ItemUpdateLogDto> findAllItemUpdateLogByEventId(String eventId) {
-        List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByEventId(eventId);
-        if(itemUpdateLogs.isEmpty())
-            throw new ItemException(ExceptionCode.NOT_FOUND_ITEM_UPDATE_LOG);
-
-        return itemUpdateLogs.stream()
-                .map(ItemUpdateLogDto::fromItemUpdateLog)
-                .collect(Collectors.toList());
+    public OrderItemStatus findOrderProcessingStatus(String eventId) {
+        String orderProcessingStatus = orderRedisRepository.getOrderStatus(eventId);
+        if(orderProcessingStatus != null)
+            return OrderItemStatus.getOrderItemStatus(orderProcessingStatus);
+        else
+            throw new OrderException(ExceptionCode.NOT_FOUND_ORDER_DETAILS);
     }
 
 //    public ItemDto findItemByItemId(Long itemId, String customerRating) {

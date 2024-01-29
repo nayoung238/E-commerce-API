@@ -7,6 +7,7 @@ import com.nayoung.itemservice.domain.item.repository.ItemUpdateLogRepository;
 import com.nayoung.itemservice.domain.item.repository.OrderRedisRepository;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
+import com.nayoung.itemservice.exception.OrderException;
 import com.nayoung.itemservice.kafka.producer.KafkaProducerService;
 import com.nayoung.itemservice.kafka.producer.KafkaProducerConfig;
 import com.nayoung.itemservice.kafka.dto.OrderDto;
@@ -46,11 +47,23 @@ public class ItemStockService {
                 orderDto.setOrderStatus(OrderItemStatus.FAILED);
                 orderDto.setOrderItemDtos(undo(orderDto.getEventId(), result));
             }
+            orderRedisRepository.setOrderStatus(orderDto.getEventId(), orderDto.getOrderStatus());
+            kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
         }
         else {
-            // TODO: first event가 아니면 결과만 return
+            String orderProcessingResult = orderRedisRepository.getOrderStatus(orderDto.getEventId());
+            assert orderProcessingResult != null;
+            try {
+                OrderItemStatus orderItemStatus = OrderItemStatus.getOrderItemStatus(orderProcessingResult);
+                orderDto.setOrderStatus(orderItemStatus);
+                orderDto.getOrderItemDtos()
+                        .forEach(orderItemDto -> orderItemDto.setOrderItemStatus(orderItemStatus));
+
+                kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
+            } catch (OrderException e) {
+                log.error(String.valueOf(e.getExceptionCode()));
+            }
         }
-        kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
     }
 
     private boolean isFirstEvent(OrderDto orderDto) {

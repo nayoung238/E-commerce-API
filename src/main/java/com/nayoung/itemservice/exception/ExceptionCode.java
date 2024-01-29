@@ -15,6 +15,7 @@ public enum ExceptionCode {
     DUPLICATE_NAME(HttpStatus.BAD_REQUEST, "이미 사용 중인 이름입니다."),
     INSUFFICIENT_STOCK_EXCEPTION(HttpStatus.BAD_REQUEST, "재고가 부족합니다."),
 
+    NO_MATCHING_ORDER_ITEM_STATUS(HttpStatus.BAD_REQUEST, "매칭되는 주문 상품 상태가 없습니다."),
     NO_MATCHING_DISCOUNT_CODE(HttpStatus.BAD_REQUEST, "매칭되는 할인이 없습니다."),
 
     NOT_FOUND_SHOP(HttpStatus.BAD_REQUEST, "존재하지 않는 상점입니다."),

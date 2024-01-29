@@ -1,10 +1,7 @@
 package com.nayoung.itemservice.kafka.dto;
 
 import com.nayoung.itemservice.domain.item.ItemUpdateLog;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter @Builder
 @AllArgsConstructor
@@ -14,6 +11,7 @@ public class OrderItemDto {
     private Long id;
     private Long itemId;
     private Long quantity;
+    @Setter
     private OrderItemStatus orderItemStatus;
 
     public static OrderItemDto from(ItemUpdateLog itemUpdateLog) {
@@ -22,10 +20,6 @@ public class OrderItemDto {
                 .quantity(itemUpdateLog.getQuantity())
                 .orderItemStatus(itemUpdateLog.getOrderItemStatus())
                 .build();
-    }
-
-    public void setOrderItemStatus(OrderItemStatus orderItemStatus) {
-        this.orderItemStatus = orderItemStatus;
     }
 
     public void convertSign() {

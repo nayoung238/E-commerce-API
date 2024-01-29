@@ -9,22 +9,24 @@ import org.springframework.stereotype.Repository;
 public class ItemRedisRepository {
 
     private final RedisTemplate<String, String> redisTemplate;
-    private final String PREFIX = "item:";
+    private final String ITEM_PREFIX = "item:";
     private final String SUFFIX_QUANTITY = ":count";
 
     public void initializeItemStock(Long itemId, Long stock) {
         redisTemplate
                 .opsForValue()
-                .set(PREFIX + itemId + SUFFIX_QUANTITY, stock.toString());
+                .set(ITEM_PREFIX + itemId + SUFFIX_QUANTITY, stock.toString());
     }
 
-    public Long decrementItemStock(Long itemId, Long quantity) {
-        return redisTemplate.opsForValue()
-                .decrement(PREFIX + itemId + SUFFIX_QUANTITY, quantity);
+    public void decrementItemStock(Long itemId, Long quantity) {
+        redisTemplate
+                .opsForValue()
+                .decrement(ITEM_PREFIX + itemId + SUFFIX_QUANTITY, quantity);
     }
 
     public Long incrementItemStock(Long itemId, Long quantity) {
-        return redisTemplate.opsForValue()
-                .increment(PREFIX + itemId + SUFFIX_QUANTITY, quantity);
+        return redisTemplate
+                .opsForValue()
+                .increment(ITEM_PREFIX + itemId + SUFFIX_QUANTITY, quantity);
     }
 }

@@ -2,14 +2,13 @@ package com.nayoung.itemservice.web;
 
 import com.nayoung.itemservice.domain.item.service.ItemService;
 import com.nayoung.itemservice.domain.item.service.ItemStockService;
-import com.nayoung.itemservice.exception.ItemException;
+import com.nayoung.itemservice.exception.OrderException;
+import com.nayoung.itemservice.kafka.dto.OrderItemStatus;
 import com.nayoung.itemservice.web.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,12 +36,12 @@ public class ItemController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/item-update-log/{eventId}")
+    @GetMapping("/order-processing-result/{eventId}")
     public ResponseEntity<?> findAllItemUpdateLogByEventId(@PathVariable String eventId) {
         try {
-            List<ItemUpdateLogDto> itemUpdateLogDtoList = itemService.findAllItemUpdateLogByEventId(eventId);
-            return ResponseEntity.status(HttpStatus.OK).body(itemUpdateLogDtoList);
-        } catch (ItemException e) {
+            OrderItemStatus orderItemStatus = itemService.findOrderProcessingStatus(eventId);
+            return ResponseEntity.status(HttpStatus.OK).body(orderItemStatus);
+        } catch (OrderException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
         }
     }
