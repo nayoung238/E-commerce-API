@@ -12,18 +12,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KafkaProducerService {
 
-    private final KafkaTemplate<String, OrderDto> kafkaTemplate;
+    private final KafkaTemplate<String, OrderDto> orderDtoKafkaTemplate;
 
-    public void send(String kafkaTopic, OrderDto value) {
-        sendMessage(kafkaTopic, null, value);
-    }
-
-    public void send(String kafkaTopic, String key, OrderDto value) {
-        sendMessage(kafkaTopic, key, value);
-    }
-
-    private void sendMessage(String topic, String key, @Payload(required = false) OrderDto value) {
-        kafkaTemplate.send(topic, key, value)
+    public void send(String topic, String key, @Payload(required = false) OrderDto value) {
+        orderDtoKafkaTemplate.send(topic, key, value)
                 .whenComplete((stringOrderDtoSendResult, throwable) -> {
                     if(throwable == null) {
                         RecordMetadata metadata = stringOrderDtoSendResult.getRecordMetadata();

@@ -4,11 +4,9 @@ import com.nayoung.orderservice.domain.Order;
 import com.nayoung.orderservice.domain.OrderItemStatus;
 import com.nayoung.orderservice.domain.repository.OrderRedisRepository;
 import com.nayoung.orderservice.domain.repository.OrderRepository;
-import com.nayoung.orderservice.exception.ExceptionCode;
-import com.nayoung.orderservice.exception.OrderException;
 import com.nayoung.orderservice.kafka.producer.KafkaProducerService;
 import com.nayoung.orderservice.kafka.producer.KafkaProducerConfig;
-import com.nayoung.orderservice.openfeign.dto.ItemUpdateLogDto;
+import com.nayoung.orderservice.openfeign.ItemServiceClient;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,11 +25,13 @@ public abstract class OrderService {
 
     public final OrderRepository orderRepository;
     private final OrderRedisRepository orderRedisRepository;
-    public final KafkaProducerService kafkaProducer;
+    public final KafkaProducerService kafkaProducerService;
+    private final ItemServiceClient itemServiceClient;
 
     public abstract OrderDto create(OrderDto orderDto);
     public abstract void checkFinalStatusOfOrder(ConsumerRecord<String, OrderDto> record);
     public abstract void requestOrderItemUpdateResult(ConsumerRecord<String, OrderDto> record);
+    public abstract void updateOrderStatusByEventId(String eventId, OrderItemStatus orderItemStatus);
 
     /*
         eventId(String) -> KTable & KStream key
@@ -49,45 +49,31 @@ public abstract class OrderService {
      */
     public void waitBasedOnTimestamp(long recordTimestamp) throws InterruptedException {
         Instant recordAppendTime = Instant.ofEpochMilli(recordTimestamp);
-        Instant now = Instant.now();
-        while(now.toEpochMilli() - recordAppendTime.toEpochMilli() < 5000) {
+        while (Instant.now().toEpochMilli() - recordAppendTime.toEpochMilli() < 2000) {
             Thread.sleep(1000);
-            now = Instant.now();
         }
     }
 
-    /**
-     * 30,000ms 동안 최대 4번 결과 요청 (Resilience4j retry 사용)
-     * Resilience4j CircuitBreaker 실패율 측정
-     * -> Feign Exception 발생 및 30,000ms 이내 응답 여부
-     */
-    public List<ItemUpdateLogDto> getAllOrderItemUpdateResultByEventId(String eventId) {
-        return null;
-//        org.springframework.cloud.client.circuitbreaker.CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
-//        return circuitBreaker.run(() -> itemServiceClient.findAllOrderItemUpdateResultByEventId(eventId), throwable -> new ArrayList<>());
+    public OrderItemStatus getOrderStatusByEventId(String eventId) {
+        try {
+            return itemServiceClient.findOrderProcessingResultByEventId(eventId);
+        } catch (Exception e) {
+            return OrderItemStatus.NOT_EXIST;
+        }
     }
 
     public void resendKafkaMessage(String key, OrderDto value) {
         String[] redisKey = value.getRequestedAt().toString().split(":");  // key[0] -> order-event:yyyy-mm-dd'T'HH
         if(isFirstEvent(redisKey[0], value.getEventId()))
-            kafkaProducer.send(KafkaProducerConfig.TEMPORARY_RETRY_ORDER_TOPIC, key, value);
+            kafkaProducerService.send(KafkaProducerConfig.RETRY_TEMPORARY_ORDER_TOPIC, key, value);
         else {
-            updateOrderStatusToFailedByEventId(value.getEventId());
+            updateOrderStatusByEventId(value.getEventId(), OrderItemStatus.FAILED);
             // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요
         }
     }
 
     private boolean isFirstEvent(String key, String eventId) {
         return orderRedisRepository.addEventId(key, eventId) == 1;
-    }
-
-    private void updateOrderStatusToFailedByEventId(String eventId) {
-        Order order = orderRepository.findByEventId(eventId)
-                .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
-
-        order.setOrderStatus(OrderItemStatus.FAILED);
-        order.getOrderItems()
-                .forEach(o -> o.setOrderItemStatus(OrderItemStatus.FAILED));
     }
 
     public List<OrderDto> findOrderByCustomerAccountIdAndOrderId(Long customerAccountId, Long orderId) {

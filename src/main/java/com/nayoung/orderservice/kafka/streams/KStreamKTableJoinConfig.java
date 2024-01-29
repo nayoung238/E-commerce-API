@@ -52,14 +52,18 @@ public class KStreamKTableJoinConfig {
     private OrderDto setOrderStatus(OrderDto orderDto, OrderDto result) {
         orderDto.setOrderStatus(result.getOrderStatus());
 
-        // Key: item ID, value: order item status
-        HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();
-        result.getOrderItemDtos()
-                .forEach(o -> orderItemStatusHashMap.put(o.getItemId(), o.getOrderItemStatus()));
+        if(result.getOrderItemDtos() != null) {
+            HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();  // Key: item ID, value: order item status
+            result.getOrderItemDtos()
+                    .forEach(o -> orderItemStatusHashMap.put(o.getItemId(), o.getOrderItemStatus()));
 
-        orderDto.getOrderItemDtos()
-                .forEach(o -> o.setOrderStatus(orderItemStatusHashMap.get(o.getItemId())));
-
+            orderDto.getOrderItemDtos()
+                    .forEach(o -> o.setOrderStatus(orderItemStatusHashMap.get(o.getItemId())));
+        }
+        else {
+            orderDto.getOrderItemDtos()
+                    .forEach(orderItemDto -> orderItemDto.setOrderStatus(result.getOrderStatus()));
+        }
         return orderDto;
     }
 }

@@ -5,10 +5,7 @@ import com.nayoung.orderservice.domain.OrderItemStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -22,11 +19,12 @@ public class OrderDto implements Serializable {
 
     private Long id;
 
+    @Setter
     private String eventId;
 
+    @Setter
     private OrderItemStatus orderStatus;
 
-    @NotNull
     @Valid
     private List<OrderItemDto> orderItemDtos;
 
@@ -39,7 +37,8 @@ public class OrderDto implements Serializable {
     private LocalDateTime requestedAt;  // item-service에서 주문 이벤트 중복 처리를 판별하기 위한 redis key
 
     public static OrderDto fromOrder(Order order) {
-        List<OrderItemDto> orderItemDtos = order.getOrderItems().parallelStream()
+        List<OrderItemDto> orderItemDtos = order.getOrderItems()
+                .parallelStream()
                 .map(OrderItemDto::fromOrderItem)
                 .collect(Collectors.toList());
 
@@ -54,15 +53,14 @@ public class OrderDto implements Serializable {
                 .build();
     }
 
-    public void setOrderStatus(OrderItemStatus orderItemStatus) {
-        this.orderStatus = orderItemStatus;
+    public static OrderDto fromEventIdAndOrderItemStatus(String eventId, OrderItemStatus orderItemStatus) {
+        return OrderDto.builder()
+                .eventId(eventId)
+                .orderStatus(orderItemStatus)
+                .build();
     }
 
     public void initializeRequestedAt() {
         this.requestedAt = LocalDateTime.now();
-    }
-
-    public void setEventId(String eventId) {
-        this.eventId = eventId;
     }
 }

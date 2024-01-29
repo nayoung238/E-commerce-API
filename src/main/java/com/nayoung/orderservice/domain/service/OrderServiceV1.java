@@ -9,7 +9,7 @@ import com.nayoung.orderservice.exception.OrderException;
 import com.nayoung.orderservice.kafka.producer.KafkaProducerService;
 import com.nayoung.orderservice.kafka.producer.KafkaProducerConfig;
 import com.nayoung.orderservice.kafka.streams.KStreamKTableJoinConfig;
-import com.nayoung.orderservice.openfeign.dto.ItemUpdateLogDto;
+import com.nayoung.orderservice.openfeign.ItemServiceClient;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -28,8 +28,9 @@ import java.util.*;
 public class OrderServiceV1 extends OrderService {
 
     public OrderServiceV1(OrderRepository orderRepository, OrderRedisRepository orderRedisRepository,
-                          KafkaProducerService kafkaProducer) {
-        super(orderRepository, orderRedisRepository, kafkaProducer);
+                          KafkaProducerService kafkaProducerService,
+                          ItemServiceClient itemServiceClient) {
+        super(orderRepository, orderRedisRepository, kafkaProducerService, itemServiceClient);
     }
 
     @Override
@@ -41,11 +42,11 @@ public class OrderServiceV1 extends OrderService {
                 .forEach(o -> o.setOrder(order));
 
         orderRepository.save(order);
-        kafkaProducer.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, OrderDto.fromOrder(order));
+        kafkaProducerService.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, null, OrderDto.fromOrder(order));
         return OrderDto.fromOrder(order);
     }
 
-    //@KafkaListener(topics = KStreamKTableJoinConfig.ORDER_ITEM_UPDATE_RESULT_TOPIC)
+//    @KafkaListener(topics = KStreamKTableJoinConfig.ORDER_ITEM_UPDATE_RESULT_TOPIC)
     @Transactional
     public void updateOrderStatus(ConsumerRecord<String, OrderDto> record) {
         log.info("Consuming message success -> Topic: {}, order Id: {}, event Id: {}, Order Status: {}",
@@ -68,8 +69,8 @@ public class OrderServiceV1 extends OrderService {
     }
 
     @Override
-    //@KafkaListener(topics = {KafkaProducerConfig.TEMPORARY_ORDER_TOPIC,
-    //                         KafkaProducerConfig.TEMPORARY_RETRY_ORDER_TOPIC})
+//    @KafkaListener(topics = {KafkaProducerConfig.TEMPORARY_ORDER_TOPIC,
+//                             KafkaProducerConfig.RETRY_TEMPORARY_ORDER_TOPIC})
     public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderDto> record) {
         if(record.value() != null) {
             log.info("Consuming message success -> Topic: {}, Order Id: {}, Event Id: {}",
@@ -83,9 +84,9 @@ public class OrderServiceV1 extends OrderService {
                 Optional<Order> order = orderRepository.findByEventId(record.value().getEventId());
                 if (order.isPresent()) {
                     if (Objects.equals(OrderItemStatus.WAITING, order.get().getOrderStatus())) {
-                        kafkaProducer.send(KafkaProducerConfig.RETRY_REQUEST_ORDER_ITEM_UPDATE_RESULT_TOPIC, record.value());
+                        kafkaProducerService.send(KafkaProducerConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC, null, record.value());
                     }
-                } else kafkaProducer.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, record.value());
+                } else kafkaProducerService.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, null, record.value());
             } catch (InterruptedException e) {
                 log.error(e.getMessage());
             }
@@ -93,33 +94,28 @@ public class OrderServiceV1 extends OrderService {
     }
 
     @Override
-    //@KafkaListener(topics = KafkaProducerConfig.RETRY_REQUEST_ORDER_ITEM_UPDATE_RESULT_TOPIC)
+//    @KafkaListener(topics = KafkaProducerConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC)
     public void requestOrderItemUpdateResult(ConsumerRecord<String, OrderDto> record) {
         log.info("Consuming message success -> Topic: {}, Order Id: {}, Event Id: {}",
                 record.topic(),
                 record.value().getId(),
                 record.value().getEventId());
 
-        List<ItemUpdateLogDto> itemUpdateLogDtos = getAllOrderItemUpdateResultByEventId(record.value().getEventId());
-        if(!itemUpdateLogDtos.isEmpty())
-            updateOrderStatusByItemUpdateLogDtoList(record.value().getEventId(), itemUpdateLogDtos);
+        OrderItemStatus orderItemStatus = getOrderStatusByEventId(record.value().getEventId());
+        if(!orderItemStatus.equals(OrderItemStatus.NOT_EXIST))
+            updateOrderStatusByEventId(record.value().getEventId(), orderItemStatus);
         else resendKafkaMessage(null, record.value());
     }
 
-    private void updateOrderStatusByItemUpdateLogDtoList(String eventId, List<ItemUpdateLogDto> itemUpdateLogDtoList) {
+   @Override
+    public void updateOrderStatusByEventId(String eventId, OrderItemStatus orderItemStatus) {
         Order order = orderRepository.findByEventId(eventId)
                 .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
-        HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();
-        itemUpdateLogDtoList
-                .forEach(i -> orderItemStatusHashMap.put(i.getItemId(), i.getOrderItemStatus()));
-
+        order.setOrderStatus(orderItemStatus);
         order.getOrderItems()
-                .forEach(o -> o.setOrderItemStatus(orderItemStatusHashMap.get(o.getItemId())));
+                .forEach(o -> o.setOrderItemStatus(orderItemStatus));
 
-        boolean isAllSucceeded = order.getOrderItems().stream()
-                .allMatch(o -> Objects.equals(OrderItemStatus.SUCCEEDED, o.getOrderItemStatus()));
-        if(isAllSucceeded) order.setOrderStatus(OrderItemStatus.SUCCEEDED);
-        else order.setOrderStatus(OrderItemStatus.FAILED);
+        orderRepository.save(order);
     }
 }

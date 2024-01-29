@@ -18,11 +18,11 @@ import java.util.Map;
 public class KafkaProducerConfig {
 
     public static final String TEMPORARY_ORDER_TOPIC = "e-commerce.order.temporary-order-details";
-    public static final String TEMPORARY_RETRY_ORDER_TOPIC = "e-commerce.order.temporary-retry-order-details";
-    public static final String RETRY_REQUEST_ORDER_ITEM_UPDATE_RESULT_TOPIC = "e-commerce.order.retry-request-order-item-update-result";
+    public static final String  RETRY_TEMPORARY_ORDER_TOPIC = "e-commerce.order.retry-temporary-order-details";
+    public static final String ORDER_PROCESSING_RESULT_REQUEST_TOPIC = "e-commerce.order.order-processing-result-request";
 
     @Bean
-    public ProducerFactory<String, OrderDto> producerFactory() {
+    public ProducerFactory<String, OrderDto> orderDtoProducerFactory() {
         Map<String, Object> properties = new HashMap<>();
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -32,7 +32,7 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, OrderDto> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    public KafkaTemplate<String, OrderDto> orderDtoTemplate() {
+        return new KafkaTemplate<>(orderDtoProducerFactory());
     }
 }
