@@ -44,9 +44,11 @@ public class StockUpdateByRedissonAndOptimisticLock implements StockUpdate {
         RLock lock = redissonClient.getLock(generateKey(orderItemDto.getItemId()));
         try {
             boolean available = lock.tryLock(RLOCK_WAIT_TIME, RLOCK_LEASE_TIME, TimeUnit.MILLISECONDS);
-            if(available) return updateStockByOptimisticLock(orderItemDto);
+            if(available) {
+                return updateStockByOptimisticLock(orderItemDto, eventId);
+            }
             else {
-                log.error("Failed to acquire RLock");
+                log.error("Failed to acquire RLock -> Event Id: {}, Redisson Lock: {}", eventId, lock.getName());
                 orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
                 return orderItemDto;
             }
@@ -54,8 +56,9 @@ public class StockUpdateByRedissonAndOptimisticLock implements StockUpdate {
             log.error(e.getMessage());
             orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
         } finally {
-            if(lock.isHeldByCurrentThread())
+            if(lock.isHeldByCurrentThread()) {
                 lock.unlock();
+            }
         }
         return orderItemDto;
     }
@@ -64,18 +67,21 @@ public class StockUpdateByRedissonAndOptimisticLock implements StockUpdate {
         return REDISSON_ITEM_LOCK_PREFIX + key.toString();
     }
 
-    private OrderItemDto updateStockByOptimisticLock(OrderItemDto orderItemDto) {
+    private OrderItemDto updateStockByOptimisticLock(OrderItemDto orderItemDto, String eventId) {
         try {
-            Item item = itemRepository.findById(orderItemDto.getItemId())
+            Item item = itemRepository.findByIdWithOptimisticLock(orderItemDto.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
             item.updateStock(orderItemDto.getQuantity());
             orderItemDto.setOrderItemStatus(OrderItemStatus.SUCCEEDED);
             itemRepository.save(item);
-        } catch(StockException e) {
+        } catch (ItemException e) {
+            log.error(String.valueOf(e.getExceptionCode()));
+            orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
+        } catch (StockException e) {
             log.error(String.valueOf(e.getExceptionCode()));
             orderItemDto.setOrderItemStatus(OrderItemStatus.OUT_OF_STOCK);
-        } catch(ObjectOptimisticLockingFailureException e) {
-            log.error("RLock is not held by " + Thread.currentThread().getName());
+        } catch (ObjectOptimisticLockingFailureException e) {
+            log.error(e.getMessage() + " -> Event Id: {}, Item Id: {}", eventId, orderItemDto.getItemId());
             orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
         }
         return orderItemDto;
