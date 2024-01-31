@@ -52,34 +52,8 @@ eureka:
     healthcheck:
       enabled: true
 
-#resilience4j:
-#  retry:
-#    configs:
-#      deault:
-#        max-attempts: 4
-#        wait-duration:
-#          seconds: 2000
-#        enable-exponential-backoff: true
-#        exponential-backoff-multiplier: 2
-#        retry-exceptions:
-#          - feign.FeignException
-#    instances:
-#      order-result:
-#        base-config: default
-#
-#  circuitbreaker:
-#    configs:
-#      default:
-#        sliding-window-type: count_based
-#        sliding-window-size: 3
-#        minimum-number-of-calls: 2
-#        wait-duration-in-open-state:
-#          seconds: 10
-#        failure-rate-threshold: 30
-#        record-exceptions:
-#          - feign.FeignException
-#          - java.net.ConnectException
-#          - java.util.concurrent.TimeoutException
-#    instances:
-#      order-result:
-#        base-config: default
+resilience4j:
+  retry:
+    retry-aspect-order: 2
+  circuitbreaker:
+    circuit-breaker-aspect-order: 1

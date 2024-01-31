@@ -1,14 +1,37 @@
 package com.nayoung.orderservice.openfeign;
 
 import com.nayoung.orderservice.domain.OrderItemStatus;
+import feign.FeignException;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import static com.nayoung.orderservice.resilience4j.Resilience4jCircuitBreakerConfig.ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER;
+import static com.nayoung.orderservice.resilience4j.Resilience4jRetryConfig.ORDER_PROCESSING_RESULT_RETRY;
+
 @FeignClient(name = "item-service", url = "http://127.0.0.1:8089/item-service")
 public interface ItemServiceClient {
 
+    Logger log = LoggerFactory.getLogger(ItemServiceClient.class);
+
+    @Retry(name = ORDER_PROCESSING_RESULT_RETRY)
+    @CircuitBreaker(name = ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER, fallbackMethod = "fallback")
     @GetMapping(value = "/order-processing-result/{eventId}", produces = MediaType.APPLICATION_JSON_VALUE)
     OrderItemStatus findOrderProcessingResultByEventId(@PathVariable String eventId);
+
+    default OrderItemStatus fallback(FeignException e) {
+        log.error("FeignException: " + e.getMessage());
+        return OrderItemStatus.NOT_EXIST;
+    }
+
+    default OrderItemStatus fallback(CallNotPermittedException e) {
+        log.error("CallNotPermittedException: " + e.getMessage());
+        return OrderItemStatus.FAILED;
+    }
 }

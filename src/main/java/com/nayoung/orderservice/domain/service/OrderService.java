@@ -55,11 +55,7 @@ public abstract class OrderService {
     }
 
     public OrderItemStatus getOrderStatusByEventId(String eventId) {
-        try {
-            return itemServiceClient.findOrderProcessingResultByEventId(eventId);
-        } catch (Exception e) {
-            return OrderItemStatus.NOT_EXIST;
-        }
+        return itemServiceClient.findOrderProcessingResultByEventId(eventId);
     }
 
     public void resendKafkaMessage(String key, OrderDto value) {
