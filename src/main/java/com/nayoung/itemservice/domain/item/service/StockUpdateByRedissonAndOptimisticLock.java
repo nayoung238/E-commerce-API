@@ -45,6 +45,7 @@ public class StockUpdateByRedissonAndOptimisticLock implements StockUpdate {
         try {
             boolean available = lock.tryLock(RLOCK_WAIT_TIME, RLOCK_LEASE_TIME, TimeUnit.MILLISECONDS);
             if(available) {
+                log.info("Acquired the RLock -> Event Id: {}, Redisson Lock: {}", eventId, lock.getName());
                 return updateStockByOptimisticLock(orderItemDto, eventId);
             }
             else {
@@ -57,6 +58,7 @@ public class StockUpdateByRedissonAndOptimisticLock implements StockUpdate {
             orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
         } finally {
             if(lock.isHeldByCurrentThread()) {
+                log.info("Unlock -> Event Id: {}, Redisson Lock: {}", eventId, lock.getName());
                 lock.unlock();
             }
         }
