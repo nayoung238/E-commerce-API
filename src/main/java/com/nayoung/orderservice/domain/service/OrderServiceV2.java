@@ -45,20 +45,18 @@ public class OrderServiceV2 extends OrderService {
                 record.value().getEventId(),
                 record.value().getOrderStatus());
 
-        boolean isExist = orderRepository.existsByEventId(record.key());
-        if(!isExist) {
+        if(!isExistOrderByEventId(record.key())) {
             Order order = Order.fromFinalOrderDto(record.value());
             order.getOrderItems()
                     .forEach(o -> o.setOrder(order));
 
             orderRepository.save(order);
-            setTombstoneRecord(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, record.key());
+            kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, record.key());
         }
     }
 
     @Override
-    @KafkaListener(topics = {KafkaProducerConfig.TEMPORARY_ORDER_TOPIC,
-                            KafkaProducerConfig.RETRY_TEMPORARY_ORDER_TOPIC})
+    @KafkaListener(topics = KafkaProducerConfig.TEMPORARY_ORDER_TOPIC)
     public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderDto> record) {
         if(record.key() != null && record.value() != null) {
             log.info("Consuming message success -> Topic: {}, Key(event Id): {}",
@@ -68,8 +66,7 @@ public class OrderServiceV2 extends OrderService {
             try {
                 waitBasedOnTimestamp(record.timestamp());
 
-                boolean isExist = orderRepository.existsByEventId(record.key());
-                if (!isExist) {
+                if (!isExistOrderByEventId(record.key())) {
                     kafkaProducerService.send(KafkaProducerConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC, record.key(), record.value());
                 }
             } catch (InterruptedException e) {
@@ -88,22 +85,26 @@ public class OrderServiceV2 extends OrderService {
 
         OrderItemStatus orderItemStatus = getOrderStatusByEventId(record.key());
         if (orderItemStatus.equals(OrderItemStatus.SUCCEEDED) || orderItemStatus.equals(OrderItemStatus.FAILED)) {
-            OrderDto orderDto = OrderDto.fromEventIdAndOrderItemStatus(record.key(), orderItemStatus);
-            kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_ITEM_UPDATE_RESULT_TOPIC, record.key(), orderDto);
+            if(!isExistOrderByEventId(record.key())) {
+                OrderDto orderDto = OrderDto.fromEventIdAndOrderItemStatus(record.key(), orderItemStatus);
+                kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_ITEM_UPDATE_RESULT_TOPIC, record.key(), orderDto);
+            }
         } else if (orderItemStatus.equals(OrderItemStatus.SERVER_ERROR)) {
-            setTombstoneRecord(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, record.key());
+            kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, record.key());
         } else {
             resendKafkaMessage(record.key(), record.value());
         }
     }
 
-    private void setTombstoneRecord(String topic, String key) {
-        kafkaProducerService.send(topic, key, null);
-    }
-
     @Override
     public void updateOrderStatusByEventId(String eventId, OrderItemStatus orderItemStatus) {
-        OrderDto orderDto = OrderDto.fromEventIdAndOrderItemStatus(eventId, orderItemStatus);
-        kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_ITEM_UPDATE_RESULT_TOPIC, eventId, orderDto);
+        if(!isExistOrderByEventId(eventId)) {
+            OrderDto orderDto = OrderDto.fromEventIdAndOrderItemStatus(eventId, orderItemStatus);
+            kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_ITEM_UPDATE_RESULT_TOPIC, eventId, orderDto);
+        }
+    }
+
+    private boolean isExistOrderByEventId(String eventId) {
+        return orderRepository.existsByEventId(eventId);
     }
 }

@@ -69,8 +69,7 @@ public class OrderServiceV1 extends OrderService {
     }
 
     @Override
-//    @KafkaListener(topics = {KafkaProducerConfig.TEMPORARY_ORDER_TOPIC,
-//                             KafkaProducerConfig.RETRY_TEMPORARY_ORDER_TOPIC})
+//    @KafkaListener(topics = KafkaProducerConfig.TEMPORARY_ORDER_TOPIC)
     public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderDto> record) {
         if(record.value() != null) {
             log.info("Consuming message success -> Topic: {}, Order Id: {}, Event Id: {}",
