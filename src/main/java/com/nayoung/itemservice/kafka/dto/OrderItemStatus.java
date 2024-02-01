@@ -1,17 +1,26 @@
 package com.nayoung.itemservice.kafka.dto;
 
-import com.nayoung.itemservice.exception.ExceptionCode;
-import com.nayoung.itemservice.exception.OrderException;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.Objects;
+import java.util.Locale;
 
+@Slf4j
 public enum OrderItemStatus {
 
-    SUCCEEDED, FAILED, WAITING, CANCELED, OUT_OF_STOCK;
+    SUCCEEDED,
+    FAILED,
+    WAITING,
+    CANCELED,
+    OUT_OF_STOCK,
+    NOT_EXIST,
+    BAD_REQUEST;
 
     public static OrderItemStatus getOrderItemStatus(String orderItemStatus) {
-        if(Objects.equals(orderItemStatus, "SUCCEEDED")) return SUCCEEDED;
-        if(Objects.equals(orderItemStatus, "FAILED")) return FAILED;
-        throw new OrderException(ExceptionCode.NO_MATCHING_ORDER_ITEM_STATUS);
+        try {
+            return valueOf(orderItemStatus.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            log.error(e.getMessage());
+            return BAD_REQUEST;
+        }
     }
 }
