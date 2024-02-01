@@ -19,17 +19,16 @@ public class KafkaProducerService {
                 .whenComplete((stringOrderDtoSendResult, throwable) -> {
                     if(throwable == null) {
                         RecordMetadata metadata = stringOrderDtoSendResult.getRecordMetadata();
-                        if(stringOrderDtoSendResult.getProducerRecord().value() == null) {
-                            log.info("Tombstone Record -> topic: {}, partition: {}, event Id: {}",
-                                    metadata.topic(),
-                                    metadata.partition(),
-                                    stringOrderDtoSendResult.getProducerRecord().key());
-                        }
-                        else {
+                        if(stringOrderDtoSendResult.getProducerRecord().value() != null) {
                             log.info("Producing message Success -> topic: {}, partition: {}, offset: {}, event Id: {}",
                                     metadata.topic(),
                                     metadata.partition(),
                                     metadata.offset(),
+                                    stringOrderDtoSendResult.getProducerRecord().key());
+                        } else {
+                            log.info("Tombstone Record -> topic: {}, partition: {}, event Id: {}",
+                                    metadata.topic(),
+                                    metadata.partition(),
                                     stringOrderDtoSendResult.getProducerRecord().key());
                         }
                     } else {
