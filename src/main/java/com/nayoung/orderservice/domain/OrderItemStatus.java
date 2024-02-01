@@ -8,5 +8,6 @@ public enum OrderItemStatus {
     CANCELED,
     OUT_OF_STOCK,
     NOT_EXIST,
-    SERVER_ERROR
+    SERVER_ERROR,
+    BAD_REQUEST
 }
