@@ -14,8 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaProducerException;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-
 /**
  * Kafka Streams 이용해 이벤트 집계 후 DB에 반영하는 방식
  * -> 재고 변경 데이터를 event로 생성 및 Kafka Streams로 이벤트 집계 후 DB 반영
@@ -28,7 +26,7 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class StockUpdateByKafkaStreams implements StockUpdate {
+public class StockUpdateByKafkaStreamsService implements StockUpdate {
 
     private final ItemRepository itemRepository;
     private final ItemRedisRepository itemRedisRepository;
@@ -44,15 +42,11 @@ public class StockUpdateByKafkaStreams implements StockUpdate {
             orderItemDto.setOrderItemStatus((orderItemDto.getQuantity() < 0) ?
                     OrderItemStatus.SUCCEEDED  // consumption
                     : OrderItemStatus.CANCELED);  // production (undo)
-        }
-        else orderItemDto.setOrderItemStatus(OrderItemStatus.OUT_OF_STOCK);
 
-        if(Objects.equals(OrderItemStatus.SUCCEEDED, orderItemDto.getOrderItemStatus())  // consumption
-                || Objects.equals(OrderItemStatus.CANCELED, orderItemDto.getOrderItemStatus())) {  // production (undo)
             sendMessageToKafka(orderItemDto.getItemId(), orderItemDto.getQuantity());
+        } else {
+            orderItemDto.setOrderItemStatus(OrderItemStatus.OUT_OF_STOCK);
         }
-
-        // TODO: Redis 재고 변경 데이터 관리
         return orderItemDto;
     }
 
@@ -60,8 +54,7 @@ public class StockUpdateByKafkaStreams implements StockUpdate {
         Long stock = itemRedisRepository.incrementItemStock(itemId, quantity);
         if(stock >= 0) return true;
 
-        // undo
-        itemRedisRepository.decrementItemStock(itemId, quantity);
+        itemRedisRepository.decrementItemStock(itemId, quantity);   // undo
         return false;
     }
 
