@@ -31,7 +31,7 @@ import java.util.UUID;
 public class KStreamKTableJoinConfig {
 
     public static final String FINAL_ORDER_CREATION_TOPIC = "e-commerce.order.final-order-details";
-    public static final String ORDER_ITEM_UPDATE_RESULT_TOPIC = "e-commerce.item.item-update-result";
+    public static final String ORDER_PROCESSING_RESULT_TOPIC = "e-commerce.item.item-update-result";
     private final String STATE_DIR = "/tmp/kafka-streams/";
     private final KafkaProducerService kafkaProducerService;
 
@@ -54,14 +54,14 @@ public class KStreamKTableJoinConfig {
     }
 
     @Bean
-    public KStream<String, OrderDto> orderItemUpdateResult(StreamsBuilder streamsBuilder) {
-        return streamsBuilder.stream(ORDER_ITEM_UPDATE_RESULT_TOPIC);
+    public KStream<String, OrderDto> orderProcessingResult(StreamsBuilder streamsBuilder) {
+        return streamsBuilder.stream(ORDER_PROCESSING_RESULT_TOPIC);
     }
 
     @Bean
     public KStream<String, OrderDto> createOrder(KTable<String, OrderDto> requestedOrder,
-                                                 KStream<String, OrderDto> orderItemUpdateResult) {
-        return orderItemUpdateResult
+                                                 KStream<String, OrderDto> orderProcessingResult) {
+        return orderProcessingResult
                 .filter((key, value) -> {
                     if(!value.getOrderStatus().equals(OrderItemStatus.SUCCEEDED)
                             && !value.getOrderStatus().equals(OrderItemStatus.FAILED)) {

@@ -87,7 +87,7 @@ public class OrderServiceV2 extends OrderService {
         if (orderItemStatus.equals(OrderItemStatus.SUCCEEDED) || orderItemStatus.equals(OrderItemStatus.FAILED)) {
             if(!isExistOrderByEventId(record.key())) {
                 OrderDto orderDto = OrderDto.fromEventIdAndOrderItemStatus(record.key(), orderItemStatus);
-                kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_ITEM_UPDATE_RESULT_TOPIC, record.key(), orderDto);
+                kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_TOPIC, record.key(), orderDto);
             }
         } else if (orderItemStatus.equals(OrderItemStatus.SERVER_ERROR)) {
             kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, record.key());
@@ -100,7 +100,7 @@ public class OrderServiceV2 extends OrderService {
     public void updateOrderStatusByEventId(String eventId, OrderItemStatus orderItemStatus) {
         if(!isExistOrderByEventId(eventId)) {
             OrderDto orderDto = OrderDto.fromEventIdAndOrderItemStatus(eventId, orderItemStatus);
-            kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_ITEM_UPDATE_RESULT_TOPIC, eventId, orderDto);
+            kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_TOPIC, eventId, orderDto);
         }
     }
 

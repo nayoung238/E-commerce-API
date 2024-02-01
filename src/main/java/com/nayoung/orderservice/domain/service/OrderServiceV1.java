@@ -46,7 +46,7 @@ public class OrderServiceV1 extends OrderService {
         return OrderDto.fromOrder(order);
     }
 
-//    @KafkaListener(topics = KStreamKTableJoinConfig.ORDER_ITEM_UPDATE_RESULT_TOPIC)
+//    @KafkaListener(topics = KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_TOPIC)
     @Transactional
     public void updateOrderStatus(ConsumerRecord<String, OrderDto> record) {
         log.info("Consuming message success -> Topic: {}, order Id: {}, event Id: {}, Order Status: {}",
