@@ -20,14 +20,20 @@ public interface ItemServiceClient {
 
     Logger log = LoggerFactory.getLogger(ItemServiceClient.class);
 
+    // Retry 우선순위를 CircuitBreaker 보다 높게 설정
     @Retry(name = ORDER_PROCESSING_RESULT_RETRY)
     @CircuitBreaker(name = ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER, fallbackMethod = "fallback")
     @GetMapping(value = "/order-processing-result/{eventId}", produces = MediaType.APPLICATION_JSON_VALUE)
     OrderItemStatus findOrderProcessingResultByEventId(@PathVariable String eventId);
 
-    default OrderItemStatus fallback(FeignException e) {
-        log.error("FeignException: " + e.getMessage());
+    default OrderItemStatus fallback(FeignException.FeignClientException e) {
+        log.error("FeignClientException: " + e.getMessage());
         return OrderItemStatus.NOT_EXIST;
+    }
+
+    default OrderItemStatus fallback(FeignException.FeignServerException e) {
+        log.error("FeignServerException: " + e.getMessage());
+        return OrderItemStatus.SERVER_ERROR;
     }
 
     default OrderItemStatus fallback(CallNotPermittedException e) {

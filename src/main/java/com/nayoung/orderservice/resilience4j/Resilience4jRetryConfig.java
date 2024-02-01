@@ -19,7 +19,8 @@ public class Resilience4jRetryConfig {
         return RetryRegistry.of(RetryConfig.custom()
                 .maxAttempts(4)
                 .intervalFunction(IntervalFunction.ofExponentialRandomBackoff(Duration.ofMillis(5000), 2))  // waitDuration 같이 쓰면 오류
-                .retryExceptions(FeignException.class)
+                .retryExceptions(FeignException.FeignClientException.class)
+                .retryOnException(throwable -> !(throwable instanceof FeignException.FeignServerException))
                 .build());
 
         // https://resilience4j.readme.io/docs/retry#create-and-configure-retry

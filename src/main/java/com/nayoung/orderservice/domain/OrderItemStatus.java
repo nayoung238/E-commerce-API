@@ -2,5 +2,11 @@ package com.nayoung.orderservice.domain;
 
 public enum OrderItemStatus {
 
-    SUCCEEDED, FAILED, WAITING, CANCELED, OUT_OF_STOCK, NOT_EXIST
+    SUCCEEDED,
+    FAILED,
+    WAITING,
+    CANCELED,
+    OUT_OF_STOCK,
+    NOT_EXIST,
+    SERVER_ERROR
 }

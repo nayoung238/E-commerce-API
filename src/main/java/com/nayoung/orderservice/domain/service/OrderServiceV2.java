@@ -52,9 +52,7 @@ public class OrderServiceV2 extends OrderService {
                     .forEach(o -> o.setOrder(order));
 
             orderRepository.save(order);
-
-            // Tombstone record 설정
-            kafkaProducerService.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, order.getEventId(), null);
+            setTombstoneRecord(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, record.key());
         }
     }
 
@@ -89,11 +87,18 @@ public class OrderServiceV2 extends OrderService {
                 record.key());
 
         OrderItemStatus orderItemStatus = getOrderStatusByEventId(record.key());
-        if(!orderItemStatus.equals(OrderItemStatus.NOT_EXIST)) {
+        if (orderItemStatus.equals(OrderItemStatus.SUCCEEDED) || orderItemStatus.equals(OrderItemStatus.FAILED)) {
             OrderDto orderDto = OrderDto.fromEventIdAndOrderItemStatus(record.key(), orderItemStatus);
             kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_ITEM_UPDATE_RESULT_TOPIC, record.key(), orderDto);
+        } else if (orderItemStatus.equals(OrderItemStatus.SERVER_ERROR)) {
+            setTombstoneRecord(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, record.key());
+        } else {
+            resendKafkaMessage(record.key(), record.value());
         }
-        else resendKafkaMessage(record.key(), record.value());
+    }
+
+    private void setTombstoneRecord(String topic, String key) {
+        kafkaProducerService.send(topic, key, null);
     }
 
     @Override
