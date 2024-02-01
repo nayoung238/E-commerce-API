@@ -1,13 +1,10 @@
 package com.nayoung.itemservice.domain.item.service;
 
 import com.nayoung.itemservice.domain.item.Item;
-import com.nayoung.itemservice.domain.item.ItemUpdateLog;
 import com.nayoung.itemservice.domain.item.repository.ItemRepository;
-import com.nayoung.itemservice.domain.item.repository.ItemUpdateLogRepository;
 import com.nayoung.itemservice.domain.item.repository.OrderRedisRepository;
 import com.nayoung.itemservice.exception.ExceptionCode;
 import com.nayoung.itemservice.exception.ItemException;
-import com.nayoung.itemservice.exception.OrderException;
 import com.nayoung.itemservice.kafka.producer.KafkaProducerService;
 import com.nayoung.itemservice.kafka.producer.KafkaProducerConfig;
 import com.nayoung.itemservice.kafka.dto.OrderDto;
@@ -27,7 +24,6 @@ import java.util.stream.Collectors;
 public class ItemStockService {
 
     private final ItemRepository itemRepository;
-    private final ItemUpdateLogRepository itemUpdateLogRepository;
     private final KafkaProducerService kafkaProducerService;
     private final OrderRedisRepository orderRedisRepository;
     private final StockUpdate stockUpdateService;
@@ -45,24 +41,15 @@ public class ItemStockService {
                 orderDto.setOrderItemDtos(result);
             } else {
                 orderDto.setOrderStatus(OrderItemStatus.FAILED);
-                orderDto.setOrderItemDtos(undo(orderDto.getEventId(), result));
+                List<OrderItemDto> orderItemDtoList = undo(orderDto.getEventId(), result);
+                orderDto.setOrderItemDtos(orderItemDtoList);
             }
             orderRedisRepository.setOrderStatus(orderDto.getEventId(), orderDto.getOrderStatus());
             kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
         }
         else {
-            String orderProcessingResult = orderRedisRepository.getOrderStatus(orderDto.getEventId());
-            assert orderProcessingResult != null;
-            try {
-                OrderItemStatus orderItemStatus = OrderItemStatus.getOrderItemStatus(orderProcessingResult);
-                orderDto.setOrderStatus(orderItemStatus);
-                orderDto.getOrderItemDtos()
-                        .forEach(orderItemDto -> orderItemDto.setOrderItemStatus(orderItemStatus));
-
-                kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
-            } catch (OrderException e) {
-                log.error(String.valueOf(e.getExceptionCode()));
-            }
+            setOrderStatus(orderDto);
+            kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
         }
     }
 
@@ -86,17 +73,16 @@ public class ItemStockService {
                 .allMatch(o -> Objects.equals(OrderItemStatus.SUCCEEDED, o.getOrderItemStatus()));
     }
 
-    private List<OrderItemDto> getOrderItemDtosByEventId(String eventId) {
-        List<ItemUpdateLog> itemUpdateLogs = itemUpdateLogRepository.findAllByEventId(eventId);
+    private void setOrderStatus(OrderDto orderDto) {
+        String orderProcessingResult = orderRedisRepository.getOrderStatus(orderDto.getEventId());
 
-        Set<Long> itemId = new HashSet<>();
-        itemUpdateLogs.sort(Comparator.comparing(ItemUpdateLog::getId).reversed());
-        return itemUpdateLogs.stream()
-                .filter(i -> !itemId.contains(i.getItemId()))
-                .map(i -> {
-                    itemId.add(i.getItemId());
-                    return OrderItemDto.from(i);})
-                .collect(Collectors.toList());
+        OrderItemStatus orderItemStatus;
+        if(orderProcessingResult == null) orderItemStatus = OrderItemStatus.NOT_EXIST;
+        else orderItemStatus = OrderItemStatus.getOrderItemStatus(orderProcessingResult);
+
+        orderDto.setOrderStatus(orderItemStatus);
+        orderDto.getOrderItemDtos()
+                .forEach(orderItemDto -> orderItemDto.setOrderItemStatus(orderItemStatus));
     }
 
     private List<OrderItemDto> undo(String eventId, List<OrderItemDto> orderItemDtos) {
