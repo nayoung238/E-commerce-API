@@ -1,10 +1,5 @@
 package com.nayoung.itemservice.domain.item.service;
 
-import com.nayoung.itemservice.domain.item.Item;
-import com.nayoung.itemservice.domain.item.repository.ItemRepository;
-import com.nayoung.itemservice.exception.ExceptionCode;
-import com.nayoung.itemservice.exception.ItemException;
-import com.nayoung.itemservice.exception.StockException;
 import com.nayoung.itemservice.kafka.dto.OrderItemDto;
 import com.nayoung.itemservice.kafka.dto.OrderItemStatus;
 import lombok.RequiredArgsConstructor;
@@ -12,8 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Primary;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.TimeUnit;
 
@@ -29,10 +24,10 @@ import java.util.concurrent.TimeUnit;
 @Service @Primary
 @RequiredArgsConstructor
 @Slf4j
-public class StockUpdateByRedissonAndOptimisticLock implements StockUpdate {
+public class StockUpdateByRedissonService implements StockUpdate {
 
     private final RedissonClient redissonClient;
-    private final ItemRepository itemRepository;
+    private final ItemService itemService;
 
     private final Long RLOCK_WAIT_TIME = 10000L;
     private final Long RLOCK_LEASE_TIME = 3000L;
@@ -40,13 +35,15 @@ public class StockUpdateByRedissonAndOptimisticLock implements StockUpdate {
 
 
     @Override
+    @Transactional
     public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
         RLock lock = redissonClient.getLock(generateKey(orderItemDto.getItemId()));
         try {
             boolean available = lock.tryLock(RLOCK_WAIT_TIME, RLOCK_LEASE_TIME, TimeUnit.MILLISECONDS);
             if(available) {
                 log.info("Acquired the RLock -> Event Id: {}, Redisson Lock: {}", eventId, lock.getName());
-                return updateStockByOptimisticLock(orderItemDto, eventId);
+                // Transaction Propagation.REQUIRES_NEW
+                return itemService.updateStockByOptimisticLock(orderItemDto, eventId);
             }
             else {
                 log.error("Failed to acquire RLock -> Event Id: {}, Redisson Lock: {}", eventId, lock.getName());
@@ -67,25 +64,5 @@ public class StockUpdateByRedissonAndOptimisticLock implements StockUpdate {
 
     private String generateKey(Long key) {
         return REDISSON_ITEM_LOCK_PREFIX + key.toString();
-    }
-
-    private OrderItemDto updateStockByOptimisticLock(OrderItemDto orderItemDto, String eventId) {
-        try {
-            Item item = itemRepository.findByIdWithOptimisticLock(orderItemDto.getItemId())
-                    .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
-            item.updateStock(orderItemDto.getQuantity());
-            orderItemDto.setOrderItemStatus(OrderItemStatus.SUCCEEDED);
-            itemRepository.save(item);
-        } catch (ItemException e) {
-            log.error(String.valueOf(e.getExceptionCode()));
-            orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
-        } catch (StockException e) {
-            log.error(String.valueOf(e.getExceptionCode()));
-            orderItemDto.setOrderItemStatus(OrderItemStatus.OUT_OF_STOCK);
-        } catch (ObjectOptimisticLockingFailureException e) {
-            log.error(e.getMessage() + " -> Event Id: {}, Item Id: {}", eventId, orderItemDto.getItemId());
-            orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
-        }
-        return orderItemDto;
     }
 }
