@@ -14,6 +14,11 @@ public class KafkaProducerService {
 
     private final KafkaTemplate<String, OrderDto> orderDtoKafkaTemplate;
 
+    public void setTombstoneRecord(String topic, String key) {
+        assert key != null;
+        send(topic, key, null);
+    }
+
     public void send(String topic, String key, @Payload(required = false) OrderDto value) {
         orderDtoKafkaTemplate.send(topic, key, value)
                 .whenComplete((stringOrderDtoSendResult, throwable) -> {
