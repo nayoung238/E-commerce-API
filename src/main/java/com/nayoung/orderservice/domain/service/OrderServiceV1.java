@@ -42,7 +42,7 @@ public class OrderServiceV1 extends OrderService {
                 .forEach(o -> o.setOrder(order));
 
         orderRepository.save(order);
-        kafkaProducerService.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, null, OrderDto.fromOrder(order));
+        kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, null, OrderDto.fromOrder(order));
         return OrderDto.fromOrder(order);
     }
 
@@ -76,7 +76,7 @@ public class OrderServiceV1 extends OrderService {
                     if (Objects.equals(OrderItemStatus.WAITING, order.get().getOrderStatus())) {
                         kafkaProducerService.send(KafkaProducerConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC, null, record.value());
                     }
-                } else kafkaProducerService.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, null, record.value());
+                } else kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, null, record.value());
             } catch (InterruptedException e) {
                 log.error(e.getMessage());
             }

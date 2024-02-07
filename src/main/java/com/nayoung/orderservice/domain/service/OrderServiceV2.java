@@ -34,7 +34,7 @@ public class OrderServiceV2 extends OrderService {
         orderDto.setEventId(setEventId(orderDto.getCustomerAccountId()));
         orderDto.initializeRequestedAt();
         orderDto.setOrderStatus(OrderItemStatus.WAITING);
-        kafkaProducerService.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, orderDto.getEventId(), orderDto);
+        kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, orderDto.getEventId(), orderDto);
         return orderDto;
     }
 
@@ -51,12 +51,12 @@ public class OrderServiceV2 extends OrderService {
                     .forEach(o -> o.setOrder(order));
 
             orderRepository.save(order);
-            kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, record.key());
+            kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, record.key());
         }
     }
 
     @Override
-    @KafkaListener(topics = KafkaProducerConfig.TEMPORARY_ORDER_TOPIC)
+    @KafkaListener(topics = KafkaProducerConfig.REQUESTED_ORDER_TOPIC)
     public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderDto> record) {
         if(record.key() != null && record.value() != null) {
             log.info("Consuming message success -> Topic: {}, Key(event Id): {}",
@@ -90,7 +90,7 @@ public class OrderServiceV2 extends OrderService {
                 kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_TOPIC, record.key(), orderDto);
             }
         } else if (orderItemStatus.equals(OrderItemStatus.SERVER_ERROR)) {
-            kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, record.key());
+            kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, record.key());
         } else {
             resendKafkaMessage(record.key(), record.value());
         }

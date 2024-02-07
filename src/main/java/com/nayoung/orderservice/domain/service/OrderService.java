@@ -61,7 +61,7 @@ public abstract class OrderService {
     public void resendKafkaMessage(String key, OrderDto value) {
         String[] redisKey = value.getRequestedAt().toString().split(":");  // key[0] -> order-event:yyyy-mm-dd'T'HH
         if(isFirstEvent(redisKey[0], value.getEventId()))
-            kafkaProducerService.send(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, key, value);
+            kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, key, value);
         else {
             updateOrderStatusByEventId(value.getEventId(), OrderItemStatus.FAILED);
             // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요

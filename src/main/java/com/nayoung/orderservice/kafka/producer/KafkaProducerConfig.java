@@ -17,7 +17,7 @@ import java.util.Map;
 @Configuration
 public class KafkaProducerConfig {
 
-    public static final String TEMPORARY_ORDER_TOPIC = "e-commerce.order.temporary-order-details";
+    public static final String REQUESTED_ORDER_TOPIC = "e-commerce.order.requested-order-details";
     public static final String ORDER_PROCESSING_RESULT_REQUEST_TOPIC = "e-commerce.order.order-processing-result-request";
 
     @Bean

@@ -50,7 +50,7 @@ public class KStreamKTableJoinConfig {
 
     @Bean
     public KTable<String, OrderDto> requestedOrder(StreamsBuilder streamsBuilder) {
-        return streamsBuilder.table(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC);
+        return streamsBuilder.table(KafkaProducerConfig.REQUESTED_ORDER_TOPIC);
     }
 
     @Bean
@@ -66,7 +66,7 @@ public class KStreamKTableJoinConfig {
                     if(!value.getOrderStatus().equals(OrderItemStatus.SUCCEEDED)
                             && !value.getOrderStatus().equals(OrderItemStatus.FAILED)) {
                         log.error("Order status of {} -> {}", key, value.getOrderStatus());
-                        kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.TEMPORARY_ORDER_TOPIC, key);
+                        kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, key);
                     }
                     return value.getOrderStatus().equals(OrderItemStatus.SUCCEEDED)
                             || value.getOrderStatus().equals(OrderItemStatus.FAILED);
