@@ -34,7 +34,7 @@ public class OrderItemDto implements Serializable {
                 .build();
     }
 
-    public void setOrderStatus(OrderItemStatus orderItemStatus) {
+    public void updateOrderStatus(OrderItemStatus orderItemStatus) {
         this.orderItemStatus = orderItemStatus;
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -72,11 +73,24 @@ public class Order {
                 .build();
     }
 
-    public void setOrderStatus(OrderItemStatus status) {
-        this.orderStatus = status;
-    }
-
     public void setEventId(String eventId) {
         this.eventId = eventId;
+    }
+
+    public void updateOrderStatus(OrderItemStatus status) {
+        this.orderStatus = status;
+        this.orderItems
+                .forEach(orderItem -> orderItem.updateOrderItemStatus(status));
+    }
+
+    public void updateOrderStatus(OrderDto orderDto) {
+        this.orderStatus = orderDto.getOrderStatus();
+
+        HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();
+        orderDto.getOrderItemDtos()
+                .forEach(o -> orderItemStatusHashMap.put(o.getItemId(), o.getOrderItemStatus()));
+
+        this.orderItems
+                .forEach(o -> o.updateOrderItemStatus(orderItemStatusHashMap.get(o.getItemId())));
     }
 }

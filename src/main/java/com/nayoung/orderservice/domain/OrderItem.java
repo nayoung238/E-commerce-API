@@ -47,7 +47,7 @@ public class OrderItem {
         this.order = order;
     }
 
-    public void setOrderItemStatus(OrderItemStatus orderItemStatus) {
+    public void updateOrderItemStatus(OrderItemStatus orderItemStatus) {
         this.orderItemStatus = orderItemStatus;
     }
 }

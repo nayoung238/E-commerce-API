@@ -56,16 +56,7 @@ public class OrderServiceV1 extends OrderService {
                 record.value().getOrderStatus());
 
         Optional<Order> order = orderRepository.findByEventId(record.value().getEventId());
-        if(order.isPresent()) {
-            order.get().setOrderStatus(record.value().getOrderStatus());
-
-            HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();
-            record.value().getOrderItemDtos()
-                    .forEach(o -> orderItemStatusHashMap.put(o.getItemId(), o.getOrderItemStatus()));
-
-            order.get().getOrderItems()
-                    .forEach(o -> o.setOrderItemStatus(orderItemStatusHashMap.get(o.getItemId())));
-        }
+        order.ifPresent(value -> value.updateOrderStatus(record.value()));
     }
 
     @Override
@@ -111,10 +102,7 @@ public class OrderServiceV1 extends OrderService {
         Order order = orderRepository.findByEventId(eventId)
                 .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
-        order.setOrderStatus(orderItemStatus);
-        order.getOrderItems()
-                .forEach(o -> o.setOrderItemStatus(orderItemStatus));
-
+        order.updateOrderStatus(orderItemStatus);
         orderRepository.save(order);
     }
 }

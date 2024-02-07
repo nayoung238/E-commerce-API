@@ -9,6 +9,7 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,5 +63,25 @@ public class OrderDto implements Serializable {
 
     public void initializeRequestedAt() {
         this.requestedAt = LocalDateTime.now();
+    }
+
+    public void updateOrderStatus(OrderDto orderDto) {
+        if(orderDto.orderItemDtos != null) {
+            this.orderStatus = orderDto.getOrderStatus();
+
+            HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();
+            orderDto.getOrderItemDtos()
+                    .forEach(o -> orderItemStatusHashMap.put(o.getItemId(), o.getOrderItemStatus()));
+
+            this.orderItemDtos
+                    .forEach(o -> o.updateOrderStatus(orderItemStatusHashMap.get(o.getItemId())));
+        }
+        else updateOrderStatus(orderDto.orderStatus);
+    }
+
+    private void updateOrderStatus(OrderItemStatus status) {
+        this.orderStatus = status;
+        this.orderItemDtos
+                .forEach(orderItem -> orderItem.updateOrderStatus(status));
     }
 }
