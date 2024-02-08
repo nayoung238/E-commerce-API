@@ -9,29 +9,34 @@ import com.nayoung.orderservice.kafka.producer.KafkaProducerService;
 import com.nayoung.orderservice.kafka.producer.KafkaProducerConfig;
 import com.nayoung.orderservice.openfeign.ItemServiceClient;
 import com.nayoung.orderservice.web.dto.OrderDto;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
 
 /**
  * KStream(주문에 대한 재고 변경 결과) + KTable(waiting 상태의 주문) Join 한 결과(주문 상세)를 DB에 insert 하는 방식 (v2)
  * 주문 생성을 위해 DB 한 번 접근 (insert)
  */
-@Service @Slf4j
-public class OrderServiceV2 extends OrderService {
+@Service @Primary
+@Slf4j
+@RequiredArgsConstructor
+public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreationService {
 
-    public OrderServiceV2(OrderRepository orderRepository, OrderRedisRepository orderRedisRepository,
-                          KafkaProducerService kafkaProducerService,
-                          ItemServiceClient itemServiceClient) {
-        super(orderRepository, orderRedisRepository, kafkaProducerService, itemServiceClient);
-    }
+    public final OrderRepository orderRepository;
+    private final OrderRedisRepository orderRedisRepository;
+    public final KafkaProducerService kafkaProducerService;
+    private final ItemServiceClient itemServiceClient;
 
     @Override
     @Transactional
     public OrderDto create(OrderDto orderDto) {
-        orderDto.setEventId(setEventId(orderDto.getCustomerAccountId()));
+        orderDto.initializeEventId();
         orderDto.initializeRequestedAt();
         orderDto.setOrderStatus(OrderItemStatus.WAITING);
         kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, orderDto.getEventId(), orderDto);
@@ -75,6 +80,13 @@ public class OrderServiceV2 extends OrderService {
         }
     }
 
+    private void waitBasedOnTimestamp(long recordTimestamp) throws InterruptedException {
+        Instant recordAppendTime = Instant.ofEpochMilli(recordTimestamp);
+        while (Instant.now().toEpochMilli() - recordAppendTime.toEpochMilli() < 3000) {
+            Thread.sleep(1000);
+        }
+    }
+
     @Override
     @KafkaListener(topics = KafkaProducerConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC)
     public void requestOrderItemUpdateResult(ConsumerRecord<String, OrderDto> record) {
@@ -83,7 +95,8 @@ public class OrderServiceV2 extends OrderService {
                 record.topic(),
                 record.key());
 
-        OrderItemStatus orderItemStatus = getOrderStatusByEventId(record.key());
+        // OpenFeign
+        OrderItemStatus orderItemStatus = itemServiceClient.findOrderProcessingResultByEventId(record.key());
         if (orderItemStatus.equals(OrderItemStatus.SUCCEEDED) || orderItemStatus.equals(OrderItemStatus.FAILED)) {
             if(!isExistOrderByEventId(record.key())) {
                 OrderDto orderDto = OrderDto.fromEventIdAndOrderItemStatus(record.key(), orderItemStatus);
@@ -96,8 +109,21 @@ public class OrderServiceV2 extends OrderService {
         }
     }
 
-    @Override
-    public void updateOrderStatusByEventId(String eventId, OrderItemStatus orderItemStatus) {
+    private void resendKafkaMessage(String key, OrderDto value) {
+        String[] redisKey = value.getRequestedAt().toString().split(":");  // key[0] -> order-event:yyyy-mm-dd'T'HH
+        if(isFirstEvent(redisKey[0], value.getEventId()))
+            kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, key, value);
+        else {
+            updateOrderStatusByEventId(value.getEventId(), OrderItemStatus.FAILED);
+            // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요
+        }
+    }
+
+    private boolean isFirstEvent(String key, String eventId) {
+        return orderRedisRepository.addEventId(key, eventId) == 1;
+    }
+
+    private void updateOrderStatusByEventId(String eventId, OrderItemStatus orderItemStatus) {
         if(!isExistOrderByEventId(eventId)) {
             OrderDto orderDto = OrderDto.fromEventIdAndOrderItemStatus(eventId, orderItemStatus);
             kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_TOPIC, eventId, orderDto);

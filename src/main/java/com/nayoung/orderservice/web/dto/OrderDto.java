@@ -2,6 +2,8 @@ package com.nayoung.orderservice.web.dto;
 
 import com.nayoung.orderservice.domain.Order;
 import com.nayoung.orderservice.domain.OrderItemStatus;
+import com.nayoung.orderservice.exception.ExceptionCode;
+import com.nayoung.orderservice.exception.OrderException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -11,6 +13,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Getter @Builder
@@ -20,7 +23,6 @@ public class OrderDto implements Serializable {
 
     private Long id;
 
-    @Setter
     private String eventId;
 
     @Setter
@@ -59,6 +61,14 @@ public class OrderDto implements Serializable {
                 .eventId(eventId)
                 .orderStatus(orderItemStatus)
                 .build();
+    }
+
+    public void initializeEventId() {
+        if(this.customerAccountId == null) {
+            throw new OrderException(ExceptionCode.NOT_NULL_CUSTOMER_ACCOUNT_ID);
+        }
+        String[] uuid = UUID.randomUUID().toString().split("-");
+        this.eventId = this.customerAccountId.toString() + "-" + uuid[0];
     }
 
     public void initializeRequestedAt() {

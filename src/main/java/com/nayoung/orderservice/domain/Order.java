@@ -1,5 +1,7 @@
 package com.nayoung.orderservice.domain;
 
+import com.nayoung.orderservice.exception.ExceptionCode;
+import com.nayoung.orderservice.exception.OrderException;
 import com.nayoung.orderservice.web.dto.OrderDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -12,6 +14,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Entity
@@ -27,6 +30,7 @@ public class Order {
     @Column(name = "order_id")
     private Long id;
 
+    // Kafka KTable & KStream key
     @Column(unique = true)
     private String eventId;
 
@@ -73,8 +77,12 @@ public class Order {
                 .build();
     }
 
-    public void setEventId(String eventId) {
-        this.eventId = eventId;
+    public void initializeEventId() {
+        if(this.customerAccountId == null) {
+            throw new OrderException(ExceptionCode.NOT_NULL_CUSTOMER_ACCOUNT_ID);
+        }
+        String[] uuid = UUID.randomUUID().toString().split("-");
+        this.eventId = this.customerAccountId.toString() + "-" + uuid[0];
     }
 
     public void updateOrderStatus(OrderItemStatus status) {

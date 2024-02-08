@@ -18,14 +18,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
 @Slf4j
-class OrderServiceV2Test {
+class OrderCreationByKafkaStreamsJoinServiceImplTest {
 
     @Autowired
-    OrderServiceV2 orderServiceV2;
+    OrderCreationByKafkaStreamsJoinServiceImpl orderService;
 
     @Autowired
     OrderRepository orderRepository;
@@ -43,7 +41,7 @@ class OrderServiceV2Test {
     @Test
     void 최종_주문_생성 () throws InterruptedException {
         OrderDto requestedOrder = getRequestedOrder();
-        OrderDto savedOrderDto = orderServiceV2.create(requestedOrder);
+        OrderDto savedOrderDto = orderService.create(requestedOrder);
 
         log.error(savedOrderDto.getEventId());
         OrderDto orderProcessingResult = getOrderProcessingResult(savedOrderDto.getEventId(), OrderItemStatus.FAILED);
