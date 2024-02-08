@@ -31,7 +31,7 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest {
     @Autowired
     KafkaProducerService kafkaProducerService;
 
-    private final Long CUSTOMER_ACCOUNT_ID = 2L;
+    private final Long USER_ID = 2L;
 
     @AfterEach
     void afterEach() {
@@ -68,7 +68,7 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest {
                 .toList();
 
         return OrderDto.builder()
-                .customerAccountId(CUSTOMER_ACCOUNT_ID)
+                .userId(USER_ID)
                 .orderItemDtos(orderItemDtos)
                 .build();
     }
@@ -83,7 +83,7 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest {
                 .toList();
 
         return OrderDto.builder()
-                .customerAccountId(CUSTOMER_ACCOUNT_ID)
+                .userId(USER_ID)
                 .eventId(eventId)
                 .orderStatus(orderItemStatus)
                 .orderItemDtos(orderItemDtos)

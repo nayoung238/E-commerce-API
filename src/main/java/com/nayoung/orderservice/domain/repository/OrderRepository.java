@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    List<Order> findByCustomerAccountIdAndIdLessThanOrderByIdDesc(Long customerAccountId, Long id, Pageable pageable);
-    List<Order> findByCustomerAccountIdOrderByIdDesc(Long customerAccountId, Pageable pageable);
+    List<Order> findByUserIdAndIdLessThanOrderByIdDesc(Long userId, Long id, Pageable pageable);
+    List<Order> findByUserIdOrderByIdDesc(Long userId, Pageable pageable);
     Optional<Order> findByEventId(String eventId);
 
     boolean existsByEventId(String eventId);

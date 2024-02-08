@@ -17,13 +17,13 @@ public class OrderService {
 
     public final OrderRepository orderRepository;
 
-    public List<OrderDto> findOrderByCustomerAccountIdAndOrderId(Long customerAccountId, Long orderId) {
+    public List<OrderDto> findOrderByUserIdAndOrderId(Long userId, Long orderId) {
         PageRequest pageRequest = PageRequest.of(0, 5);
         List<Order> orders;
         if(orderId != null)
-            orders = orderRepository.findByCustomerAccountIdAndIdLessThanOrderByIdDesc(customerAccountId, orderId, pageRequest);
+            orders = orderRepository.findByUserIdAndIdLessThanOrderByIdDesc(userId, orderId, pageRequest);
         else
-            orders = orderRepository.findByCustomerAccountIdOrderByIdDesc(customerAccountId, pageRequest);
+            orders = orderRepository.findByUserIdOrderByIdDesc(userId, pageRequest);
 
         return orders.stream()
                 .sorted(Comparator.comparing(Order::getId).reversed())

@@ -33,7 +33,7 @@ public class OrderDto implements Serializable {
 
     @NotNull
     @Min(value = 1)
-    private Long customerAccountId;
+    private Long userId;
 
     private LocalDateTime createdAt;
 
@@ -50,7 +50,7 @@ public class OrderDto implements Serializable {
                 .eventId(order.getEventId())
                 .orderStatus((order.getOrderStatus() == null) ? OrderItemStatus.WAITING : order.getOrderStatus())
                 .orderItemDtos(orderItemDtos)
-                .customerAccountId(order.getCustomerAccountId())
+                .userId(order.getUserId())
                 .createdAt(order.getCreatedAt())
                 .requestedAt(order.getRequestedAt())
                 .build();
@@ -64,11 +64,11 @@ public class OrderDto implements Serializable {
     }
 
     public void initializeEventId() {
-        if(this.customerAccountId == null) {
-            throw new OrderException(ExceptionCode.NOT_NULL_CUSTOMER_ACCOUNT_ID);
+        if(this.userId == null) {
+            throw new OrderException(ExceptionCode.NOT_NULL_USER_ID);
         }
         String[] uuid = UUID.randomUUID().toString().split("-");
-        this.eventId = this.customerAccountId.toString() + "-" + uuid[0];
+        this.eventId = this.userId.toString() + "-" + uuid[0];
     }
 
     public void initializeRequestedAt() {

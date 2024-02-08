@@ -25,7 +25,7 @@ class OrderCreationServiceImplTest {
     @Autowired
     KafkaProducerService kafkaProducerService;
 
-    private final Long CUSTOMER_ACCOUNT_ID = 2L;
+    private final Long USER_ID = 2L;
 
     @BeforeEach
     void beforeEach() {
@@ -38,7 +38,7 @@ class OrderCreationServiceImplTest {
                 .toList();
 
         OrderDto orderDto = OrderDto.builder()
-                .customerAccountId(CUSTOMER_ACCOUNT_ID)
+                .userId(USER_ID)
                 .orderItemDtos(orderItemDtos)
                 .build();
         orderDto.initializeEventId();
@@ -81,7 +81,7 @@ class OrderCreationServiceImplTest {
 
         return OrderDto.builder()
                 .id(orderId)
-                .customerAccountId(CUSTOMER_ACCOUNT_ID)
+                .userId(USER_ID)
                 .orderStatus(orderItemStatus)
                 .orderItemDtos(orderItemDtos)
                 .build();

@@ -34,8 +34,8 @@ public class Order {
     @Column(unique = true)
     private String eventId;
 
-    @Column(name = "customer_account_id")
-    private Long customerAccountId;
+    @Column(name = "user_id")
+    private Long userId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<OrderItem> orderItems;
@@ -55,7 +55,7 @@ public class Order {
                 .collect(Collectors.toList());
 
         return Order.builder()
-                .customerAccountId(orderDto.getCustomerAccountId())
+                .userId(orderDto.getUserId())
                 .orderItems(orderItems)
                 .orderStatus(OrderItemStatus.WAITING)
                 .requestedAt(LocalDateTime.now())
@@ -69,7 +69,7 @@ public class Order {
 
         return Order.builder()
                 .eventId(orderDto.getEventId())
-                .customerAccountId(orderDto.getCustomerAccountId())
+                .userId(orderDto.getUserId())
                 .orderItems(orderItems)
                 .orderStatus(orderDto.getOrderStatus())
                 .createdAt(orderDto.getCreatedAt())
@@ -78,11 +78,11 @@ public class Order {
     }
 
     public void initializeEventId() {
-        if(this.customerAccountId == null) {
-            throw new OrderException(ExceptionCode.NOT_NULL_CUSTOMER_ACCOUNT_ID);
+        if(this.userId == null) {
+            throw new OrderException(ExceptionCode.NOT_NULL_USER_ID);
         }
         String[] uuid = UUID.randomUUID().toString().split("-");
-        this.eventId = this.customerAccountId.toString() + "-" + uuid[0];
+        this.eventId = this.userId.toString() + "-" + uuid[0];
     }
 
     public void updateOrderStatus(OrderItemStatus status) {
