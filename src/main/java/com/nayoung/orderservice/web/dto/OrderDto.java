@@ -89,7 +89,7 @@ public class OrderDto implements Serializable {
         else updateOrderStatus(orderDto.orderStatus);
     }
 
-    private void updateOrderStatus(OrderItemStatus status) {
+    public void updateOrderStatus(OrderItemStatus status) {
         this.orderStatus = status;
         this.orderItemDtos
                 .forEach(orderItem -> orderItem.updateOrderStatus(status));
