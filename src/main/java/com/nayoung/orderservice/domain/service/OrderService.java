@@ -16,9 +16,10 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     public final OrderRepository orderRepository;
+    public static final int PAGE_SIZE = 5;
 
     public List<OrderDto> findOrderByUserIdAndOrderId(Long userId, Long orderId) {
-        PageRequest pageRequest = PageRequest.of(0, 5);
+        PageRequest pageRequest = PageRequest.of(0, PAGE_SIZE);
         List<Order> orders;
         if(orderId != null)
             orders = orderRepository.findByUserIdAndIdLessThanOrderByIdDesc(userId, orderId, pageRequest);
