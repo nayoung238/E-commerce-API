@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 class OrderCreationServiceImplTest {
 
     @Autowired
-    OrderCreationServiceImpl orderService;
+    OrderCreationServiceImpl orderCreationService;
     @Autowired
     OrderRepository orderRepository;
     @Autowired
@@ -43,7 +43,7 @@ class OrderCreationServiceImplTest {
                 .build();
         orderDto.initializeEventId();
 
-        orderService.create(orderDto);
+        orderCreationService.create(orderDto);
     }
 
     @AfterEach

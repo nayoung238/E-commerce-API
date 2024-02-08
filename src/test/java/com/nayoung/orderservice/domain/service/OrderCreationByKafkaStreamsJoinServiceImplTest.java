@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 class OrderCreationByKafkaStreamsJoinServiceImplTest {
 
     @Autowired
-    OrderCreationByKafkaStreamsJoinServiceImpl orderService;
+    OrderCreationByKafkaStreamsJoinServiceImpl orderCreationService;
 
     @Autowired
     OrderRepository orderRepository;
@@ -41,9 +41,8 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest {
     @Test
     void 최종_주문_생성 () throws InterruptedException {
         OrderDto requestedOrder = getRequestedOrder();
-        OrderDto savedOrderDto = orderService.create(requestedOrder);
+        OrderDto savedOrderDto = orderCreationService.create(requestedOrder);
 
-        log.error(savedOrderDto.getEventId());
         OrderDto orderProcessingResult = getOrderProcessingResult(savedOrderDto.getEventId(), OrderItemStatus.FAILED);
         kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_TOPIC,
                 savedOrderDto.getEventId(), orderProcessingResult);
