@@ -1,12 +1,13 @@
 package com.nayoung.orderservice.domain.service;
 
-import com.nayoung.orderservice.domain.Order;
-import com.nayoung.orderservice.domain.OrderItemStatus;
-import com.nayoung.orderservice.domain.repository.OrderRepository;
-import com.nayoung.orderservice.kafka.producer.KafkaProducerService;
-import com.nayoung.orderservice.kafka.streams.KStreamKTableJoinConfig;
-import com.nayoung.orderservice.web.dto.OrderDto;
-import com.nayoung.orderservice.web.dto.OrderItemDto;
+import com.ecommerce.orderservice.domain.Order;
+import com.ecommerce.orderservice.domain.OrderItemStatus;
+import com.ecommerce.orderservice.domain.repository.OrderRepository;
+import com.ecommerce.orderservice.domain.service.OrderCreationServiceImpl;
+import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
+import com.ecommerce.orderservice.kafka.streams.KStreamKTableJoinConfig;
+import com.ecommerce.orderservice.web.dto.OrderDto;
+import com.ecommerce.orderservice.web.dto.OrderItemDto;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

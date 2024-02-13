@@ -19,11 +19,11 @@ spring:
     producer:
       acks: all
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: com.nayoung.orderservice.kafka.dto.OrderDtoSerializer
+      value-serializer: com.ecommerce.orderservice.kafka.dto.OrderDtoSerializer
     consumer:
       group-id: orderServiceGroup
       key-deserializer: org.apache.kafka.common.serialization.StringSerializer
-      value-deserializer: com.nayoung.orderservice.kafka.dto.OrderDtoDeserializer
+      value-deserializer: com.ecommerce.orderservice.kafka.dto.OrderDtoDeserializer
     streams:
       application-id: order_application
   main:
@@ -45,7 +45,7 @@ spring:
 
 logging:
   level:
-    com.nayoung.orderservice: debug
+    com.ecommerce.orderservice: debug
 
 eureka:
   instance:

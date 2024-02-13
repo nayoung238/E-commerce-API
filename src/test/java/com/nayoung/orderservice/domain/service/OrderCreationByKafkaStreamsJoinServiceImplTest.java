@@ -1,12 +1,13 @@
 package com.nayoung.orderservice.domain.service;
 
-import com.nayoung.orderservice.domain.Order;
-import com.nayoung.orderservice.domain.OrderItemStatus;
-import com.nayoung.orderservice.domain.repository.OrderRepository;
-import com.nayoung.orderservice.kafka.producer.KafkaProducerService;
-import com.nayoung.orderservice.kafka.streams.KStreamKTableJoinConfig;
-import com.nayoung.orderservice.web.dto.OrderDto;
-import com.nayoung.orderservice.web.dto.OrderItemDto;
+import com.ecommerce.orderservice.domain.Order;
+import com.ecommerce.orderservice.domain.OrderItemStatus;
+import com.ecommerce.orderservice.domain.repository.OrderRepository;
+import com.ecommerce.orderservice.domain.service.OrderCreationByKafkaStreamsJoinServiceImpl;
+import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
+import com.ecommerce.orderservice.kafka.streams.KStreamKTableJoinConfig;
+import com.ecommerce.orderservice.web.dto.OrderDto;
+import com.ecommerce.orderservice.web.dto.OrderItemDto;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
