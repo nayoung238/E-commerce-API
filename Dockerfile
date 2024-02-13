@@ -1,9 +1,11 @@
 FROM openjdk:21-jdk-slim
-
-WORKDIR /usr/src/app
-
 VOLUME /tmp
+WORKDIR /app
 
-COPY /build/libs/Order-service-0.0.1-SNAPSHOT.jar OrderService.jar
+ARG JAR_FILE=/build/libs/*.jar
+ARG JAR_DEST=/app/app.jar
+COPY ${JAR_FILE} ${JAR_DEST}
+COPY src/main/resources/application.yml application.yml
+COPY src/main/resources/application-prod.yml application-prod.yml
 
-ENTRYPOINT ["java", "-jar", "OrderService.jar"]
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "-Dspring.config.name=application,application-prod", "app.jar"]
