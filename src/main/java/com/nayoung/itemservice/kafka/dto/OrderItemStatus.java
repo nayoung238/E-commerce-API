@@ -17,7 +17,10 @@ public enum OrderItemStatus {
 
     public static OrderItemStatus getOrderItemStatus(String orderItemStatus) {
         try {
-            return valueOf(orderItemStatus.toUpperCase(Locale.ROOT));
+            if(orderItemStatus != null)
+                return valueOf(orderItemStatus.toUpperCase(Locale.ROOT));
+            else
+                return BAD_REQUEST;
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage());
             return BAD_REQUEST;
