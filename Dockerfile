@@ -1,7 +1,11 @@
-FROM openjdk:21-ea-11-jdk-slim
-
+FROM openjdk:21-jdk-slim
 VOLUME /tmp
+WORKDIR /app
 
-COPY /build/libs/item-service-0.0.1-SNAPSHOT.jar ItemService.jar
+ARG JAR_FILE=/build/libs/*.jar
+ARG JAR_DEST=/app/app.jar
+COPY ${JAR_FILE} ${JAR_DEST}
+COPY src/main/resources/application.yml application.yml
+COPY src/main/resources/application-prod.yml application-prod.yml
 
-ENTRYPOINT ["java", "-jar", "ItemService.jar"]
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "-Dspring.config.name=application,application-prod", "app.jar"]

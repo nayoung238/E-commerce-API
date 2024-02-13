@@ -1,0 +1,13 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+  datasource:
+    url: jdbc:mysql://localhost:3306/test_item_service
+  kafka:
+    bootstrap-servers: localhost:29092
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:${eureka.client.eureka-server-port}/eureka
