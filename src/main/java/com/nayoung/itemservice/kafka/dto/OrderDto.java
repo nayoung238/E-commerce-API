@@ -13,11 +13,16 @@ public class OrderDto {
 
     private Long id;
     private String eventId;
-    @Setter
     private OrderItemStatus orderStatus;
     @Setter
     private List<OrderItemDto> orderItemDtos;
-    private Long customerAccountId;
+    private Long userId;
     private LocalDateTime createdAt;
     private LocalDateTime requestedAt;
+
+    public void updateOrderStatus(OrderItemStatus status) {
+        this.orderStatus = status;
+        this.orderItemDtos
+                .forEach(orderItem -> orderItem.updateOrderStatus(status));
+    }
 }

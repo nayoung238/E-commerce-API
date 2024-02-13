@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,16 +30,18 @@ public class ItemStockService {
     @Transactional
     public void updateStock(OrderDto orderDto) {
         if (isFirstEvent(orderDto)) {  // 최초 요청만 재고 변경 진행
-            List<OrderItemDto> result = orderDto.getOrderItemDtos().stream()
-                    .filter(orderItem -> orderItem.getQuantity() < 0L)  // consumption
-                    .map(o -> stockUpdateService.updateStock(o, orderDto.getEventId()))
-                    .collect(Collectors.toList());
+            List<OrderItemDto> result = orderDto.getOrderItemDtos()
+                    .stream()
+                    .map(o -> {
+                        o.convertSign();
+                        return stockUpdateService.updateStock(o, orderDto.getEventId());
+                    })
+                    .toList();
 
             if (isAllSucceeded(result)) {
-                orderDto.setOrderStatus(OrderItemStatus.SUCCEEDED);
-                orderDto.setOrderItemDtos(result);
+                orderDto.updateOrderStatus(OrderItemStatus.SUCCEEDED);
             } else {
-                orderDto.setOrderStatus(OrderItemStatus.FAILED);
+                orderDto.updateOrderStatus(OrderItemStatus.FAILED);
                 List<OrderItemDto> orderItemDtoList = undo(orderDto.getEventId(), result);
                 orderDto.setOrderItemDtos(orderItemDtoList);
             }
@@ -48,7 +49,7 @@ public class ItemStockService {
             kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
         }
         else {
-            setOrderStatus(orderDto);
+            updateOrderStatus(orderDto);
             kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
         }
     }
@@ -73,14 +74,14 @@ public class ItemStockService {
                 .allMatch(o -> Objects.equals(OrderItemStatus.SUCCEEDED, o.getOrderItemStatus()));
     }
 
-    private void setOrderStatus(OrderDto orderDto) {
+    private void updateOrderStatus(OrderDto orderDto) {
         String orderProcessingResult = orderRedisRepository.getOrderStatus(orderDto.getEventId());
 
         OrderItemStatus orderItemStatus;
         if(orderProcessingResult == null) orderItemStatus = OrderItemStatus.NOT_EXIST;
         else orderItemStatus = OrderItemStatus.getOrderItemStatus(orderProcessingResult);
 
-        orderDto.setOrderStatus(orderItemStatus);
+        orderDto.updateOrderStatus(orderItemStatus);
         orderDto.getOrderItemDtos()
                 .forEach(orderItemDto -> orderItemDto.setOrderItemStatus(orderItemStatus));
     }

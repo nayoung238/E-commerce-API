@@ -25,4 +25,8 @@ public class OrderItemDto {
     public void convertSign() {
         quantity *= -1;
     }
+
+    public void updateOrderStatus(OrderItemStatus orderItemStatus) {
+        this.orderItemStatus = orderItemStatus;
+    }
 }
