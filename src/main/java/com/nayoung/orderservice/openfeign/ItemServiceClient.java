@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import static com.nayoung.orderservice.resilience4j.Resilience4jCircuitBreakerConfig.ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER;
 import static com.nayoung.orderservice.resilience4j.Resilience4jRetryConfig.ORDER_PROCESSING_RESULT_RETRY;
 
-@FeignClient(name = "item-service", url = "http://127.0.0.1:8089/item-service")
+@FeignClient(name = "item-service",
+        url = "http://${spring.cloud.discovery.client.simple.local.host}:${spring.cloud.discovery.client.simple.local.port}/item-service")  //http://127.0.0.1:8089/item-service
 public interface ItemServiceClient {
 
     Logger log = LoggerFactory.getLogger(ItemServiceClient.class);
