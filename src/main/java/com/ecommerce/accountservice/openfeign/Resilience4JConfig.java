@@ -1,4 +1,4 @@
-package com.nayoung.accountservice.openfeign;
+package com.ecommerce.accountservice.openfeign;
 
 import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;

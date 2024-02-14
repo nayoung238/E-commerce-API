@@ -1,4 +1,4 @@
-package com.nayoung.accountservice.web.dto;
+package com.ecommerce.accountservice.web.dto;
 
 import lombok.Data;
 

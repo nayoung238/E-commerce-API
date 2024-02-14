@@ -1,8 +1,8 @@
-package com.nayoung.accountservice.web;
+package com.ecommerce.accountservice.web;
 
-import com.nayoung.accountservice.domain.AccountService;
-import com.nayoung.accountservice.web.dto.AccountDto;
-import com.nayoung.accountservice.web.dto.SignUpDto;
+import com.ecommerce.accountservice.domain.AccountService;
+import com.ecommerce.accountservice.web.dto.AccountDto;
+import com.ecommerce.accountservice.web.dto.SignUpDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;

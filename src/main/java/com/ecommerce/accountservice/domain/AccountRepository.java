@@ -1,4 +1,4 @@
-package com.nayoung.accountservice.domain;
+package com.ecommerce.accountservice.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

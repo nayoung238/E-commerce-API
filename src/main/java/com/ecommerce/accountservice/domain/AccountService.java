@@ -1,9 +1,9 @@
-package com.nayoung.accountservice.domain;
+package com.ecommerce.accountservice.domain;
 
-import com.nayoung.accountservice.openfeign.OrderServiceClient;
-import com.nayoung.accountservice.web.dto.AccountDto;
-import com.nayoung.accountservice.openfeign.client.OrderDto;
-import com.nayoung.accountservice.web.dto.SignUpDto;
+import com.ecommerce.accountservice.openfeign.OrderServiceClient;
+import com.ecommerce.accountservice.web.dto.AccountDto;
+import com.ecommerce.accountservice.openfeign.client.OrderDto;
+import com.ecommerce.accountservice.web.dto.SignUpDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;

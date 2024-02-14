@@ -1,6 +1,6 @@
-package com.nayoung.accountservice.openfeign;
+package com.ecommerce.accountservice.openfeign;
 
-import com.nayoung.accountservice.openfeign.client.OrderDto;
+import com.ecommerce.accountservice.openfeign.client.OrderDto;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,7 +1,9 @@
 package com.nayoung.accountservice.domain;
 
-import com.nayoung.accountservice.web.dto.AccountDto;
-import com.nayoung.accountservice.web.dto.SignUpDto;
+import com.ecommerce.accountservice.domain.AccountRepository;
+import com.ecommerce.accountservice.domain.AccountService;
+import com.ecommerce.accountservice.web.dto.AccountDto;
+import com.ecommerce.accountservice.web.dto.SignUpDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -11,8 +13,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 public class AccountServiceTest {
 
-    @Autowired AccountService accountService;
-    @Autowired AccountRepository accountRepository;
+    @Autowired
+    AccountService accountService;
+    @Autowired
+    AccountRepository accountRepository;
 
     @AfterEach
     void afterEach() {

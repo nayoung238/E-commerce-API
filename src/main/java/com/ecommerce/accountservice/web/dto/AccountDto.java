@@ -1,7 +1,7 @@
-package com.nayoung.accountservice.web.dto;
+package com.ecommerce.accountservice.web.dto;
 
-import com.nayoung.accountservice.domain.Account;
-import com.nayoung.accountservice.openfeign.client.OrderDto;
+import com.ecommerce.accountservice.domain.Account;
+import com.ecommerce.accountservice.openfeign.client.OrderDto;
 import lombok.Getter;
 
 import java.util.ArrayList;

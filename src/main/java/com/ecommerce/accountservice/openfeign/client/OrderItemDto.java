@@ -1,4 +1,4 @@
-package com.nayoung.accountservice.openfeign.client;
+package com.ecommerce.accountservice.openfeign.client;
 
 import lombok.Getter;
 

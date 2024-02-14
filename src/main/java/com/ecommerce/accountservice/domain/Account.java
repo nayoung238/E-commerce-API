@@ -1,6 +1,6 @@
-package com.nayoung.accountservice.domain;
+package com.ecommerce.accountservice.domain;
 
-import com.nayoung.accountservice.web.dto.SignUpDto;
+import com.ecommerce.accountservice.web.dto.SignUpDto;
 import jakarta.persistence.*;
 import lombok.*;
 
