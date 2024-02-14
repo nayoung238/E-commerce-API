@@ -1,11 +1,11 @@
 package com.nayoung.accountservice.domain;
 
 import com.nayoung.accountservice.web.dto.SignUpDto;
+import jakarta.persistence.*;
 import lombok.*;
 
-import javax.persistence.*;
-
-@Entity @Builder
+@Entity
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter

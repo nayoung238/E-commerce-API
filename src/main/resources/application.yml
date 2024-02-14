@@ -10,14 +10,8 @@ spring:
     show-sql: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/account_service
+    url: jdbc:mysql://localhost:3306/test_account_service
     username: root
-  zipkin:
-    base-url: http://localhost:9411
-    enabled: true
-  sleuth:
-    sampler:
-      probability: 1.0
 
 eureka:
   instance:
@@ -26,10 +20,10 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://localhost:8061/eureka
 
 order_service:
-  url: http://127.0.0.1:8080/order-service/%s/orders
+  url: http://127.0.0.1:8089/order-service/%s/orders
 
 logging.level:
   com.nayoung.accountservice: DEBUG
