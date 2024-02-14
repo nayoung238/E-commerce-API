@@ -11,7 +11,7 @@ public class OrderDto {
     private String eventId;
     private OrderItemStatus orderStatus;
     private List<OrderItemDto> orderItemDtos;
-    private Long customerAccountId;
-    private Long totalPrice;
+    private Long userId;
     private LocalDateTime createdAt;
+    private LocalDateTime requestedAt;
 }
