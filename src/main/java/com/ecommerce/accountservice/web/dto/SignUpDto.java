@@ -1,8 +1,10 @@
 package com.ecommerce.accountservice.web.dto;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
 
-@Data
+@Getter
+@Builder
 public class SignUpDto {
 
     private String email;

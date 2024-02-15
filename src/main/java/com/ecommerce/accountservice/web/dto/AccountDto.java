@@ -1,11 +1,7 @@
 package com.ecommerce.accountservice.web.dto;
 
 import com.ecommerce.accountservice.domain.Account;
-import com.ecommerce.accountservice.openfeign.client.OrderDto;
 import lombok.Getter;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 public class AccountDto {
@@ -13,8 +9,6 @@ public class AccountDto {
     private Long accountId;
     private String email;
     private String name;
-
-    private List<OrderDto> orderDtos = new ArrayList<>();
 
     private AccountDto(Account account) {
         this.accountId = account.getId();
@@ -24,9 +18,5 @@ public class AccountDto {
 
     public static AccountDto fromAccount(Account account) {
         return new AccountDto(account);
-    }
-
-    public void setOrderDtos(List<OrderDto> orderDtos) {
-        this.orderDtos = orderDtos;
     }
 }

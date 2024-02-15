@@ -1,16 +1,16 @@
 package com.ecommerce.accountservice.domain;
 
+import com.ecommerce.accountservice.exception.AccountException;
+import com.ecommerce.accountservice.exception.ExceptionCode;
 import com.ecommerce.accountservice.openfeign.OrderServiceClient;
 import com.ecommerce.accountservice.web.dto.AccountDto;
 import com.ecommerce.accountservice.openfeign.client.OrderDto;
+import com.ecommerce.accountservice.web.dto.OrderListDto;
 import com.ecommerce.accountservice.web.dto.SignUpDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,7 +19,6 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final OrderServiceClient orderServiceClient;
-    private final CircuitBreakerFactory circuitBreakerFactory;
 
     public AccountDto createAccount(SignUpDto signUpDto) {
         Account account = Account.fromAccountDto(signUpDto);
@@ -27,15 +26,23 @@ public class AccountService {
         return AccountDto.fromAccount(account);
     }
 
-    public AccountDto getAccountById(Long id, @Nullable Long cursorOrderId) {
-        Account account = accountRepository.findById(id).orElseThrow();
+    public AccountDto getAccountById(Long userId) {
+        Account account = accountRepository.findById(userId)
+                .orElseThrow(() -> new AccountException(ExceptionCode.NOT_FOUND_ACCOUNT));
+        return AccountDto.fromAccount(account);
+    }
 
-        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
-        List<OrderDto> orderDtos = circuitBreaker.run(() -> orderServiceClient.getOrders(id, cursorOrderId),
-                                                        throwable -> new ArrayList<>());
+    public OrderListDto getOrderList(Long userId, @Nullable Long cursorOrderId) {
+        boolean isExist = accountRepository.existsById(userId);
+        if(!isExist)
+            throw new AccountException(ExceptionCode.NOT_FOUND_ACCOUNT);
 
-        AccountDto result = AccountDto.fromAccount(account);
-        result.setOrderDtos(orderDtos);
-        return result;
+        List<OrderDto> orderDtoList;
+        if(cursorOrderId != null)
+            orderDtoList = orderServiceClient.getOrdersByCursorOrderId(userId, cursorOrderId);
+        else
+            orderDtoList = orderServiceClient.getOrders(userId);
+
+        return OrderListDto.fromUserIdAndOrderDtoList(userId, orderDtoList);
     }
 }

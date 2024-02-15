@@ -2,6 +2,7 @@ package com.ecommerce.accountservice.web;
 
 import com.ecommerce.accountservice.domain.AccountService;
 import com.ecommerce.accountservice.web.dto.AccountDto;
+import com.ecommerce.accountservice.web.dto.OrderListDto;
 import com.ecommerce.accountservice.web.dto.SignUpDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
@@ -23,9 +24,15 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping(value = {"/{accountId}/{cursorOrderId}", "/{accountId}"})
-    public ResponseEntity<?> getAccountById(@PathVariable Long accountId, @PathVariable(required = false) Long cursorOrderId) {
-        AccountDto response = accountService.getAccountById(accountId, cursorOrderId);
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getAccount(@PathVariable Long userId) {
+        AccountDto response = accountService.getAccountById(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping(value = {"/order-list/{userId}/{cursorOrderId}", "/order-list/{userId}"})
+    public ResponseEntity<?> getOrderList(@PathVariable Long userId, @PathVariable(required = false) Long cursorOrderId) {
+        OrderListDto response = accountService.getOrderList(userId, cursorOrderId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
