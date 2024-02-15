@@ -1,0 +1,17 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+  datasource:
+    url: jdbc:mysql://localhost:3306/test_account_service
+  cloud:
+    discovery:
+      client:
+        simple:
+          local:
+            host: localhost
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:${eureka.client.eureka-server-port}/eureka

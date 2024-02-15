@@ -5,26 +5,40 @@ spring:
   application:
     name: account-service
   jpa:
-    hibernate:
-      ddl-auto: create
     show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/test_account_service
     username: root
+  cloud:
+    discovery:
+      client:
+        simple:
+          local:
+            port: 8089
+            service-id: order-service
+    openfeign:
+      httpclient:
+        ok-http:
+          read-timeout: 5000
+        connection-timeout: 5000
 
 eureka:
   instance:
     instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}
   client:
+    eureka-server-port: 8061
     register-with-eureka: true
     fetch-registry: true
-    service-url:
-      defaultZone: http://localhost:8061/eureka
 
-order_service:
-  url: http://127.0.0.1:8089/order-service/%s/orders
+resilience4j:
+  retry:
+    retry-aspect-order: 2
+  circuitbreaker:
+    circuit-breaker-aspect-order: 1
 
-logging.level:
-  com.nayoung.accountservice: DEBUG
-  org.hibernate.SQL: debug
+logging:
+  level:
+    com.ecommerce.accountservice: DEBUG
