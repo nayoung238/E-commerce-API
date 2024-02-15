@@ -10,7 +10,7 @@ jar {
     enabled = false
 }
 
-group = 'com.nayoung'
+group = 'com.ecommerce'
 version = '0.0.1-SNAPSHOT'
 
 java {
