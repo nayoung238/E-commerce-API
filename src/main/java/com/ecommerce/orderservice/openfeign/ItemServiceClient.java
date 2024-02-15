@@ -16,7 +16,8 @@ import static com.ecommerce.orderservice.resilience4j.Resilience4jCircuitBreaker
 import static com.ecommerce.orderservice.resilience4j.Resilience4jRetryConfig.ORDER_PROCESSING_RESULT_RETRY;
 
 @FeignClient(name = "item-service",
-        url = "http://${spring.cloud.discovery.client.simple.local.host}:${spring.cloud.discovery.client.simple.local.port}/item-service")
+        url = "http://${spring.cloud.discovery.client.simple.local.host}:${spring.cloud.discovery.client.simple.local.port}" +
+                "/${spring.cloud.discovery.client.simple.local.service-id}")
 public interface ItemServiceClient {
 
     Logger log = LoggerFactory.getLogger(ItemServiceClient.class);
