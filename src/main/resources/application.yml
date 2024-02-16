@@ -20,10 +20,12 @@ spring:
             port: 8089
             service-id: order-service
     openfeign:
-      httpclient:
-        ok-http:
-          read-timeout: 5000
-        connection-timeout: 5000
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 5000
+            logger-level: basic
 
 eureka:
   instance:
