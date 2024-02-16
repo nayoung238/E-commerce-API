@@ -6,6 +6,12 @@ spring:
       url: redis:${spring.data.redis.port}
   kafka:
     bootstrap-servers: kafka:9092
+  cloud:
+    discovery:
+      client:
+        simple:
+          local:
+            host: api-gateway-service
 
 eureka:
   client:

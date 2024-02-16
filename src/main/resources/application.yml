@@ -41,7 +41,6 @@ spring:
         simple:
           local:
             port: 8089
-            host: api-gateway-service
             service-id: item-service
 
 logging:

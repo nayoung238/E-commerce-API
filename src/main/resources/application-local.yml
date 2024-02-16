@@ -6,6 +6,12 @@ spring:
     url: jdbc:mysql://localhost:3306/test_order_service
   kafka:
     bootstrap-servers: localhost:29092
+  cloud:
+    discovery:
+      client:
+        simple:
+          local:
+            host: localhost
 
 eureka:
   client:
