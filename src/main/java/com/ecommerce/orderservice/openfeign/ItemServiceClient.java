@@ -2,6 +2,7 @@ package com.ecommerce.orderservice.openfeign;
 
 import com.ecommerce.orderservice.domain.OrderItemStatus;
 import feign.FeignException;
+import feign.RetryableException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -16,8 +17,9 @@ import static com.ecommerce.orderservice.resilience4j.Resilience4jCircuitBreaker
 import static com.ecommerce.orderservice.resilience4j.Resilience4jRetryConfig.ORDER_PROCESSING_RESULT_RETRY;
 
 @FeignClient(name = "item-service",
-        url = "http://${spring.cloud.discovery.client.simple.local.host}:${spring.cloud.discovery.client.simple.local.port}" +
-                "/${spring.cloud.discovery.client.simple.local.service-id}")
+        url = "http://${spring.cloud.discovery.client.simple.local.host}"
+                + ":${spring.cloud.discovery.client.simple.local.port}"
+                + "/${spring.cloud.discovery.client.simple.local.service-id}")
 public interface ItemServiceClient {
 
     Logger log = LoggerFactory.getLogger(ItemServiceClient.class);
@@ -27,6 +29,11 @@ public interface ItemServiceClient {
     @CircuitBreaker(name = ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER, fallbackMethod = "fallback")
     @GetMapping(value = "/order-processing-result/{eventId}", produces = MediaType.APPLICATION_JSON_VALUE)
     OrderItemStatus findOrderProcessingResultByEventId(@PathVariable String eventId);
+
+    default OrderItemStatus fallback(RetryableException e) {
+        log.error("RetryableException: " + e.getMessage());
+        return OrderItemStatus.SERVER_ERROR;
+    }
 
     default OrderItemStatus fallback(FeignException.FeignClientException e) {
         log.error("FeignClientException: " + e.getMessage());

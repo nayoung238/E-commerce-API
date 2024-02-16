@@ -1,6 +1,7 @@
 package com.ecommerce.orderservice.resilience4j;
 
 import feign.FeignException;
+import feign.RetryableException;
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
@@ -20,7 +21,9 @@ public class Resilience4jRetryConfig {
                 .maxAttempts(4)
                 .intervalFunction(IntervalFunction.ofExponentialRandomBackoff(Duration.ofMillis(5000), 2))  // waitDuration 같이 쓰면 오류
                 .retryExceptions(FeignException.FeignClientException.class)
-                .retryOnException(throwable -> !(throwable instanceof FeignException.FeignServerException))
+                .retryOnException(
+                        throwable -> !(throwable instanceof FeignException.FeignServerException)
+                                && !(throwable instanceof RetryableException))
                 .build());
 
         // https://resilience4j.readme.io/docs/retry#create-and-configure-retry
