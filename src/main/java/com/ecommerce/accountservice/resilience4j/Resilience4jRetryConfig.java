@@ -1,6 +1,7 @@
 package com.ecommerce.accountservice.resilience4j;
 
 import feign.FeignException;
+import feign.RetryableException;
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
@@ -18,10 +19,12 @@ public class Resilience4jRetryConfig {
     public RetryRegistry retryRegistry() {
         return RetryRegistry.of(
                 RetryConfig.custom()
-                        .maxAttempts(3)
+                        .maxAttempts(5)
                         .intervalFunction(IntervalFunction.ofExponentialRandomBackoff(Duration.ofMillis(5000), 2))
                         .retryExceptions(FeignException.FeignClientException.class)
-                        .retryOnException(throwable -> !(throwable instanceof FeignException.FeignServerException))
+                        .retryOnException(
+                                throwable -> !(throwable instanceof FeignException.FeignServerException)
+                                        && !(throwable instanceof RetryableException))
                         .build());
     }
 }

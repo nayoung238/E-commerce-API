@@ -4,6 +4,7 @@ import com.ecommerce.accountservice.exception.CustomFeignException;
 import com.ecommerce.accountservice.exception.ExceptionCode;
 import com.ecommerce.accountservice.openfeign.client.OrderDto;
 import feign.FeignException;
+import feign.RetryableException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -35,6 +36,11 @@ public interface OrderServiceClient {
     @CircuitBreaker(name = ORDER_LIST_CIRCUIT_BREAKER, fallbackMethod = "fallback")
     @GetMapping(value = "/orders/{userId}/{cursorOrderId}", produces = MediaType.APPLICATION_JSON_VALUE)
     List<OrderDto> getOrdersByCursorOrderId(@PathVariable Long userId, @PathVariable Long cursorOrderId);
+
+    default List<OrderDto> fallback(RetryableException e) {
+        log.error("RetryableException: " + e.getMessage());
+        throw new CustomFeignException(ExceptionCode.TEMPORARILY_UNAVAILABLE);
+    }
 
     default List<OrderDto> fallback(FeignException.FeignClientException e) {
         log.error("FeignClientException: " + e.getMessage());
