@@ -20,7 +20,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<?> createByKStream(@RequestBody @Validated OrderDto orderDto) {
+    public ResponseEntity<?> create(@RequestBody @Validated OrderDto orderDto) {
         OrderDto response = orderCreationService.create(orderDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
