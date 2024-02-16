@@ -21,8 +21,9 @@ import static com.ecommerce.accountservice.resilience4j.Resilience4jCircuitBreak
 import static com.ecommerce.accountservice.resilience4j.Resilience4jRetryConfig.ORDER_LIST_RETRY;
 
 @FeignClient(name = "order-service",
-        url = "http://${spring.cloud.discovery.client.simple.local.host}:${spring.cloud.discovery.client.simple.local.port}" +
-                "/${spring.cloud.discovery.client.simple.local.service-id}")
+        url = "http://${spring.cloud.discovery.client.simple.local.host}"
+                + ":${spring.cloud.discovery.client.simple.local.port}"
+                + "/${spring.cloud.discovery.client.simple.local.service-id}")
 public interface OrderServiceClient {
 
     Logger log = LoggerFactory.getLogger(OrderServiceClient.class);
