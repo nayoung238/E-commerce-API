@@ -9,7 +9,7 @@
 
 <br/>
 
-## 📑 [Wiki](https://github.com/nayoung8142/Order-service/wiki)
+## 📑 [Wiki](https://github.com/nayoung8142/Item-service/wiki)
 
 | 🛠️ 기능 | ❗️ 이슈 |
 | :---------------: | :-------------: |
