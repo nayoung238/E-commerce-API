@@ -1,6 +1,6 @@
 ## E-commerce project: Order-service
 
-![](/_img/e_commerce_240208.png)
+![](/_img/e_commerce_240218.png)
 <br>
 
 | 🛠️ 사용 기술 | ⌨️ repo |
