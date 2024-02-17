@@ -2,6 +2,7 @@ package com.nayoung.accountservice.domain;
 
 import com.ecommerce.accountservice.domain.AccountRepository;
 import com.ecommerce.accountservice.domain.AccountService;
+import com.ecommerce.accountservice.exception.AccountException;
 import com.ecommerce.accountservice.web.dto.AccountDto;
 import com.ecommerce.accountservice.web.dto.SignUpDto;
 import org.junit.jupiter.api.AfterEach;
@@ -25,13 +26,18 @@ public class AccountServiceTest {
 
     @Test
     void createAccount() {
-        SignUpDto request = new SignUpDto();
-        request.setEmail("abc@gmail.com");
-        request.setName("evelyn82ny");
-        request.setPassword("password1234");
+        SignUpDto request = SignUpDto.builder()
+                .email("abc@gmail.com")
+                .name("nayoung")
+                .password("password123")
+                .build();
 
         AccountDto response = accountService.createAccount(request);
         Assertions.assertEquals(request.getName(), response.getName());
-        Assertions.assertEquals(1L, response.getAccountId());
+
+        Assertions.assertThrows(AccountException.class,
+                () -> accountService.getAccountById(1L));
+        Assertions.assertThrows(AccountException.class,
+                () -> accountService.getAccountById(2L));
     }
 }

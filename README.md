@@ -1,78 +1,17 @@
 ## E-commerce project: Account service
 
-![](/_img/architecture_231027.png)
+![](/_img/e_commerce_240218.png)
 <br>
 
-### 사용 기술
 
-- Spring Boot, Spring Cloud
-- MySql, Redis
-- Resilience 4J: CircuitBreaker, Retry
-<br>
+| 🛠️ 사용 기술 | ⌨️ repo |
+| :---------------: | :-------------: |
+| java<br>Spring Boot, Spring Cloud Gateway<br>MySql<br>Resilience 4J: CircuitBreaker, Retry | <a href='https://github.com/nayoung8142/Order-service'>주문 서비스</a><br><a href='https://github.com/nayoung8142/Item-service'>상품 서비스</a></br><a href='https://github.com/nayoung8142/Account-service'>계정 서비스</a><br><a href='https://github.com/nayoung8142/API-gateway-service'>API-gateway</a> |
 
-## Order-service로부터 사용자 주문 내역 가져오기: OpenFeign 사용
+<br/>
 
-```java
-@FeignClient(name = "order-service")
-public interface OrderServiceClient {
+## 📑 [Wiki](https://github.com/nayoung8142/Order-service/wiki)
 
-    @Retry(name = Resilience4JConfig.ORDER_LIST_RETRY_NAME)
-    @GetMapping("/orders/{customerAccountId}/{cursorOrderId}")
-    List<OrderDto> getOrders(@PathVariable Long customerAccountId, @PathVariable Long cursorOrderId);
-}
-```
-- AccountServiceApplication에 ```@EnableFeignClients``` 추가
-- Order-service의 API를 interface로 작성
-
-<br>
-
-## OpenFeign 장애 대응: Resilience4J CircuitBreaker
-
-```java
-CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
-List<OrderDto> orderDtos = circuitBreaker.run(() -> orderServiceClient.getOrders(id, cursorOrderId),
-                                                throwable -> new ArrayList<>());
-```
-
-- 일정 기준 동안 응답받지 못하면 Empty List Return
-- Configuration: https://github.com/nayoung8142/Account-service/blob/master/src/main/java/com/nayoung/accountservice/openfeign/Resilience4JConfig.java
-
-<br>
-
-## Order-service로부터 사용자 주문 내역 가져오기: RestTemplate 사용
-
-- commit: https://github.com/nayoung8142/Account-service/commit/066d2bf38adf4151bbae5e2a2155ea00cce27a6b
-
-```java
-public class AccountServiceImpl implements AccountService {
-
-    private final AccountRepository accountRepository;  
-    private final RestTemplate restTemplate;
-    private final Environment environment;
-
-    @Override
-    public AccountResponse getAccountById(Long id) {
-        Account account = accountRepository.findById(id).orElseThrow();
-        AccountResponse response = AccountResponse.fromAccountEntity(account);
-
-        String orderUrl = String.format(environment.getProperty("order_service.url"), id);
-
-        ResponseEntity<List<OrderResponse>> orderResponse =
-                restTemplate.exchange(orderUrl, HttpMethod.GET, null,
-                        new ParameterizedTypeReference<List<OrderResponse>>() {
-                        });
-
-        response.setOrders(orderResponse.getBody());
-        return response;
-    }
-}
-```
-
-```yaml
-order_service:
-  url: http://127.0.0.1:8080/order-service/%s/orders
-```
-
-![](/_img/connect_to_order_service_result.png)
-
-- ```http://127.0.0.1:8080/account-service/account/1``` 작성 시 위와 같이 주문 목록 가져옴
+| 🛠️ 기능 | ❗️ 이슈 |
+| :---------------: | :-------------: |
+| <a href='https://github.com/nayoung8142/Account-service/wiki/%EC%A3%BC%EB%AC%B8-%EB%AA%A9%EB%A1%9D'>주문 목록</a> | <a href='https://github.com/nayoung8142/Account-service/wiki/Resilience4J-Retry,-CircuitBreaker-%EC%A1%B0%ED%95%A9%EC%9C%BC%EB%A1%9C-%EC%9D%91%EB%8B%B5-%EC%8B%9C%EA%B0%84-%EC%A0%9C%EC%96%B4'>Resilience4J Retry + CircuitBreaker 조합으로 응답 시간 제어</a> |
