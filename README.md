@@ -10,7 +10,7 @@
 
 <br/>
 
-## 📑 [Wiki](https://github.com/nayoung8142/Order-service/wiki)
+## 📑 [Wiki](https://github.com/nayoung8142/Account-service/wiki)
 
 | 🛠️ 기능 | ❗️ 이슈 |
 | :---------------: | :-------------: |
