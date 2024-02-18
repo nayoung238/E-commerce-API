@@ -18,7 +18,7 @@ public class Resilience4jCircuitBreakerConfig {
     public CircuitBreakerRegistry circuitBreakerRegistry() {
         return CircuitBreakerRegistry.of(CircuitBreakerConfig.custom()
                 .failureRateThreshold(30)   // 실패 30% 이상 서킷 오픈
-                .slowCallDurationThreshold(Duration.ofMillis(10000))    // 10000ms 이상 소요 시 실패로 간주
+                .slowCallDurationThreshold(Duration.ofMillis(9000))    // 9000ms 이상 소요 시 실패로 간주
                 .slowCallRateThreshold(30)  // slowCallDurationThreshold 초과 비율이 30% 이상 시 서킷 오픈
                 .waitDurationInOpenState(Duration.ofMillis(10000))  // open -> half open 전환 전 대기 시간
                 .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
