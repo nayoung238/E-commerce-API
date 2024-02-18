@@ -19,11 +19,11 @@ public class Resilience4jRetryConfig {
     public RetryRegistry retryRegistry() {
         return RetryRegistry.of(
                 RetryConfig.custom()
-                        .maxAttempts(5)
-                        .intervalFunction(IntervalFunction.ofExponentialRandomBackoff(Duration.ofMillis(5000), 2))
-                        .retryExceptions(FeignException.FeignClientException.class)
+                        .maxAttempts(3)
+                        .intervalFunction(IntervalFunction.ofExponentialRandomBackoff(Duration.ofMillis(3000), 2))
+                        .retryExceptions(FeignException.FeignServerException.class)
                         .retryOnException(
-                                throwable -> !(throwable instanceof FeignException.FeignServerException)
+                                throwable -> !(throwable instanceof FeignException.FeignClientException)
                                         && !(throwable instanceof RetryableException))
                         .build());
     }
