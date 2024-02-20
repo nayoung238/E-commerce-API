@@ -1,9 +1,7 @@
-package com.nayoung.orderservice.domain.service;
+package com.ecommerce.orderservice.domain.service;
 
 import com.ecommerce.orderservice.domain.OrderItemStatus;
 import com.ecommerce.orderservice.domain.repository.OrderRepository;
-import com.ecommerce.orderservice.domain.service.OrderCreationByKafkaStreamsJoinServiceImpl;
-import com.ecommerce.orderservice.domain.service.OrderService;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
 import com.ecommerce.orderservice.kafka.streams.KStreamKTableJoinConfig;
 import com.ecommerce.orderservice.web.dto.OrderDto;
