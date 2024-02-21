@@ -22,9 +22,9 @@ public class OrderService {
         PageRequest pageRequest = PageRequest.of(0, PAGE_SIZE);
         List<Order> orders;
         if(orderId != null)
-            orders = orderRepository.findByUserIdAndIdLessThanOrderByIdDesc(userId, orderId, pageRequest);
+            orders = orderRepository.findByUserIdAndOrderIdLessThanOrderByOrderIdDesc(userId, orderId, pageRequest);
         else
-            orders = orderRepository.findByUserIdOrderByIdDesc(userId, pageRequest);
+            orders = orderRepository.findByUserIdOrderByOrderIdDesc(userId, pageRequest);
 
         return orders.stream()
                 .sorted(Comparator.comparing(Order::getId).reversed())
