@@ -2,8 +2,8 @@ package com.ecommerce.itemservice.domain.item;
 
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.exception.StockException;
-import com.ecommerce.itemservice.web.dto.ItemDto;
-import com.ecommerce.itemservice.web.dto.ItemInfoUpdateRequest;
+import com.ecommerce.itemservice.domain.item.dto.ItemDto;
+import com.ecommerce.itemservice.domain.item.dto.ItemInfoUpdateRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.util.StringUtils;

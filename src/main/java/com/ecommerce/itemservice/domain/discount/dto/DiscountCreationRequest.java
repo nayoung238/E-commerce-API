@@ -1,4 +1,4 @@
-package com.ecommerce.itemservice.web.dto;
+package com.ecommerce.itemservice.domain.discount.dto;
 
 import lombok.Builder;
 import lombok.Getter;

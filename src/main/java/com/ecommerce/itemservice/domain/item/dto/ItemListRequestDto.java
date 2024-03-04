@@ -1,4 +1,4 @@
-package com.ecommerce.itemservice.web.dto;
+package com.ecommerce.itemservice.domain.item.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;

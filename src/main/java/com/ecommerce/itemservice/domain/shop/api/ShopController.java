@@ -1,7 +1,7 @@
-package com.ecommerce.itemservice.web;
+package com.ecommerce.itemservice.domain.shop.api;
 
-import com.ecommerce.itemservice.web.dto.ShopDto;
-import com.ecommerce.itemservice.domain.shop.ShopService;
+import com.ecommerce.itemservice.domain.shop.dto.ShopDto;
+import com.ecommerce.itemservice.domain.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

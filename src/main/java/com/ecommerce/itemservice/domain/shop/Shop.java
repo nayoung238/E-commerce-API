@@ -1,7 +1,7 @@
 package com.ecommerce.itemservice.domain.shop;
 
 import com.ecommerce.itemservice.domain.shop.location.LocationCode;
-import com.ecommerce.itemservice.web.dto.ShopDto;
+import com.ecommerce.itemservice.domain.shop.dto.ShopDto;
 import jakarta.persistence.*;
 import lombok.*;
 

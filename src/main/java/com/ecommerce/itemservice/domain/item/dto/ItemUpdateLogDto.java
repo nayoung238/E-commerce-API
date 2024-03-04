@@ -1,4 +1,4 @@
-package com.ecommerce.itemservice.web.dto;
+package com.ecommerce.itemservice.domain.item.dto;
 
 import com.ecommerce.itemservice.kafka.dto.OrderItemStatus;
 import com.ecommerce.itemservice.domain.item.ItemUpdateLog;

@@ -1,9 +1,11 @@
-package com.ecommerce.itemservice.domain.shop;
+package com.ecommerce.itemservice.domain.shop.service;
 
+import com.ecommerce.itemservice.domain.shop.Shop;
 import com.ecommerce.itemservice.domain.shop.location.LocationCode;
+import com.ecommerce.itemservice.domain.shop.repository.ShopRepository;
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.exception.ShopException;
-import com.ecommerce.itemservice.web.dto.ShopDto;
+import com.ecommerce.itemservice.domain.shop.dto.ShopDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;

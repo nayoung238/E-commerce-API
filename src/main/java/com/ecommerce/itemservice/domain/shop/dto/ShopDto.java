@@ -1,4 +1,4 @@
-package com.ecommerce.itemservice.web.dto;
+package com.ecommerce.itemservice.domain.shop.dto;
 
 import com.ecommerce.itemservice.domain.shop.Shop;
 import jakarta.validation.constraints.NotBlank;

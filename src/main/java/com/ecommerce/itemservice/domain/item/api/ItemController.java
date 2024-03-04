@@ -1,11 +1,10 @@
-package com.ecommerce.itemservice.web;
+package com.ecommerce.itemservice.domain.item.api;
 
 import com.ecommerce.itemservice.exception.OrderException;
 import com.ecommerce.itemservice.kafka.dto.OrderItemStatus;
-import com.ecommerce.itemservice.web.dto.ItemDto;
+import com.ecommerce.itemservice.domain.item.dto.ItemDto;
 import com.ecommerce.itemservice.domain.item.service.ItemService;
 import com.ecommerce.itemservice.domain.item.service.ItemStockService;
-import com.ecommerce.itemservice.web.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

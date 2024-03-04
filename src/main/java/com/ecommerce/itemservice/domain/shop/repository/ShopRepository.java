@@ -1,5 +1,6 @@
-package com.ecommerce.itemservice.domain.shop;
+package com.ecommerce.itemservice.domain.shop.repository;
 
+import com.ecommerce.itemservice.domain.shop.Shop;
 import com.ecommerce.itemservice.domain.shop.location.LocationCode;
 import org.springframework.data.jpa.repository.JpaRepository;
 
