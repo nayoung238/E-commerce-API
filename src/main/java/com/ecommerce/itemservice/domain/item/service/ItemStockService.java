@@ -25,7 +25,7 @@ public class ItemStockService {
     private final ItemRepository itemRepository;
     private final KafkaProducerService kafkaProducerService;
     private final OrderRedisRepository orderRedisRepository;
-    private final StockUpdate stockUpdateService;
+    private final StockUpdateService stockUpdateService;
 
     @Transactional
     public void updateStock(OrderDto orderDto) {

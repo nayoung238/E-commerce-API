@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class StockUpdateByKafkaStreamsService implements StockUpdate {
+public class StockUpdateByKafkaStreamsServiceImpl implements StockUpdateService {
 
     private final ItemRepository itemRepository;
     private final ItemRedisRepository itemRedisRepository;

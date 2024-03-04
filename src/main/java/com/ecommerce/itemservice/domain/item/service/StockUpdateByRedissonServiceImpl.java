@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 @Service @Primary
 @RequiredArgsConstructor
 @Slf4j
-public class StockUpdateByRedissonService implements StockUpdate {
+public class StockUpdateByRedissonServiceImpl implements StockUpdateService {
 
     private final RedissonClient redissonClient;
     private final ItemService itemService;
