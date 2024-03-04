@@ -2,6 +2,7 @@ package com.ecommerce.itemservice.domain.item.dto;
 
 import com.ecommerce.itemservice.domain.item.Item;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter @Builder
@@ -14,10 +15,10 @@ public class ItemDto {
     @NotBlank
     private String name;
 
-    @NotBlank
+    @NotNull
     private Long stock;
 
-    public static ItemDto fromItem(Item item) {
+    public static ItemDto of(Item item) {
         return ItemDto.builder()
                 .id(item.getId())
                 .name(item.getName())

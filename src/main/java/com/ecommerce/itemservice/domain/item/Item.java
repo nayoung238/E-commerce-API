@@ -1,8 +1,8 @@
 package com.ecommerce.itemservice.domain.item;
 
+import com.ecommerce.itemservice.domain.item.dto.ItemRegisterRequest;
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.exception.StockException;
-import com.ecommerce.itemservice.domain.item.dto.ItemDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,14 +21,16 @@ public class Item {
     @Version
     private Long version;
 
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private Long stock;
 
-    public static Item fromItemDto(ItemDto itemDto) {
+    public static Item of(ItemRegisterRequest request) {
         return Item.builder()
-                .name(itemDto.getName())
-                .stock(itemDto.getStock())
+                .name(request.getName())
+                .stock(request.getStock())
                 .build();
     }
 
