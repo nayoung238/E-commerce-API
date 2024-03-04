@@ -3,10 +3,8 @@ package com.ecommerce.itemservice.domain.item;
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.exception.StockException;
 import com.ecommerce.itemservice.domain.item.dto.ItemDto;
-import com.ecommerce.itemservice.domain.item.dto.ItemInfoUpdateRequest;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.util.StringUtils;
 
 @Entity
 @Builder
@@ -41,14 +39,5 @@ public class Item {
             this.stock += quantity;
         else
             throw new StockException(ExceptionCode.INSUFFICIENT_STOCK_EXCEPTION);
-    }
-
-    public void update(ItemInfoUpdateRequest request) {
-        if(StringUtils.hasText(request.getName())) {
-            this.name = request.getName();
-        }
-        if(request.getAdditionalQuantity() != null) {
-            this.stock += request.getAdditionalQuantity();
-        }
     }
 }

@@ -9,8 +9,6 @@ import lombok.*;
 @NoArgsConstructor
 public class ItemDto {
 
-    private Boolean isExist;
-
     private Long id;
 
     @NotBlank
@@ -21,7 +19,6 @@ public class ItemDto {
 
     public static ItemDto fromItem(Item item) {
         return ItemDto.builder()
-                .isExist(Boolean.TRUE)
                 .id(item.getId())
                 .name(item.getName())
                 .stock(item.getStock())
