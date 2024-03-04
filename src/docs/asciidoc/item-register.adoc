@@ -1,0 +1,19 @@
+[[api-item-register]]
+== 상품 등록 (Item Register API)
+
+=== 요청 방식
+include::{snippets}/item-register/http-request.adoc[]
+include::{snippets}/item-register/request-fields.adoc[]
+
+=== Request Body
+include::{snippets}/item-register/request-body.adoc[]
+
+=== 응답 방식
+include::{snippets}/item-register/http-response.adoc[]
+include::{snippets}/item-register/response-fields.adoc[]
+
+=== Response Body
+include::{snippets}/item-register/response-body.adoc[]
+
+=== Try with curl
+include::{snippets}/item-register/curl-request.adoc[]

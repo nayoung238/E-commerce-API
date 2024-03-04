@@ -1,0 +1,14 @@
+= Item-service API Guide
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 4
+:sectnums:
+:sectlinks:
+:sectanchors:
+
+== Item-Service Api Docs
+상품 생성 및 관리 가능 +
+주문에 대한 재고 처리 결과 반환 가능
+include::src/docs/asciidoc/item-register.adoc[]
