@@ -1,5 +1,6 @@
 package com.ecommerce.itemservice.domain.item.service;
 
+import com.ecommerce.itemservice.domain.item.dto.ItemRegisterRequest;
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.exception.ItemException;
 import com.ecommerce.itemservice.exception.OrderException;
@@ -24,15 +25,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class ItemService {
 
     private final ItemRepository itemRepository;
-    private final ItemRedisRepository itemRedisRepository;
+//    private final ItemRedisRepository itemRedisRepository;
     private final OrderRedisRepository orderRedisRepository;
 
-    public ItemDto create(ItemDto itemDto) {
-        Item item = Item.fromItemDto(itemDto);
+    @Transactional
+    public ItemDto create(ItemRegisterRequest request) {
+        Item item = Item.of(request);
         item = itemRepository.save(item);
 
-        itemRedisRepository.initializeItemStock(item.getId(), item.getStock());
-        return ItemDto.fromItem(item);
+        /*
+            StockUpdateByKafkaStreamsServiceImpl 에서 사용
+            -> 해당 방식 사용하지 않음 (2023.12 기준)
+         */
+//        itemRedisRepository.initializeItemStock(item.getId(), item.getStock());
+        return ItemDto.of(item);
     }
 
     @Transactional
