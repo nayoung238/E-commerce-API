@@ -1,4 +1,4 @@
-package com.ecommerce.itemservice.kafka.consumer;
+package com.ecommerce.itemservice.kafka.config.consumer;
 
 import com.ecommerce.itemservice.kafka.dto.OrderDtoDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;

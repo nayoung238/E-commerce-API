@@ -1,4 +1,4 @@
-package com.ecommerce.itemservice.kafka.producer;
+package com.ecommerce.itemservice.kafka.config.producer;
 
 import com.ecommerce.itemservice.kafka.dto.OrderDto;
 import com.ecommerce.itemservice.kafka.dto.OrderDtoSerializer;

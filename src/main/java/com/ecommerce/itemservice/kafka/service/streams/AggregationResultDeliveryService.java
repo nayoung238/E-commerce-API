@@ -1,4 +1,4 @@
-package com.ecommerce.itemservice.kafka.streams;
+package com.ecommerce.itemservice.kafka.service.streams;
 
 import com.ecommerce.itemservice.domain.item.service.ItemStockService;
 import lombok.RequiredArgsConstructor;

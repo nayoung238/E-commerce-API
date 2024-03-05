@@ -1,7 +1,8 @@
-package com.ecommerce.itemservice.kafka.streams;
+package com.ecommerce.itemservice.kafka.config.streams;
 
-import com.ecommerce.itemservice.kafka.producer.KafkaProducerConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -16,8 +17,11 @@ import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.ecommerce.itemservice.kafka.config.producer.KafkaProducerConfig.ITEM_UPDATE_LOG_TOPIC;
 
 @Configuration
 @EnableKafkaStreams
@@ -42,8 +46,13 @@ public class KafkaStreamsConfig {
 
 
     @Bean
-    public KStream<Windowed<String>, Long> addUpQuantityOfItems(StreamsBuilder streamsBuilder) {
-        KStream<String, Long> stream = streamsBuilder.stream(KafkaProducerConfig.ITEM_UPDATE_LOG_TOPIC);
+    public KStream<Windowed<String>, Long> addUpQuantityOfItems(KafkaStreamsConfiguration kafkaStreamsConfiguration,
+                                                                StreamsBuilder streamsBuilder) {
+        AdminClient adminClient = AdminClient.create(kafkaStreamsConfiguration.asProperties());
+        adminClient.createTopics(Collections.singleton(
+                new NewTopic(ITEM_UPDATE_LOG_TOPIC, 1, (short)1)));
+
+        KStream<String, Long> stream = streamsBuilder.stream(ITEM_UPDATE_LOG_TOPIC);
 
         return stream
                 .groupByKey()
