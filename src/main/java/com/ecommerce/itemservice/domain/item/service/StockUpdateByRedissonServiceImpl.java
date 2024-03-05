@@ -36,26 +36,25 @@ public class StockUpdateByRedissonServiceImpl implements StockUpdateService {
 
     @Override
     @Transactional
-    public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
+    public OrderItemDto updateStock(OrderItemDto orderItemDto) {
         RLock lock = redissonClient.getLock(generateKey(orderItemDto.getItemId()));
         try {
             boolean available = lock.tryLock(RLOCK_WAIT_TIME, RLOCK_LEASE_TIME, TimeUnit.MILLISECONDS);
             if(available) {
-                log.info("Acquired the RLock -> Event Id: {}, Redisson Lock: {}", eventId, lock.getName());
+                log.info("Acquired the RLock -> Redisson Lock: {}", lock.getName());
                 // Transaction Propagation.REQUIRES_NEW
-                return itemService.updateStockByOptimisticLock(orderItemDto, eventId);
+                return itemService.updateStockByOptimisticLock(orderItemDto);
             }
             else {
-                log.error("Failed to acquire RLock -> Event Id: {}, Redisson Lock: {}", eventId, lock.getName());
-                orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
+                orderItemDto.updateOrderStatus(OrderItemStatus.FAILED);
                 return orderItemDto;
             }
         } catch (InterruptedException e) {
             log.error(e.getMessage());
-            orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
+            orderItemDto.updateOrderStatus(OrderItemStatus.FAILED);
         } finally {
             if(lock.isHeldByCurrentThread()) {
-                log.info("Unlock -> Event Id: {}, Redisson Lock: {}", eventId, lock.getName());
+                log.info("Unlock -> Redisson Lock: {}", lock.getName());
                 lock.unlock();
             }
         }

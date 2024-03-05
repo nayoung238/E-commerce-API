@@ -1,24 +1,25 @@
 package com.ecommerce.itemservice.kafka.dto;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
+@Builder
 public class OrderDto {
 
-    private Long id;
-    private String eventId;
+    private String orderId;
     private OrderItemStatus orderStatus;
-    @Setter
     private List<OrderItemDto> orderItemDtos;
     private Long userId;
     private LocalDateTime createdAt;
     private LocalDateTime requestedAt;
+
+    public void updateOrderItemDtos(List<OrderItemDto> orderItemDtos) {
+        this.orderItemDtos = orderItemDtos;
+    }
 
     public void updateOrderStatus(OrderItemStatus status) {
         this.orderStatus = status;

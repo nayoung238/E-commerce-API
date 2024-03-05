@@ -33,19 +33,19 @@ public class StockUpdateByKafkaStreamsServiceImpl implements StockUpdateService 
     private final KafkaProducerService kafkaProducerService;
 
     @Override
-    public OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId) {
+    public OrderItemDto updateStock(OrderItemDto orderItemDto) {
         Item item = itemRepository.findById(orderItemDto.getItemId())
                 .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
         // Redis에서 재고 차감 시도
         if(isUpdatableStockByRedis(item.getId(), orderItemDto.getQuantity())) {
-            orderItemDto.setOrderItemStatus((orderItemDto.getQuantity() < 0) ?
+            orderItemDto.updateOrderStatus((orderItemDto.getQuantity() < 0) ?
                     OrderItemStatus.SUCCEEDED  // consumption
                     : OrderItemStatus.CANCELED);  // production (undo)
 
             sendMessageToKafka(orderItemDto.getItemId(), orderItemDto.getQuantity());
         } else {
-            orderItemDto.setOrderItemStatus(OrderItemStatus.OUT_OF_STOCK);
+            orderItemDto.updateOrderStatus(OrderItemStatus.OUT_OF_STOCK);
         }
         return orderItemDto;
     }

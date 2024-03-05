@@ -19,9 +19,9 @@ public class KafkaConsumerService {
     @KafkaListener(topics = REQUESTED_ORDER_TOPIC)
     public void updateStock(ConsumerRecord<String, OrderDto> record) {
         if(record.value() != null) {
-            log.info("Consuming message Success -> Topic: {}, Event Id:{}",
+            log.info("Consuming message Success -> Topic: {}, OrderId:{}",
                     record.topic(),
-                    record.value().getEventId());
+                    record.value().getOrderId());
 
            itemStockService.updateStock(record.value());
         }

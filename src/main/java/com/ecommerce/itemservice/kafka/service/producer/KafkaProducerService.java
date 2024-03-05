@@ -34,11 +34,11 @@ public class KafkaProducerService {
                 .whenComplete((stringOrderDtoSendResult, throwable) -> {
                     if(throwable == null) {
                         RecordMetadata metadata = stringOrderDtoSendResult.getRecordMetadata();
-                        log.info("Producing message Success -> topic: {}, partition: {}, offset: {}, event Id: {}",
+                        log.info("Producing message Success -> topic: {}, partition: {}, offset: {}, OrderId: {}",
                                 metadata.topic(),
                                 metadata.partition(),
                                 metadata.offset(),
-                                value.getEventId());
+                                value.getOrderId());
                     } else {
                         log.error("Producing message Failure " + throwable.getMessage());
                     }

@@ -25,19 +25,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class ItemService {
 
     private final ItemRepository itemRepository;
-//    private final ItemRedisRepository itemRedisRepository;
+    private final ItemRedisRepository itemRedisRepository;
     private final OrderRedisRepository orderRedisRepository;
 
     @Transactional
     public ItemDto create(ItemRegisterRequest request) {
         Item item = Item.of(request);
         item = itemRepository.save(item);
-
-        /*
-            StockUpdateByKafkaStreamsServiceImpl 에서 사용
-            -> 해당 방식 사용하지 않음 (2023.12 기준)
-         */
-//        itemRedisRepository.initializeItemStock(item.getId(), item.getStock());
+        itemRedisRepository.initializeItemStock(item.getId(), item.getStock());
         return ItemDto.of(item);
     }
 
@@ -49,37 +44,37 @@ public class ItemService {
 
             item.updateStock(orderItemDto.getQuantity());
 
-            orderItemDto.setOrderItemStatus((orderItemDto.getQuantity() < 0) ?
+            orderItemDto.updateOrderStatus((orderItemDto.getQuantity() < 0) ?
                     OrderItemStatus.SUCCEEDED  // consumption
                     : OrderItemStatus.CANCELED); // production (undo)
         } catch (ItemException e) {
-            orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
+            orderItemDto.updateOrderStatus(OrderItemStatus.FAILED);
         } catch(StockException e) {
-            orderItemDto.setOrderItemStatus(OrderItemStatus.OUT_OF_STOCK);
+            orderItemDto.updateOrderStatus(OrderItemStatus.OUT_OF_STOCK);
         }
         return orderItemDto;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public OrderItemDto updateStockByOptimisticLock(OrderItemDto orderItemDto, String eventId) {
+    public OrderItemDto updateStockByOptimisticLock(OrderItemDto orderItemDto) {
         try {
             Item item = itemRepository.findByIdWithOptimisticLock(orderItemDto.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
             item.updateStock(orderItemDto.getQuantity());
-            orderItemDto.setOrderItemStatus(OrderItemStatus.SUCCEEDED);
+            orderItemDto.updateOrderStatus(OrderItemStatus.SUCCEEDED);
             itemRepository.save(item);
         } catch (ItemException e) {
             log.error(String.valueOf(e.getExceptionCode()));
-            orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
+            orderItemDto.updateOrderStatus(OrderItemStatus.FAILED);
         } catch (StockException e) {
             log.error(String.valueOf(e.getExceptionCode()));
-            orderItemDto.setOrderItemStatus(OrderItemStatus.OUT_OF_STOCK);
+            orderItemDto.updateOrderStatus(OrderItemStatus.OUT_OF_STOCK);
         } catch (ObjectOptimisticLockingFailureException e) {
-            log.error(e.getMessage() + " -> Event Id: {}, Item Id: {}", eventId, orderItemDto.getItemId());
-            orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
+            log.error(e.getMessage() + " -> Item Id: {}", orderItemDto.getItemId());
+            orderItemDto.updateOrderStatus(OrderItemStatus.FAILED);
         } catch (Exception e) {
             log.error(e.getMessage());
-            orderItemDto.setOrderItemStatus(OrderItemStatus.FAILED);
+            orderItemDto.updateOrderStatus(OrderItemStatus.FAILED);
         }
         return orderItemDto;
     }

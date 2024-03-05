@@ -34,7 +34,7 @@ public class ItemStockService {
                     .stream()
                     .map(o -> {
                         o.convertSign();
-                        return stockUpdateService.updateStock(o, orderDto.getEventId());
+                        return stockUpdateService.updateStock(o);
                     })
                     .toList();
 
@@ -42,21 +42,21 @@ public class ItemStockService {
                 orderDto.updateOrderStatus(OrderItemStatus.SUCCEEDED);
             } else {
                 orderDto.updateOrderStatus(OrderItemStatus.FAILED);
-                List<OrderItemDto> orderItemDtoList = undo(orderDto.getEventId(), result);
-                orderDto.setOrderItemDtos(orderItemDtoList);
+                List<OrderItemDto> orderItemDtoList = undo(result);
+                orderDto.updateOrderItemDtos(orderItemDtoList);
             }
-            orderRedisRepository.setOrderStatus(orderDto.getEventId(), orderDto.getOrderStatus());
-            kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
+            orderRedisRepository.setOrderStatus(orderDto.getOrderId(), orderDto.getOrderStatus());
+            kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getOrderId(), orderDto);
         }
         else {
             updateOrderStatus(orderDto);
-            kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getEventId(), orderDto);
+            kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC, orderDto.getOrderId(), orderDto);
         }
     }
 
     private boolean isFirstEvent(OrderDto orderDto) {
         String redisKey = getRedisKey(orderDto);
-        return orderRedisRepository.addEventId(redisKey, orderDto.getEventId()) == 1;
+        return orderRedisRepository.addEventId(redisKey, orderDto.getOrderId()) == 1;
     }
 
     private String getRedisKey(OrderDto orderDto) {
@@ -75,7 +75,7 @@ public class ItemStockService {
     }
 
     private void updateOrderStatus(OrderDto orderDto) {
-        String orderProcessingResult = orderRedisRepository.getOrderStatus(orderDto.getEventId());
+        String orderProcessingResult = orderRedisRepository.getOrderStatus(orderDto.getOrderId());
 
         OrderItemStatus orderItemStatus;
         if(orderProcessingResult == null) orderItemStatus = OrderItemStatus.NOT_EXIST;
@@ -83,16 +83,16 @@ public class ItemStockService {
 
         orderDto.updateOrderStatus(orderItemStatus);
         orderDto.getOrderItemDtos()
-                .forEach(orderItemDto -> orderItemDto.setOrderItemStatus(orderItemStatus));
+                .forEach(orderItemDto -> orderItemDto.updateOrderStatus(orderItemStatus));
     }
 
-    private List<OrderItemDto> undo(String eventId, List<OrderItemDto> orderItemDtos) {
+    private List<OrderItemDto> undo(List<OrderItemDto> orderItemDtos) {
         orderItemDtos.stream()
                 .filter(o -> Objects.equals(OrderItemStatus.SUCCEEDED, o.getOrderItemStatus()))
                 .forEach(o -> {
                     o.convertSign();
-                    stockUpdateService.updateStock(o, eventId);
-                    o.setOrderItemStatus(OrderItemStatus.CANCELED);
+                    stockUpdateService.updateStock(o);
+                    o.updateOrderStatus(OrderItemStatus.CANCELED);
                 });
 
         return orderItemDtos;

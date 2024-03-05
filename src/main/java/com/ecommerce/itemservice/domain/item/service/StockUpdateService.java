@@ -4,5 +4,5 @@ import com.ecommerce.itemservice.kafka.dto.OrderItemDto;
 
 public interface StockUpdateService {
 
-    OrderItemDto updateStock(OrderItemDto orderItemDto, String eventId);
+    OrderItemDto updateStock(OrderItemDto orderItemDto);
 }
