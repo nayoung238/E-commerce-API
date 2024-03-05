@@ -1,8 +1,8 @@
 package com.ecommerce.orderservice.kafka.streams;
 
-import com.ecommerce.orderservice.web.dto.OrderDto;
-import com.ecommerce.orderservice.domain.OrderItemStatus;
-import com.ecommerce.orderservice.kafka.dto.OrderSerde;
+import com.ecommerce.orderservice.domain.order.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.kafka.dto.OrderEventSerde;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerConfig;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ public class KStreamKTableJoinConfig {
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, STREAM_APPLICATION_ID);
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER);
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, OrderSerde.class);
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, OrderEventSerde.class);
 
         String[] split = UUID.randomUUID().toString().split("-");
         props.put(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm")) + "-" + split[0]);
@@ -70,13 +70,13 @@ public class KStreamKTableJoinConfig {
                                                  KStream<String, OrderDto> orderProcessingResult) {
         return orderProcessingResult
                 .filter((key, value) -> {
-                    if(!value.getOrderStatus().equals(OrderItemStatus.SUCCEEDED)
-                            && !value.getOrderStatus().equals(OrderItemStatus.FAILED)) {
+                    if(!value.getOrderStatus().equals(OrderStatus.SUCCEEDED)
+                            && !value.getOrderStatus().equals(OrderStatus.FAILED)) {
                         log.error("Order status of {} -> {}", key, value.getOrderStatus());
                         kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, key);
                     }
-                    return value.getOrderStatus().equals(OrderItemStatus.SUCCEEDED)
-                            || value.getOrderStatus().equals(OrderItemStatus.FAILED);
+                    return value.getOrderStatus().equals(OrderStatus.SUCCEEDED)
+                            || value.getOrderStatus().equals(OrderStatus.FAILED);
                 })
                 .join(requestedOrder, (result, order) -> setOrderStatus(order, result));
     }

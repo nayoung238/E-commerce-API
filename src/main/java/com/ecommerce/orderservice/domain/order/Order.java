@@ -1,8 +1,8 @@
-package com.ecommerce.orderservice.domain;
+package com.ecommerce.orderservice.domain.order;
 
 import com.ecommerce.orderservice.exception.ExceptionCode;
 import com.ecommerce.orderservice.exception.OrderException;
-import com.ecommerce.orderservice.web.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,7 +41,7 @@ public class Order {
     private List<OrderItem> orderItems;
 
     @Enumerated(EnumType.STRING)
-    private OrderItemStatus orderStatus;
+    private OrderStatus orderStatus;
 
     @CreatedDate
     @Column(updatable = false)
@@ -57,7 +57,7 @@ public class Order {
         return Order.builder()
                 .userId(orderDto.getUserId())
                 .orderItems(orderItems)
-                .orderStatus(OrderItemStatus.WAITING)
+                .orderStatus(OrderStatus.WAITING)
                 .requestedAt(LocalDateTime.now())
                 .build();
     }
@@ -85,20 +85,20 @@ public class Order {
         this.eventId = this.userId.toString() + "-" + uuid[0];
     }
 
-    public void updateOrderStatus(OrderItemStatus status) {
+    public void updateOrderStatus(OrderStatus status) {
         this.orderStatus = status;
         this.orderItems
-                .forEach(orderItem -> orderItem.updateOrderItemStatus(status));
+                .forEach(orderItem -> orderItem.updateOrderStatus(status));
     }
 
     public void updateOrderStatus(OrderDto orderDto) {
         this.orderStatus = orderDto.getOrderStatus();
 
-        HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();
+        HashMap<Long, OrderStatus> orderStatusHashMap = new HashMap<>();
         orderDto.getOrderItemDtos()
-                .forEach(o -> orderItemStatusHashMap.put(o.getItemId(), o.getOrderItemStatus()));
+                .forEach(o -> orderStatusHashMap.put(o.getItemId(), o.getOrderStatus()));
 
         this.orderItems
-                .forEach(o -> o.updateOrderItemStatus(orderItemStatusHashMap.get(o.getItemId())));
+                .forEach(o -> o.updateOrderStatus(orderStatusHashMap.get(o.getItemId())));
     }
 }

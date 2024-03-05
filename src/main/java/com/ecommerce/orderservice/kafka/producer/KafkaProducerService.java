@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.kafka.producer;
 
-import com.ecommerce.orderservice.web.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.RecordMetadata;

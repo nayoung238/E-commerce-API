@@ -1,8 +1,8 @@
-package com.ecommerce.orderservice.domain.service;
+package com.ecommerce.orderservice.domain.order.service;
 
-import com.ecommerce.orderservice.domain.Order;
-import com.ecommerce.orderservice.domain.repository.OrderRepository;
-import com.ecommerce.orderservice.web.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.Order;
+import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
+import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;

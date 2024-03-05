@@ -1,6 +1,6 @@
-package com.ecommerce.orderservice.domain.service;
+package com.ecommerce.orderservice.domain.order.service;
 
-import com.ecommerce.orderservice.web.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 public interface OrderCreationService {

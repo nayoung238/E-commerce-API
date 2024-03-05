@@ -1,6 +1,6 @@
-package com.ecommerce.orderservice.domain;
+package com.ecommerce.orderservice.domain.order;
 
-import com.ecommerce.orderservice.web.dto.OrderItemDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderItemDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,7 +20,7 @@ public class OrderItem {
     private Long quantity;
 
     @Enumerated(EnumType.STRING)
-    private OrderItemStatus orderItemStatus;
+    private OrderStatus orderStatus;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,7 +31,7 @@ public class OrderItem {
         return OrderItem.builder()
                 .itemId(orderItemDto.getItemId())
                 .quantity(orderItemDto.getQuantity())
-                .orderItemStatus(OrderItemStatus.WAITING)
+                .orderStatus(OrderStatus.WAITING)
                 .build();
     }
 
@@ -39,7 +39,7 @@ public class OrderItem {
         return OrderItem.builder()
                 .itemId(orderItemDto.getItemId())
                 .quantity(orderItemDto.getQuantity())
-                .orderItemStatus(orderItemDto.getOrderItemStatus())
+                .orderStatus(orderItemDto.getOrderStatus())
                 .build();
     }
 
@@ -47,7 +47,7 @@ public class OrderItem {
         this.order = order;
     }
 
-    public void updateOrderItemStatus(OrderItemStatus orderItemStatus) {
-        this.orderItemStatus = orderItemStatus;
+    public void updateOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
     }
 }

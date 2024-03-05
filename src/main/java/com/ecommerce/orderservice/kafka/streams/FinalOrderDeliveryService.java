@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.kafka.streams;
 
-import com.ecommerce.orderservice.web.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.streams.kstream.KStream;
 import org.springframework.beans.factory.annotation.Autowired;

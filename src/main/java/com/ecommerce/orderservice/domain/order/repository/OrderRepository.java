@@ -1,6 +1,6 @@
-package com.ecommerce.orderservice.domain.repository;
+package com.ecommerce.orderservice.domain.order.repository;
 
-import com.ecommerce.orderservice.domain.Order;
+import com.ecommerce.orderservice.domain.order.Order;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 

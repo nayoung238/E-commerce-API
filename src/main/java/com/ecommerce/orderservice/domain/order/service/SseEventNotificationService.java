@@ -1,6 +1,6 @@
-package com.ecommerce.orderservice.domain.service;
+package com.ecommerce.orderservice.domain.order.service;
 
-import com.ecommerce.orderservice.domain.OrderItemStatus;
+import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +54,7 @@ public class SseEventNotificationService {
         return sseEmitter;
     }
 
-    public void sendOrderResult(String key, OrderItemStatus orderStatus) {
+    public void sendOrderResult(String key, OrderStatus orderStatus) {
         SseEmitter sseEmitter = sseEmitterMap.get(key);
         if(sseEmitter != null) {
             try {
@@ -78,7 +78,7 @@ public class SseEventNotificationService {
         String orderEventId;
         @JsonProperty("Order Status")
         String orderStatus;
-        EmitterData(String key, OrderItemStatus orderStatus) {
+        EmitterData(String key, OrderStatus orderStatus) {
             this.orderEventId = key;
             this.orderStatus = String.valueOf(orderStatus);
         }

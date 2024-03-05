@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.domain.repository;
+package com.ecommerce.orderservice.domain.order.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

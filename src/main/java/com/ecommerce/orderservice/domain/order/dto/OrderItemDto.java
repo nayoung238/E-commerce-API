@@ -1,7 +1,7 @@
-package com.ecommerce.orderservice.web.dto;
+package com.ecommerce.orderservice.domain.order.dto;
 
-import com.ecommerce.orderservice.domain.OrderItem;
-import com.ecommerce.orderservice.domain.OrderItemStatus;
+import com.ecommerce.orderservice.domain.order.OrderItem;
+import com.ecommerce.orderservice.domain.order.OrderStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,18 +23,18 @@ public class OrderItemDto implements Serializable {
     @NotNull
     private Long quantity;
 
-    private OrderItemStatus orderItemStatus;
+    private OrderStatus orderStatus;
 
     public static OrderItemDto fromOrderItem(OrderItem orderItem) {
         return OrderItemDto.builder()
                 .id(orderItem.getId())
                 .itemId(orderItem.getItemId())
                 .quantity(orderItem.getQuantity())
-                .orderItemStatus((orderItem.getOrderItemStatus() == null) ? OrderItemStatus.WAITING : orderItem.getOrderItemStatus())
+                .orderStatus((orderItem.getOrderStatus() == null) ? OrderStatus.WAITING : orderItem.getOrderStatus())
                 .build();
     }
 
-    public void updateOrderStatus(OrderItemStatus orderItemStatus) {
-        this.orderItemStatus = orderItemStatus;
+    public void updateOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
     }
 }

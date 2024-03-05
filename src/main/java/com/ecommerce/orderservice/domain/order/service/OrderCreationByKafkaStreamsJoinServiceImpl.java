@@ -1,14 +1,14 @@
-package com.ecommerce.orderservice.domain.service;
+package com.ecommerce.orderservice.domain.order.service;
 
-import com.ecommerce.orderservice.domain.Order;
-import com.ecommerce.orderservice.domain.OrderItemStatus;
-import com.ecommerce.orderservice.domain.repository.OrderRepository;
+import com.ecommerce.orderservice.domain.order.Order;
+import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerConfig;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
 import com.ecommerce.orderservice.kafka.streams.KStreamKTableJoinConfig;
 import com.ecommerce.orderservice.openfeign.ItemServiceClient;
-import com.ecommerce.orderservice.web.dto.OrderDto;
-import com.ecommerce.orderservice.domain.repository.OrderRedisRepository;
+import com.ecommerce.orderservice.domain.order.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.repository.OrderRedisRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -38,7 +38,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     public OrderDto create(OrderDto orderDto) {
         orderDto.initializeEventId();
         orderDto.initializeRequestedAt();
-        orderDto.setOrderStatus(OrderItemStatus.WAITING);
+        orderDto.setOrderStatus(OrderStatus.WAITING);
         kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, orderDto.getEventId(), orderDto);
         return orderDto;
     }
@@ -61,7 +61,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     }
 
     @Override
-    @KafkaListener(topics = KafkaProducerConfig.REQUESTED_ORDER_TOPIC)
+    //@KafkaListener(topics = KafkaProducerConfig.REQUESTED_ORDER_TOPIC)
     public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderDto> record) {
         if(record.key() != null && record.value() != null) {
             log.info("Consuming message success -> Topic: {}, Key(event Id): {}",
@@ -96,13 +96,13 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
                 record.key());
 
         // OpenFeign
-        OrderItemStatus orderItemStatus = itemServiceClient.findOrderProcessingResultByEventId(record.key());
-        if (orderItemStatus.equals(OrderItemStatus.SUCCEEDED) || orderItemStatus.equals(OrderItemStatus.FAILED)) {
+        OrderStatus orderStatus = itemServiceClient.findOrderProcessingResultByEventId(record.key());
+        if (orderStatus.equals(OrderStatus.SUCCEEDED) || orderStatus.equals(OrderStatus.FAILED)) {
             if(!isExistOrderByEventId(record.key())) {
-                OrderDto orderDto = OrderDto.fromEventIdAndOrderItemStatus(record.key(), orderItemStatus);
+                OrderDto orderDto = OrderDto.fromEventIdAndOrderStatus(record.key(), orderStatus);
                 kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_TOPIC, record.key(), orderDto);
             }
-        } else if (orderItemStatus.equals(OrderItemStatus.SERVER_ERROR)) {
+        } else if (orderStatus.equals(OrderStatus.SERVER_ERROR)) {
             kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, record.key());
         } else {
             resendKafkaMessage(record.key(), record.value());
@@ -114,7 +114,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
         if(isFirstEvent(redisKey[0], value.getEventId()))
             kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, key, value);
         else {
-            updateOrderStatusByEventId(value.getEventId(), OrderItemStatus.FAILED);
+            updateOrderStatusByEventId(value.getEventId(), OrderStatus.FAILED);
             // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요
         }
     }
@@ -123,9 +123,9 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
         return orderRedisRepository.addEventId(key, eventId) == 1;
     }
 
-    private void updateOrderStatusByEventId(String eventId, OrderItemStatus orderItemStatus) {
+    private void updateOrderStatusByEventId(String eventId, OrderStatus orderStatus) {
         if(!isExistOrderByEventId(eventId)) {
-            OrderDto orderDto = OrderDto.fromEventIdAndOrderItemStatus(eventId, orderItemStatus);
+            OrderDto orderDto = OrderDto.fromEventIdAndOrderStatus(eventId, orderStatus);
             kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_TOPIC, eventId, orderDto);
         }
     }

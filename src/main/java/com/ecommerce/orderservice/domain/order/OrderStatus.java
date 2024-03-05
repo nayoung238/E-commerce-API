@@ -1,6 +1,6 @@
-package com.ecommerce.orderservice.domain;
+package com.ecommerce.orderservice.domain.order;
 
-public enum OrderItemStatus {
+public enum OrderStatus {
 
     SUCCEEDED,
     FAILED,

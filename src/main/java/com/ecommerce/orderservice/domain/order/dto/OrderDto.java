@@ -1,7 +1,7 @@
-package com.ecommerce.orderservice.web.dto;
+package com.ecommerce.orderservice.domain.order.dto;
 
-import com.ecommerce.orderservice.domain.Order;
-import com.ecommerce.orderservice.domain.OrderItemStatus;
+import com.ecommerce.orderservice.domain.order.Order;
+import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.exception.ExceptionCode;
 import com.ecommerce.orderservice.exception.OrderException;
 import jakarta.validation.Valid;
@@ -26,7 +26,7 @@ public class OrderDto implements Serializable {
     private String eventId;
 
     @Setter
-    private OrderItemStatus orderStatus;
+    private OrderStatus orderStatus;
 
     @Valid
     private List<OrderItemDto> orderItemDtos;
@@ -48,7 +48,7 @@ public class OrderDto implements Serializable {
         return OrderDto.builder()
                 .id(order.getId())
                 .eventId(order.getEventId())
-                .orderStatus((order.getOrderStatus() == null) ? OrderItemStatus.WAITING : order.getOrderStatus())
+                .orderStatus((order.getOrderStatus() == null) ? OrderStatus.WAITING : order.getOrderStatus())
                 .orderItemDtos(orderItemDtos)
                 .userId(order.getUserId())
                 .createdAt(order.getCreatedAt())
@@ -56,10 +56,10 @@ public class OrderDto implements Serializable {
                 .build();
     }
 
-    public static OrderDto fromEventIdAndOrderItemStatus(String eventId, OrderItemStatus orderItemStatus) {
+    public static OrderDto fromEventIdAndOrderStatus(String eventId, OrderStatus orderStatus) {
         return OrderDto.builder()
                 .eventId(eventId)
-                .orderStatus(orderItemStatus)
+                .orderStatus(orderStatus)
                 .build();
     }
 
@@ -79,17 +79,17 @@ public class OrderDto implements Serializable {
         if(orderDto.orderItemDtos != null) {
             this.orderStatus = orderDto.getOrderStatus();
 
-            HashMap<Long, OrderItemStatus> orderItemStatusHashMap = new HashMap<>();
+            HashMap<Long, OrderStatus> orderStatusHashMap = new HashMap<>();
             orderDto.getOrderItemDtos()
-                    .forEach(o -> orderItemStatusHashMap.put(o.getItemId(), o.getOrderItemStatus()));
+                    .forEach(o -> orderStatusHashMap.put(o.getItemId(), o.getOrderStatus()));
 
             this.orderItemDtos
-                    .forEach(o -> o.updateOrderStatus(orderItemStatusHashMap.get(o.getItemId())));
+                    .forEach(o -> o.updateOrderStatus(orderStatusHashMap.get(o.getItemId())));
         }
         else updateOrderStatus(orderDto.orderStatus);
     }
 
-    public void updateOrderStatus(OrderItemStatus status) {
+    public void updateOrderStatus(OrderStatus status) {
         this.orderStatus = status;
         this.orderItemDtos
                 .forEach(orderItem -> orderItem.updateOrderStatus(status));

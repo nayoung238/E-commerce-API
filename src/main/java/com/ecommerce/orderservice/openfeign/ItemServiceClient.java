@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.openfeign;
 
-import com.ecommerce.orderservice.domain.OrderItemStatus;
+import com.ecommerce.orderservice.domain.order.OrderStatus;
 import feign.FeignException;
 import feign.RetryableException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -28,25 +28,25 @@ public interface ItemServiceClient {
     @Retry(name = ORDER_PROCESSING_RESULT_RETRY)
     @CircuitBreaker(name = ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER, fallbackMethod = "fallback")
     @GetMapping(value = "/order-processing-result/{eventId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    OrderItemStatus findOrderProcessingResultByEventId(@PathVariable String eventId);
+    OrderStatus findOrderProcessingResultByEventId(@PathVariable String eventId);
 
-    default OrderItemStatus fallback(RetryableException e) {
+    default OrderStatus fallback(RetryableException e) {
         log.error("RetryableException: " + e.getMessage());
-        return OrderItemStatus.SERVER_ERROR;
+        return OrderStatus.SERVER_ERROR;
     }
 
-    default OrderItemStatus fallback(FeignException.FeignClientException e) {
+    default OrderStatus fallback(FeignException.FeignClientException e) {
         log.error("FeignClientException: " + e.getMessage());
-        return OrderItemStatus.NOT_EXIST;
+        return OrderStatus.NOT_EXIST;
     }
 
-    default OrderItemStatus fallback(FeignException.FeignServerException e) {
+    default OrderStatus fallback(FeignException.FeignServerException e) {
         log.error("FeignServerException: " + e.getMessage());
-        return OrderItemStatus.SERVER_ERROR;
+        return OrderStatus.SERVER_ERROR;
     }
 
-    default OrderItemStatus fallback(CallNotPermittedException e) {
+    default OrderStatus fallback(CallNotPermittedException e) {
         log.error("CallNotPermittedException: " + e.getMessage());
-        return OrderItemStatus.FAILED;
+        return OrderStatus.FAILED;
     }
 }

@@ -1,8 +1,8 @@
-package com.ecommerce.orderservice.web;
+package com.ecommerce.orderservice.domain.order.api;
 
-import com.ecommerce.orderservice.domain.service.OrderCreationService;
-import com.ecommerce.orderservice.domain.service.OrderService;
-import com.ecommerce.orderservice.web.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.service.OrderCreationService;
+import com.ecommerce.orderservice.domain.order.service.OrderService;
+import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

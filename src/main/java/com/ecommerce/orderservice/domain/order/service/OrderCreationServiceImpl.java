@@ -1,14 +1,14 @@
-package com.ecommerce.orderservice.domain.service;
+package com.ecommerce.orderservice.domain.order.service;
 
-import com.ecommerce.orderservice.domain.OrderItemStatus;
+import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.exception.ExceptionCode;
 import com.ecommerce.orderservice.exception.OrderException;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerConfig;
 import com.ecommerce.orderservice.openfeign.ItemServiceClient;
-import com.ecommerce.orderservice.web.dto.OrderDto;
-import com.ecommerce.orderservice.domain.Order;
-import com.ecommerce.orderservice.domain.repository.OrderRedisRepository;
-import com.ecommerce.orderservice.domain.repository.OrderRepository;
+import com.ecommerce.orderservice.domain.order.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.Order;
+import com.ecommerce.orderservice.domain.order.repository.OrderRedisRepository;
+import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,7 +73,7 @@ public class OrderCreationServiceImpl implements OrderCreationService {
 
                 Optional<Order> order = orderRepository.findById(record.value().getId());
                 if (order.isPresent()) {
-                    if (Objects.equals(OrderItemStatus.WAITING, order.get().getOrderStatus())) {
+                    if (Objects.equals(OrderStatus.WAITING, order.get().getOrderStatus())) {
                         kafkaProducerService.send(KafkaProducerConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC, null, record.value());
                     }
                 } else kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, null, record.value());
@@ -99,8 +99,8 @@ public class OrderCreationServiceImpl implements OrderCreationService {
                 record.value().getEventId());
 
         // OpenFeign
-        OrderItemStatus orderItemStatus = itemServiceClient.findOrderProcessingResultByEventId(record.value().getEventId());
-        if(!orderItemStatus.equals(OrderItemStatus.NOT_EXIST))
+        OrderStatus orderItemStatus = itemServiceClient.findOrderProcessingResultByEventId(record.value().getEventId());
+        if(!orderItemStatus.equals(OrderStatus.NOT_EXIST))
             updateOrderStatusByEventId(record.value().getEventId(), orderItemStatus);
         else resendKafkaMessage(null, record.value());
     }
@@ -110,7 +110,7 @@ public class OrderCreationServiceImpl implements OrderCreationService {
         if(isFirstEvent(redisKey[0], value.getEventId()))
             kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, key, value);
         else {
-            updateOrderStatusByEventId(value.getEventId(), OrderItemStatus.FAILED);
+            updateOrderStatusByEventId(value.getEventId(), OrderStatus.FAILED);
             // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요
         }
     }
@@ -119,7 +119,7 @@ public class OrderCreationServiceImpl implements OrderCreationService {
         return orderRedisRepository.addEventId(key, eventId) == 1;
     }
 
-    private void updateOrderStatusByEventId(String eventId, OrderItemStatus orderItemStatus) {
+    private void updateOrderStatusByEventId(String eventId, OrderStatus orderItemStatus) {
         Order order = orderRepository.findByEventId(eventId)
                 .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
