@@ -36,7 +36,7 @@ public class Order {
     @Column(name = "user_id")
     private Long userId;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems;
 
     @Enumerated(EnumType.STRING)
