@@ -8,11 +8,11 @@ jar {
     enabled = false
 }
 
-group = 'com.nayoung'
+group = 'com.ecommerce'
 version = '0.0.1-SNAPSHOT'
 
 java {
-    sourceCompatibility = "21"
+    sourceCompatibility = "17"
 }
 
 configurations {
@@ -70,4 +70,3 @@ dependencyManagement {
 tasks.named('test') {
     useJUnitPlatform()
 }
-targetCompatibility = JavaVersion.VERSION_21
