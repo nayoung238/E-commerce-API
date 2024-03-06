@@ -10,7 +10,6 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByUserIdAndIdLessThanOrderByIdDesc(Long userId, Long id, Pageable pageable);
     List<Order> findByUserIdOrderByIdDesc(Long userId, Pageable pageable);
-    Optional<Order> findByEventId(String eventId);
-
-    boolean existsByEventId(String eventId);
+    Optional<Order> findByOrderEventKey(String orderEventKey);
+    boolean existsByOrderEventKey(String orderEventKey);
 }

@@ -3,17 +3,12 @@ package com.ecommerce.orderservice.domain.order.dto;
 import com.ecommerce.orderservice.domain.order.OrderItem;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
-@Getter @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class OrderItemDto implements Serializable {
+@Getter
+@Builder
+public class OrderItemDto {
 
     private Long id;
 
@@ -25,7 +20,7 @@ public class OrderItemDto implements Serializable {
 
     private OrderStatus orderStatus;
 
-    public static OrderItemDto fromOrderItem(OrderItem orderItem) {
+    public static OrderItemDto of(OrderItem orderItem) {
         return OrderItemDto.builder()
                 .id(orderItem.getId())
                 .itemId(orderItem.getItemId())

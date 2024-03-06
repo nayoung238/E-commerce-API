@@ -18,12 +18,8 @@ spring:
   kafka:
     producer:
       acks: all
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: com.ecommerce.orderservice.kafka.dto.OrderDtoSerializer
     consumer:
       group-id: orderServiceGroup
-      key-deserializer: org.apache.kafka.common.serialization.StringSerializer
-      value-deserializer: com.ecommerce.orderservice.kafka.dto.OrderDtoDeserializer
     streams:
       application-id: order_application
   main:

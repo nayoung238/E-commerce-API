@@ -27,8 +27,8 @@ public interface ItemServiceClient {
     // Retry 우선순위를 CircuitBreaker 보다 높게 설정
     @Retry(name = ORDER_PROCESSING_RESULT_RETRY)
     @CircuitBreaker(name = ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER, fallbackMethod = "fallback")
-    @GetMapping(value = "/order-processing-result/{eventId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    OrderStatus findOrderProcessingResultByEventId(@PathVariable String eventId);
+    @GetMapping(value = "/order-processing-result/{orderEventKey}", produces = MediaType.APPLICATION_JSON_VALUE)
+    OrderStatus findOrderProcessingResult(@PathVariable String orderEventKey);
 
     default OrderStatus fallback(RetryableException e) {
         log.error("RetryableException: " + e.getMessage());

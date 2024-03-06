@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.kafka.consumer;
 
-import com.ecommerce.orderservice.web.dto.OrderDto;
-import com.ecommerce.orderservice.kafka.dto.OrderDtoDeserializer;
+import com.ecommerce.orderservice.kafka.dto.OrderEvent;
+import com.ecommerce.orderservice.kafka.dto.OrderEventDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,18 +26,18 @@ public class KafkaConsumerConfig {
     private String CONSUMER_GROUP_ID;
 
     @Bean
-    public ConsumerFactory<String, OrderDto> consumerFactory() {
+    public ConsumerFactory<String, OrderEvent> consumerFactory() {
         Map<String, Object> properties = new HashMap<>();
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER);
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, CONSUMER_GROUP_ID);
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OrderDtoDeserializer.class);
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OrderEventDeserializer.class);
         return new DefaultKafkaConsumerFactory<>(properties);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, OrderDto> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, OrderDto> kafkaListenerContainerFactory
+    public ConcurrentKafkaListenerContainerFactory<String, OrderEvent> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, OrderEvent> kafkaListenerContainerFactory
                 = new ConcurrentKafkaListenerContainerFactory<>();
 
         kafkaListenerContainerFactory.setConsumerFactory(consumerFactory());

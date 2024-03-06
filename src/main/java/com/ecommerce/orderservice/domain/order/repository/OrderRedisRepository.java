@@ -11,8 +11,8 @@ public class OrderRedisRepository {
     private final RedisTemplate<String, String> redisTemplate;
     private final String PREFIX = "order-event:";
 
-    public Long addEventId(String key, String eventId) {
+    public Long addOrderEventKey(String key, String orderEventKey) {
         return redisTemplate.opsForSet()
-                .add(PREFIX + key, eventId);
+                .add(PREFIX + key, orderEventKey);
     }
 }

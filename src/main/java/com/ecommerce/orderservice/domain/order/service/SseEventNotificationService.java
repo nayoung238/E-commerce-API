@@ -74,12 +74,12 @@ public class SseEventNotificationService {
     }
 
     private static class EmitterData {
-        @JsonProperty("Order event Id")
-        String orderEventId;
-        @JsonProperty("Order Status")
+        @JsonProperty("Order-Event-Key")
+        String orderEventKey;
+        @JsonProperty("Order-Status")
         String orderStatus;
         EmitterData(String key, OrderStatus orderStatus) {
-            this.orderEventId = key;
+            this.orderEventKey = key;
             this.orderStatus = String.valueOf(orderStatus);
         }
     }

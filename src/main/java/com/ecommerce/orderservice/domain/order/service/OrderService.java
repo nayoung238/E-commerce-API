@@ -28,7 +28,7 @@ public class OrderService {
 
         return orders.stream()
                 .sorted(Comparator.comparing(Order::getId).reversed())
-                .map(OrderDto::fromOrder)
+                .map(OrderDto::of)
                 .collect(Collectors.toList());
     }
 }

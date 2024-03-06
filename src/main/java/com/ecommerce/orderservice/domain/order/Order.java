@@ -1,8 +1,7 @@
 package com.ecommerce.orderservice.domain.order;
 
-import com.ecommerce.orderservice.exception.ExceptionCode;
-import com.ecommerce.orderservice.exception.OrderException;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
+import com.ecommerce.orderservice.kafka.dto.OrderEvent;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,7 +20,7 @@ import java.util.stream.Collectors;
 @Getter @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "orders")
+@Table(name = "orders", indexes = @Index(name = "idx_order_event_key", columnList = "orderEventKey"))
 @EntityListeners(AuditingEntityListener.class)
 public class Order {
 
@@ -31,8 +30,8 @@ public class Order {
     private Long id;
 
     // Kafka KTable & KStream key
-    @Column(unique = true)
-    private String eventId;
+    @Column(name = "order_event_key", unique = true)
+    private String orderEventKey;
 
     @Column(name = "user_id")
     private Long userId;
@@ -62,27 +61,27 @@ public class Order {
                 .build();
     }
 
-    public static Order fromFinalOrderDto(OrderDto orderDto) {
-        List<OrderItem> orderItems = orderDto.getOrderItemDtos().stream()
-                .map(OrderItem::fromFinalOrderItemDto)
+    public static Order of(OrderEvent orderEvent) {
+        List<OrderItem> orderItems = orderEvent.getOrderItemEvents().stream()
+                .map(OrderItem::of)
                 .collect(Collectors.toList());
 
-        return Order.builder()
-                .eventId(orderDto.getEventId())
-                .userId(orderDto.getUserId())
+        Order order = Order.builder()
+                .orderEventKey(orderEvent.getOrderEventKey())
+                .userId(orderEvent.getUserId())
                 .orderItems(orderItems)
-                .orderStatus(orderDto.getOrderStatus())
-                .createdAt(orderDto.getCreatedAt())
-                .requestedAt(orderDto.getRequestedAt())
+                .orderStatus(orderEvent.getOrderStatus())
+                .createdAt(orderEvent.getCreatedAt())
+                .requestedAt(orderEvent.getRequestedAt())
                 .build();
+
+        order.getOrderItems().
+                forEach(orderItem -> orderItem.initializeOrder(order));
+        return order;
     }
 
-    public void initializeEventId() {
-        if(this.userId == null) {
-            throw new OrderException(ExceptionCode.NOT_NULL_USER_ID);
-        }
-        String[] uuid = UUID.randomUUID().toString().split("-");
-        this.eventId = this.userId.toString() + "-" + uuid[0];
+    public void initializeOrderEventKey(String orderEventKey) {
+        this.orderEventKey = orderEventKey;
     }
 
     public void updateOrderStatus(OrderStatus status) {
@@ -91,11 +90,11 @@ public class Order {
                 .forEach(orderItem -> orderItem.updateOrderStatus(status));
     }
 
-    public void updateOrderStatus(OrderDto orderDto) {
-        this.orderStatus = orderDto.getOrderStatus();
+    public void updateOrderStatus(OrderEvent orderEvent) {
+        this.orderStatus = orderEvent.getOrderStatus();
 
         HashMap<Long, OrderStatus> orderStatusHashMap = new HashMap<>();
-        orderDto.getOrderItemDtos()
+        orderEvent.getOrderItemEvents()
                 .forEach(o -> orderStatusHashMap.put(o.getItemId(), o.getOrderStatus()));
 
         this.orderItems

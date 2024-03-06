@@ -2,28 +2,22 @@ package com.ecommerce.orderservice.domain.order.dto;
 
 import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
-import com.ecommerce.orderservice.exception.ExceptionCode;
-import com.ecommerce.orderservice.exception.OrderException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Getter @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class OrderDto implements Serializable {
+@Getter
+@Builder
+public class OrderDto {
 
     private Long id;
 
-    private String eventId;
+    private String orderEventKey;
 
     @Setter
     private OrderStatus orderStatus;
@@ -39,15 +33,15 @@ public class OrderDto implements Serializable {
 
     private LocalDateTime requestedAt;  // item-service에서 주문 이벤트 중복 처리를 판별하기 위한 redis key
 
-    public static OrderDto fromOrder(Order order) {
+    public static OrderDto of(Order order) {
         List<OrderItemDto> orderItemDtos = order.getOrderItems()
                 .parallelStream()
-                .map(OrderItemDto::fromOrderItem)
+                .map(OrderItemDto::of)
                 .collect(Collectors.toList());
 
         return OrderDto.builder()
                 .id(order.getId())
-                .eventId(order.getEventId())
+                .orderEventKey(order.getOrderEventKey())
                 .orderStatus((order.getOrderStatus() == null) ? OrderStatus.WAITING : order.getOrderStatus())
                 .orderItemDtos(orderItemDtos)
                 .userId(order.getUserId())
@@ -56,42 +50,11 @@ public class OrderDto implements Serializable {
                 .build();
     }
 
-    public static OrderDto fromEventIdAndOrderStatus(String eventId, OrderStatus orderStatus) {
-        return OrderDto.builder()
-                .eventId(eventId)
-                .orderStatus(orderStatus)
-                .build();
-    }
-
-    public void initializeEventId() {
-        if(this.userId == null) {
-            throw new OrderException(ExceptionCode.NOT_NULL_USER_ID);
-        }
-        String[] uuid = UUID.randomUUID().toString().split("-");
-        this.eventId = this.userId.toString() + "-" + uuid[0];
+    public void initializeOrderEventKey(String orderEventKey) {
+        this.orderEventKey = orderEventKey;
     }
 
     public void initializeRequestedAt() {
         this.requestedAt = LocalDateTime.now();
-    }
-
-    public void updateOrderStatus(OrderDto orderDto) {
-        if(orderDto.orderItemDtos != null) {
-            this.orderStatus = orderDto.getOrderStatus();
-
-            HashMap<Long, OrderStatus> orderStatusHashMap = new HashMap<>();
-            orderDto.getOrderItemDtos()
-                    .forEach(o -> orderStatusHashMap.put(o.getItemId(), o.getOrderStatus()));
-
-            this.orderItemDtos
-                    .forEach(o -> o.updateOrderStatus(orderStatusHashMap.get(o.getItemId())));
-        }
-        else updateOrderStatus(orderDto.orderStatus);
-    }
-
-    public void updateOrderStatus(OrderStatus status) {
-        this.orderStatus = status;
-        this.orderItemDtos
-                .forEach(orderItem -> orderItem.updateOrderStatus(status));
     }
 }

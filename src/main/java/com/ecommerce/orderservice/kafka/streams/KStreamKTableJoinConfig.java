@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.kafka.streams;
 
-import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.kafka.dto.OrderEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderEventSerde;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerConfig;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
@@ -31,8 +31,9 @@ import java.util.UUID;
 @Slf4j
 public class KStreamKTableJoinConfig {
 
-    public static final String FINAL_ORDER_CREATION_TOPIC = "e-commerce.order.final-order-details";
     public static final String ORDER_PROCESSING_RESULT_TOPIC = "e-commerce.item.item-update-result";
+    public static final String ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC = "e-commerce.item.item-update-result-streams-only";
+    public static final String FINAL_ORDER_STREAMS_ONLY_TOPIC = "e-commerce.order.final-order-details-streams-only";
     private final String STATE_DIR = "/tmp/kafka-streams/";
     private final KafkaProducerService kafkaProducerService;
 
@@ -56,24 +57,24 @@ public class KStreamKTableJoinConfig {
     }
 
     @Bean
-    public KTable<String, OrderDto> requestedOrder(StreamsBuilder streamsBuilder) {
-        return streamsBuilder.table(KafkaProducerConfig.REQUESTED_ORDER_TOPIC);
+    public KTable<String, OrderEvent> requestedOrder(StreamsBuilder streamsBuilder) {
+        return streamsBuilder.table(KafkaProducerConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC);
     }
 
     @Bean
-    public KStream<String, OrderDto> orderProcessingResult(StreamsBuilder streamsBuilder) {
-        return streamsBuilder.stream(ORDER_PROCESSING_RESULT_TOPIC);
+    public KStream<String, OrderEvent> orderProcessingResult(StreamsBuilder streamsBuilder) {
+        return streamsBuilder.stream(ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
     }
 
     @Bean
-    public KStream<String, OrderDto> createOrder(KTable<String, OrderDto> requestedOrder,
-                                                 KStream<String, OrderDto> orderProcessingResult) {
+    public KStream<String, OrderEvent> createOrder(KTable<String, OrderEvent> requestedOrder,
+                                                 KStream<String, OrderEvent> orderProcessingResult) {
         return orderProcessingResult
                 .filter((key, value) -> {
                     if(!value.getOrderStatus().equals(OrderStatus.SUCCEEDED)
                             && !value.getOrderStatus().equals(OrderStatus.FAILED)) {
-                        log.error("Order status of {} -> {}", key, value.getOrderStatus());
-                        kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, key);
+                        log.warn("Order status of {} -> {}", key, value.getOrderStatus());
+                        kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, key);
                     }
                     return value.getOrderStatus().equals(OrderStatus.SUCCEEDED)
                             || value.getOrderStatus().equals(OrderStatus.FAILED);
@@ -81,8 +82,8 @@ public class KStreamKTableJoinConfig {
                 .join(requestedOrder, (result, order) -> setOrderStatus(order, result));
     }
 
-    private OrderDto setOrderStatus(OrderDto orderDto, OrderDto result) {
-        orderDto.updateOrderStatus(result);
-        return orderDto;
+    private OrderEvent setOrderStatus(OrderEvent orderEvent, OrderEvent result) {
+        orderEvent.updateOrderStatus(result);
+        return orderEvent;
     }
 }

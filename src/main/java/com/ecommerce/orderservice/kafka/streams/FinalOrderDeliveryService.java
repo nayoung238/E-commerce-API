@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.kafka.streams;
 
-import com.ecommerce.orderservice.domain.order.dto.OrderDto;
+import com.ecommerce.orderservice.kafka.dto.OrderEvent;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.streams.kstream.KStream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class FinalOrderDeliveryService {
 
     @Autowired
-    public void sendToKafkaTopic(@Qualifier("createOrder") KStream<String, OrderDto> finalOrder) {
-        finalOrder.to(KStreamKTableJoinConfig.FINAL_ORDER_CREATION_TOPIC);
+    public void sendToKafkaTopic(@Qualifier("createOrder") KStream<String, OrderEvent> finalOrder) {
+        finalOrder.to(KStreamKTableJoinConfig.FINAL_ORDER_STREAMS_ONLY_TOPIC);
     }
 }
