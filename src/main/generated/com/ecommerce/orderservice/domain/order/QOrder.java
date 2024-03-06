@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.domain;
+package com.ecommerce.orderservice.domain.order;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
@@ -16,19 +16,19 @@ import com.querydsl.core.types.dsl.PathInits;
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QOrder extends EntityPathBase<Order> {
 
-    private static final long serialVersionUID = 1551321168L;
+    private static final long serialVersionUID = 527935536L;
 
     public static final QOrder order = new QOrder("order1");
 
     public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
 
-    public final StringPath eventId = createString("eventId");
-
     public final NumberPath<Long> id = createNumber("id", Long.class);
+
+    public final StringPath orderEventKey = createString("orderEventKey");
 
     public final ListPath<OrderItem, QOrderItem> orderItems = this.<OrderItem, QOrderItem>createList("orderItems", OrderItem.class, QOrderItem.class, PathInits.DIRECT2);
 
-    public final EnumPath<OrderItemStatus> orderStatus = createEnum("orderStatus", OrderItemStatus.class);
+    public final EnumPath<OrderStatus> orderStatus = createEnum("orderStatus", OrderStatus.class);
 
     public final DateTimePath<java.time.LocalDateTime> requestedAt = createDateTime("requestedAt", java.time.LocalDateTime.class);
 

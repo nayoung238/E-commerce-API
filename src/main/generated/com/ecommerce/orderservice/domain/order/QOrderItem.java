@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.domain;
+package com.ecommerce.orderservice.domain.order;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
@@ -16,7 +16,7 @@ import com.querydsl.core.types.dsl.PathInits;
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QOrderItem extends EntityPathBase<OrderItem> {
 
-    private static final long serialVersionUID = 1142787971L;
+    private static final long serialVersionUID = -836042909L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
@@ -28,7 +28,7 @@ public class QOrderItem extends EntityPathBase<OrderItem> {
 
     public final QOrder order;
 
-    public final EnumPath<OrderItemStatus> orderItemStatus = createEnum("orderItemStatus", OrderItemStatus.class);
+    public final EnumPath<OrderStatus> orderStatus = createEnum("orderStatus", OrderStatus.class);
 
     public final NumberPath<Long> quantity = createNumber("quantity", Long.class);
 
