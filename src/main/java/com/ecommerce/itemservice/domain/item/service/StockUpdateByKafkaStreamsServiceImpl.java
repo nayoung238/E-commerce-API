@@ -5,8 +5,8 @@ import com.ecommerce.itemservice.domain.item.repository.ItemRedisRepository;
 import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.exception.ItemException;
-import com.ecommerce.itemservice.kafka.dto.OrderItemDto;
-import com.ecommerce.itemservice.kafka.dto.OrderItemStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderItemEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.kafka.config.producer.KafkaProducerConfig;
 import com.ecommerce.itemservice.kafka.service.producer.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
@@ -33,21 +33,21 @@ public class StockUpdateByKafkaStreamsServiceImpl implements StockUpdateService 
     private final KafkaProducerService kafkaProducerService;
 
     @Override
-    public OrderItemDto updateStock(OrderItemDto orderItemDto) {
-        Item item = itemRepository.findById(orderItemDto.getItemId())
+    public OrderItemEvent updateStock(OrderItemEvent orderItemEvent) {
+        Item item = itemRepository.findById(orderItemEvent.getItemId())
                 .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
         // Redis에서 재고 차감 시도
-        if(isUpdatableStockByRedis(item.getId(), orderItemDto.getQuantity())) {
-            orderItemDto.updateOrderStatus((orderItemDto.getQuantity() < 0) ?
-                    OrderItemStatus.SUCCEEDED  // consumption
-                    : OrderItemStatus.CANCELED);  // production (undo)
+        if(isUpdatableStockByRedis(item.getId(), orderItemEvent.getQuantity())) {
+            orderItemEvent.updateOrderStatus((orderItemEvent.getQuantity() < 0) ?
+                    OrderStatus.SUCCEEDED  // consumption
+                    : OrderStatus.CANCELED);  // production (undo)
 
-            sendMessageToKafka(orderItemDto.getItemId(), orderItemDto.getQuantity());
+            sendMessageToKafka(orderItemEvent.getItemId(), orderItemEvent.getQuantity());
         } else {
-            orderItemDto.updateOrderStatus(OrderItemStatus.OUT_OF_STOCK);
+            orderItemEvent.updateOrderStatus(OrderStatus.OUT_OF_STOCK);
         }
-        return orderItemDto;
+        return orderItemEvent;
     }
 
     private boolean isUpdatableStockByRedis(Long itemId, Long quantity) {

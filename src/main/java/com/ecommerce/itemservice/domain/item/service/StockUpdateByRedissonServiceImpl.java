@@ -1,7 +1,7 @@
 package com.ecommerce.itemservice.domain.item.service;
 
-import com.ecommerce.itemservice.kafka.dto.OrderItemDto;
-import com.ecommerce.itemservice.kafka.dto.OrderItemStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderItemEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -36,29 +36,29 @@ public class StockUpdateByRedissonServiceImpl implements StockUpdateService {
 
     @Override
     @Transactional
-    public OrderItemDto updateStock(OrderItemDto orderItemDto) {
-        RLock lock = redissonClient.getLock(generateKey(orderItemDto.getItemId()));
+    public OrderItemEvent updateStock(OrderItemEvent orderItemEvent) {
+        RLock lock = redissonClient.getLock(generateKey(orderItemEvent.getItemId()));
         try {
             boolean available = lock.tryLock(RLOCK_WAIT_TIME, RLOCK_LEASE_TIME, TimeUnit.MILLISECONDS);
             if(available) {
                 log.info("Acquired the RLock -> Redisson Lock: {}", lock.getName());
                 // Transaction Propagation.REQUIRES_NEW
-                return itemService.updateStockByOptimisticLock(orderItemDto);
+                return itemService.updateStockByOptimisticLock(orderItemEvent);
             }
             else {
-                orderItemDto.updateOrderStatus(OrderItemStatus.FAILED);
-                return orderItemDto;
+                orderItemEvent.updateOrderStatus(OrderStatus.FAILED);
+                return orderItemEvent;
             }
         } catch (InterruptedException e) {
             log.error(e.getMessage());
-            orderItemDto.updateOrderStatus(OrderItemStatus.FAILED);
+            orderItemEvent.updateOrderStatus(OrderStatus.FAILED);
         } finally {
             if(lock.isHeldByCurrentThread()) {
                 log.info("Unlock -> Redisson Lock: {}", lock.getName());
                 lock.unlock();
             }
         }
-        return orderItemDto;
+        return orderItemEvent;
     }
 
     private String generateKey(Long key) {

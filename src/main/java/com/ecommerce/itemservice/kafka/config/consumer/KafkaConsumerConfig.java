@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.kafka.config.consumer;
 
-import com.ecommerce.itemservice.kafka.dto.OrderDtoDeserializer;
+import com.ecommerce.itemservice.kafka.dto.OrderEventDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +19,7 @@ import java.util.Map;
 public class KafkaConsumerConfig {
 
     public static final String REQUESTED_ORDER_TOPIC = "e-commerce.order.requested-order-details";
+    public static final String REQUESTED_ORDER_STREAMS_ONLY_TOPIC = "e-commerce.order.requested-order-details-streams-only";
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String BOOTSTRAP_SERVER;
@@ -32,7 +33,7 @@ public class KafkaConsumerConfig {
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER);
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, CONSUMER_GROUP_ID);
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OrderDtoDeserializer.class);
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OrderEventDeserializer.class);
         return new DefaultKafkaConsumerFactory<>(properties);
     }
 

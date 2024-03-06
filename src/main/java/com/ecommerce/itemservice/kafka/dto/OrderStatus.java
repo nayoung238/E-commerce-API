@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Locale;
 
 @Slf4j
-public enum OrderItemStatus {
+public enum OrderStatus {
 
     SUCCEEDED,
     FAILED,
@@ -15,10 +15,10 @@ public enum OrderItemStatus {
     NOT_EXIST,
     BAD_REQUEST;
 
-    public static OrderItemStatus getOrderItemStatus(String orderItemStatus) {
+    public static OrderStatus getStatus(String status) {
         try {
-            if(orderItemStatus != null)
-                return valueOf(orderItemStatus.toUpperCase(Locale.ROOT));
+            if(status != null)
+                return valueOf(status.toUpperCase(Locale.ROOT));
             else
                 return BAD_REQUEST;
         } catch (IllegalArgumentException e) {

@@ -5,8 +5,8 @@ import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.exception.ItemException;
 import com.ecommerce.itemservice.exception.OrderException;
 import com.ecommerce.itemservice.exception.StockException;
-import com.ecommerce.itemservice.kafka.dto.OrderItemDto;
-import com.ecommerce.itemservice.kafka.dto.OrderItemStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderItemEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.domain.item.dto.ItemDto;
 import com.ecommerce.itemservice.domain.item.Item;
 import com.ecommerce.itemservice.domain.item.repository.ItemRedisRepository;
@@ -36,53 +36,34 @@ public class ItemService {
         return ItemDto.of(item);
     }
 
-    @Transactional
-    public OrderItemDto updateStockByPessimisticLock(OrderItemDto orderItemDto, String eventId) {
-        try {
-            Item item = itemRepository.findByIdWithPessimisticLock(orderItemDto.getItemId())
-                    .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
-
-            item.updateStock(orderItemDto.getQuantity());
-
-            orderItemDto.updateOrderStatus((orderItemDto.getQuantity() < 0) ?
-                    OrderItemStatus.SUCCEEDED  // consumption
-                    : OrderItemStatus.CANCELED); // production (undo)
-        } catch (ItemException e) {
-            orderItemDto.updateOrderStatus(OrderItemStatus.FAILED);
-        } catch(StockException e) {
-            orderItemDto.updateOrderStatus(OrderItemStatus.OUT_OF_STOCK);
-        }
-        return orderItemDto;
-    }
-
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public OrderItemDto updateStockByOptimisticLock(OrderItemDto orderItemDto) {
+    public OrderItemEvent updateStockByOptimisticLock(OrderItemEvent orderItemEvent) {
         try {
-            Item item = itemRepository.findByIdWithOptimisticLock(orderItemDto.getItemId())
+            Item item = itemRepository.findByIdWithOptimisticLock(orderItemEvent.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
-            item.updateStock(orderItemDto.getQuantity());
-            orderItemDto.updateOrderStatus(OrderItemStatus.SUCCEEDED);
+            item.updateStock(orderItemEvent.getQuantity());
+            orderItemEvent.updateOrderStatus(OrderStatus.SUCCEEDED);
             itemRepository.save(item);
         } catch (ItemException e) {
             log.error(String.valueOf(e.getExceptionCode()));
-            orderItemDto.updateOrderStatus(OrderItemStatus.FAILED);
+            orderItemEvent.updateOrderStatus(OrderStatus.FAILED);
         } catch (StockException e) {
             log.error(String.valueOf(e.getExceptionCode()));
-            orderItemDto.updateOrderStatus(OrderItemStatus.OUT_OF_STOCK);
+            orderItemEvent.updateOrderStatus(OrderStatus.OUT_OF_STOCK);
         } catch (ObjectOptimisticLockingFailureException e) {
-            log.error(e.getMessage() + " -> Item Id: {}", orderItemDto.getItemId());
-            orderItemDto.updateOrderStatus(OrderItemStatus.FAILED);
+            log.error(e.getMessage() + " -> ItemId: {}", orderItemEvent.getItemId());
+            orderItemEvent.updateOrderStatus(OrderStatus.FAILED);
         } catch (Exception e) {
             log.error(e.getMessage());
-            orderItemDto.updateOrderStatus(OrderItemStatus.FAILED);
+            orderItemEvent.updateOrderStatus(OrderStatus.FAILED);
         }
-        return orderItemDto;
+        return orderItemEvent;
     }
 
-    public OrderItemStatus findOrderProcessingStatus(String eventId) {
-        String orderProcessingStatus = orderRedisRepository.getOrderStatus(eventId);
-        if(orderProcessingStatus != null)
-            return OrderItemStatus.getOrderItemStatus(orderProcessingStatus);
+    public OrderStatus findOrderProcessingStatus(String orderEventKey) {
+        String orderProcessingStatus = orderRedisRepository.getOrderStatus(orderEventKey);
+        if (orderProcessingStatus != null)
+            return OrderStatus.getStatus(orderProcessingStatus);
         else
             throw new OrderException(ExceptionCode.NOT_FOUND_ORDER_DETAILS);
     }

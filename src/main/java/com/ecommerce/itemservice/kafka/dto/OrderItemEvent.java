@@ -4,17 +4,19 @@ import lombok.*;
 
 @Getter
 @Builder
-public class OrderItemDto {
+@NoArgsConstructor
+@AllArgsConstructor
+public class OrderItemEvent {
 
     private Long itemId;
     private Long quantity;
-    private OrderItemStatus orderItemStatus;
+    private OrderStatus orderStatus;
 
     public void convertSign() {
         quantity *= -1;
     }
 
-    public void updateOrderStatus(OrderItemStatus orderItemStatus) {
-        this.orderItemStatus = orderItemStatus;
+    public void updateOrderStatus(OrderStatus status) {
+        this.orderStatus = status;
     }
 }

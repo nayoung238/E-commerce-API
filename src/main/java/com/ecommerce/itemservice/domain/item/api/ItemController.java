@@ -2,7 +2,7 @@ package com.ecommerce.itemservice.domain.item.api;
 
 import com.ecommerce.itemservice.domain.item.dto.ItemRegisterRequest;
 import com.ecommerce.itemservice.exception.OrderException;
-import com.ecommerce.itemservice.kafka.dto.OrderItemStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.domain.item.dto.ItemDto;
 import com.ecommerce.itemservice.domain.item.service.ItemService;
 import jakarta.validation.Valid;
@@ -24,10 +24,10 @@ public class ItemController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/order-processing-result/{eventId}")
-    public ResponseEntity<?> findAllItemUpdateLogByEventId(@PathVariable String eventId) {
+    @GetMapping("/order-processing-result/{orderEventKey}")
+    public ResponseEntity<?> findOrderProcessingResult(@PathVariable String orderEventKey) {
         try {
-            OrderItemStatus orderItemStatus = itemService.findOrderProcessingStatus(eventId);
+            OrderStatus orderItemStatus = itemService.findOrderProcessingStatus(orderEventKey);
             return ResponseEntity.status(HttpStatus.OK).body(orderItemStatus);
         } catch (OrderException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);

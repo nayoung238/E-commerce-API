@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.domain.item.repository;
 
-import com.ecommerce.itemservice.kafka.dto.OrderItemStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -11,22 +11,22 @@ public class OrderRedisRepository {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final String PREFIX = "order:";
-    private final String ORDER_EVENT_ID_PREFIX = "order:eventid:";
+    private final String ORDER_EVENT_KEY_PREFIX = "order:event-key:";
 
     public Long addEventId(String key, String eventId) {
         return redisTemplate.opsForSet()
                 .add(PREFIX + key, eventId);
     }
 
-    public void setOrderStatus(String eventId, OrderItemStatus orderItemStatus) {
+    public void setOrderStatus(String eventId, OrderStatus orderItemStatus) {
         redisTemplate
                 .opsForValue()
-                .set(ORDER_EVENT_ID_PREFIX + eventId, String.valueOf(orderItemStatus));
+                .set(ORDER_EVENT_KEY_PREFIX + eventId, String.valueOf(orderItemStatus));
     }
 
-    public String getOrderStatus(String eventId) {
+    public String getOrderStatus(String orderEventKey) {
         return redisTemplate
                 .opsForValue()
-                .get(ORDER_EVENT_ID_PREFIX + eventId);
+                .get(ORDER_EVENT_KEY_PREFIX + orderEventKey);
     }
 }

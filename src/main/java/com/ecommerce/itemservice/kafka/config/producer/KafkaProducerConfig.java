@@ -1,7 +1,7 @@
 package com.ecommerce.itemservice.kafka.config.producer;
 
-import com.ecommerce.itemservice.kafka.dto.OrderDto;
-import com.ecommerce.itemservice.kafka.dto.OrderDtoSerializer;
+import com.ecommerce.itemservice.kafka.dto.OrderEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderEventSerializer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -22,6 +22,7 @@ public class KafkaProducerConfig {
 
     public static final String ITEM_UPDATE_LOG_TOPIC = "e-commerce.item.item-update-log";
     public static final String ITEM_UPDATE_RESULT_TOPIC = "e-commerce.item.item-update-result";
+    public static final String ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC = "e-commerce.item.item-update-result-streams-only";
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String BOOTSTRAP_SERVER;
@@ -42,17 +43,17 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public ProducerFactory<String, OrderDto> orderDtoProducerFactory() {
+    public ProducerFactory<String, OrderEvent> orderEventProducerFactory() {
         Map<String, Object> properties = new HashMap<>();
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER);
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, OrderDtoSerializer.class);
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, OrderEventSerializer.class);
         properties.put(ProducerConfig.ACKS_CONFIG, "1");
         return new DefaultKafkaProducerFactory<>(properties);
     }
 
     @Bean
-    public KafkaTemplate<String, OrderDto> orderDtoKafkaTemplate() {
-        return new KafkaTemplate<>(orderDtoProducerFactory());
+    public KafkaTemplate<String, OrderEvent> orderEventKafkaTemplate() {
+        return new KafkaTemplate<>(orderEventProducerFactory());
     }
 }

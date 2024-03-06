@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.kafka.service.producer;
 
-import com.ecommerce.itemservice.kafka.dto.OrderDto;
+import com.ecommerce.itemservice.kafka.dto.OrderEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class KafkaProducerService {
 
     private final KafkaTemplate<String, Long> stockQuantityTemplate;
-    private final KafkaTemplate<String, OrderDto> orderDtoKafkaTemplate;
+    private final KafkaTemplate<String, OrderEvent> orderDtoKafkaTemplate;
 
     public void sendMessage(String topic, String key, Long value) {
         stockQuantityTemplate.send(topic, key, value)
@@ -29,16 +29,16 @@ public class KafkaProducerService {
                 });
     }
 
-    public void sendMessage(String topic, String key, OrderDto value) {
+    public void sendMessage(String topic, String key, OrderEvent value) {
         orderDtoKafkaTemplate.send(topic, key, value)
                 .whenComplete((stringOrderDtoSendResult, throwable) -> {
                     if(throwable == null) {
                         RecordMetadata metadata = stringOrderDtoSendResult.getRecordMetadata();
-                        log.info("Producing message Success -> topic: {}, partition: {}, offset: {}, OrderId: {}",
+                        log.info("Producing message Success -> topic: {}, partition: {}, offset: {}, OrderEventKey: {}",
                                 metadata.topic(),
                                 metadata.partition(),
                                 metadata.offset(),
-                                value.getOrderId());
+                                value.getOrderEventKey());
                     } else {
                         log.error("Producing message Failure " + throwable.getMessage());
                     }
