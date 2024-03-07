@@ -20,10 +20,6 @@ import java.util.Map;
 @Configuration
 public class KafkaProducerConfig {
 
-    public static final String ITEM_UPDATE_LOG_TOPIC = "e-commerce.item.item-update-log";
-    public static final String ITEM_UPDATE_RESULT_TOPIC = "e-commerce.item.item-update-result";
-    public static final String ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC = "e-commerce.item.item-update-result-streams-only";
-
     @Value("${spring.kafka.bootstrap-servers}")
     private String BOOTSTRAP_SERVER;
 

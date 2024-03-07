@@ -5,9 +5,9 @@ import com.ecommerce.itemservice.domain.item.repository.ItemRedisRepository;
 import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.exception.ItemException;
+import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import com.ecommerce.itemservice.kafka.dto.OrderItemEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
-import com.ecommerce.itemservice.kafka.config.producer.KafkaProducerConfig;
 import com.ecommerce.itemservice.kafka.service.producer.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +60,7 @@ public class StockUpdateByKafkaStreamsServiceImpl implements StockUpdateService 
 
     private void sendMessageToKafka(Long itemId, Long quantity) {
         try {
-            kafkaProducerService.sendMessage(KafkaProducerConfig.ITEM_UPDATE_LOG_TOPIC, String.valueOf(itemId), quantity);
+            kafkaProducerService.sendMessage(TopicConfig.ITEM_UPDATE_LOG_TOPIC, String.valueOf(itemId), quantity);
         } catch(KafkaProducerException e) {
             log.error("Kafka Exception " + e.getMessage());
             // TODO: broker에 적재되지 못한 이벤트 처리

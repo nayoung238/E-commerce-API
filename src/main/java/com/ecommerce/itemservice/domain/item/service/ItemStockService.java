@@ -2,6 +2,7 @@ package com.ecommerce.itemservice.domain.item.service;
 
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.exception.ItemException;
+import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import com.ecommerce.itemservice.kafka.dto.OrderEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderItemEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
@@ -15,9 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-
-import static com.ecommerce.itemservice.kafka.config.producer.KafkaProducerConfig.ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC;
-import static com.ecommerce.itemservice.kafka.config.producer.KafkaProducerConfig.ITEM_UPDATE_RESULT_TOPIC;
 
 @Service
 @RequiredArgsConstructor
@@ -48,12 +46,12 @@ public class ItemStockService {
                 orderEvent.updateOrderItemDtos(orderItemEvents);
             }
             orderRedisRepository.setOrderStatus(orderEvent.getOrderEventKey(), orderEvent.getOrderStatus());
-            String topic = (isStreamsOnly) ? ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC : ITEM_UPDATE_RESULT_TOPIC;
+            String topic = (isStreamsOnly) ? TopicConfig.ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC : TopicConfig.ITEM_UPDATE_RESULT_TOPIC;
             kafkaProducerService.sendMessage(topic, orderEvent.getOrderEventKey(), orderEvent);
         }
         else {
             updateOrderStatus(orderEvent);
-            String topic = (isStreamsOnly) ? ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC : ITEM_UPDATE_RESULT_TOPIC;
+            String topic = (isStreamsOnly) ? TopicConfig.ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC : TopicConfig.ITEM_UPDATE_RESULT_TOPIC;
             kafkaProducerService.sendMessage(topic, orderEvent.getOrderEventKey(), orderEvent);
         }
     }
