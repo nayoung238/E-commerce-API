@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
 
@@ -58,13 +57,16 @@ public class KStreamKTableJoinConfig {
     }
 
     @Bean
-    @KafkaListener(topics = TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC)
-    public KTable<String, OrderEvent> requestedOrder(StreamsBuilder streamsBuilder) {
+    public KTable<String, OrderEvent> requestedOrder(KafkaStreamsConfiguration kafkaStreamsConfiguration,
+                                                     StreamsBuilder streamsBuilder) {
+        AdminClient adminClient = AdminClient.create(kafkaStreamsConfiguration.asProperties());
+        adminClient.createTopics(Collections.singleton(
+                new NewTopic(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, 1, (short) 1)));
+
         return streamsBuilder.table(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC);
     }
 
     @Bean
-//    @KafkaListener(topics = TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC)
     public KStream<String, OrderEvent> orderProcessingResult(KafkaStreamsConfiguration kafkaStreamsConfiguration,
                                                              StreamsBuilder streamsBuilder) {
         AdminClient adminClient = AdminClient.create(kafkaStreamsConfiguration.asProperties());
