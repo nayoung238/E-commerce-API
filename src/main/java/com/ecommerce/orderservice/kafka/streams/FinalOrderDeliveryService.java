@@ -1,5 +1,6 @@
 package com.ecommerce.orderservice.kafka.streams;
 
+import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderEvent;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.streams.kstream.KStream;
@@ -13,6 +14,6 @@ public class FinalOrderDeliveryService {
 
     @Autowired
     public void sendToKafkaTopic(@Qualifier("createOrder") KStream<String, OrderEvent> finalOrder) {
-        finalOrder.to(KStreamKTableJoinConfig.FINAL_ORDER_STREAMS_ONLY_TOPIC);
+        finalOrder.to(TopicConfig.FINAL_ORDER_STREAMS_ONLY_TOPIC);
     }
 }

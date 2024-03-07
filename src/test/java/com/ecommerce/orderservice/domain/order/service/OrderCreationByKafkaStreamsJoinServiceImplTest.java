@@ -5,6 +5,7 @@ import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
+import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,8 +15,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static com.ecommerce.orderservice.kafka.streams.KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC;
 
 @SpringBootTest
 @ActiveProfiles("local")
@@ -42,7 +41,7 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends BaseServiceTest {
 
         // when
         OrderStatus testStatus = OrderStatus.SUCCEEDED;
-        createOrderProcessingResult(orderDto.getOrderEventKey(), testStatus, ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
+        createOrderProcessingResult(orderDto.getOrderEventKey(), testStatus, TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
         Thread.sleep(10000);
 
         // then
@@ -65,7 +64,7 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends BaseServiceTest {
 
         // when
         OrderStatus testStatus = OrderStatus.CANCELED;
-        createOrderProcessingResult(orderDto.getOrderEventKey(), testStatus, ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
+        createOrderProcessingResult(orderDto.getOrderEventKey(), testStatus, TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
         Thread.sleep(10000);
 
         Assertions.assertTrue(orderRepository.findAll().isEmpty());

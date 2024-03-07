@@ -3,9 +3,8 @@ package com.ecommerce.orderservice.domain.order.service;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.exception.ExceptionCode;
 import com.ecommerce.orderservice.exception.OrderException;
+import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderEvent;
-import com.ecommerce.orderservice.kafka.producer.KafkaProducerConfig;
-import com.ecommerce.orderservice.kafka.streams.KStreamKTableJoinConfig;
 import com.ecommerce.orderservice.openfeign.ItemServiceClient;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.Order;
@@ -45,11 +44,11 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
                 .forEach(o -> o.initializeOrder(order));
 
         orderRepository.save(order);
-        kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, null, OrderEvent.of(order));
+        kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, null, OrderEvent.of(order));
         return OrderDto.of(order);
     }
 
-    @KafkaListener(topics = KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_TOPIC)
+//    @KafkaListener(topics = TopicConfig.ORDER_PROCESSING_RESULT_TOPIC)
     public void updateOrderStatus(ConsumerRecord<String, OrderEvent> record) {
         log.info("Consuming message success -> Topic: {}, OrderEventKey: {}, OrderStatus: {}",
                 record.topic(),
@@ -64,7 +63,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     }
 
     @Override
-//    @KafkaListener(topics = KafkaProducerConfig.REQUESTED_ORDER_TOPIC)
+//    @KafkaListener(topics = TopicConfig.REQUESTED_ORDER_TOPIC)
     public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderEvent> record) {
         if(record.value() != null) {
             log.info("Consuming message success -> Topic: {}, OrderEventKey: {}",
@@ -77,9 +76,9 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
                 Optional<Order> order = orderRepository.findByOrderEventKey(record.value().getOrderEventKey());
                 if (order.isPresent()) {
                     if (Objects.equals(OrderStatus.WAITING, order.get().getOrderStatus())) {
-                        kafkaProducerService.send(KafkaProducerConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC, null, record.value());
+                        kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC, null, record.value());
                     }
-                } else kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, null, record.value());
+                } else kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, null, record.value());
             } catch (InterruptedException e) {
                 log.error(e.getMessage());
             }
@@ -94,7 +93,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     }
 
     @Override
-    @KafkaListener(topics = KafkaProducerConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC)
+//    @KafkaListener(topics = TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC)
     public void requestOrderProcessingResult(ConsumerRecord<String, OrderEvent> record) {
         log.info("Consuming message success -> Topic: {}, order-event-key: {}",
                 record.topic(),
@@ -110,7 +109,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     private void resendKafkaMessage(String key, OrderEvent value) {
         String[] redisKey = value.getRequestedAt().toString().split(":");  // key[0] -> order-event:yyyy-mm-dd'T'HH
         if(isFirstEvent(redisKey[0], value.getOrderEventKey()))
-            kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_TOPIC, key, value);
+            kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, key, value);
         else {
             updateOrderStatus(value.getOrderEventKey(), OrderStatus.FAILED);
             // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요

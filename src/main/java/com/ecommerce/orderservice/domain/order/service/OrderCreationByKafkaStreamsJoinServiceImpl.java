@@ -3,10 +3,9 @@ package com.ecommerce.orderservice.domain.order.service;
 import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
+import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderEvent;
-import com.ecommerce.orderservice.kafka.producer.KafkaProducerConfig;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
-import com.ecommerce.orderservice.kafka.streams.KStreamKTableJoinConfig;
 import com.ecommerce.orderservice.openfeign.ItemServiceClient;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.repository.OrderRedisRepository;
@@ -40,11 +39,11 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
         orderDto.initializeOrderEventKey(createOrderEventKey(orderDto.getUserId()));
         orderDto.initializeRequestedAt();
         orderDto.setOrderStatus(OrderStatus.WAITING);
-        kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderDto.getOrderEventKey(), OrderEvent.of(orderDto));
+        kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderDto.getOrderEventKey(), OrderEvent.of(orderDto));
         return orderDto;
     }
 
-    @KafkaListener(topics = KStreamKTableJoinConfig.FINAL_ORDER_STREAMS_ONLY_TOPIC)
+    @KafkaListener(topics = TopicConfig.FINAL_ORDER_STREAMS_ONLY_TOPIC)
     public void create(ConsumerRecord<String, OrderEvent> record) {
         log.info("Consuming message success -> Topic: {}, OrderEventKey: {}, OrderStatus: {}",
                 record.topic(),
@@ -54,12 +53,12 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
         if(!isExistOrderByOrderEventKey(record.key())) {
             Order order = Order.of(record.value());
             orderRepository.save(order);
-            kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, record.key());
+            kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, record.key());
         }
     }
 
     @Override
-    @KafkaListener(topics = KafkaProducerConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC)
+    @KafkaListener(topics = TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC)
     public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderEvent> record) {
         if(record.key() != null && record.value() != null) {
             log.info("Consuming message success -> Topic: {}, Key(event Id): {}",
@@ -70,7 +69,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
                 waitBasedOnTimestamp(record.timestamp());
 
                 if (!isExistOrderByOrderEventKey(record.key())) {
-                    kafkaProducerService.send(KafkaProducerConfig.ORDER_PROCESSING_RESULT_REQUEST_STREAMS_ONLY_TOPIC, record.key(), record.value());
+                    kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_STREAMS_ONLY_TOPIC, record.key(), record.value());
                 }
             } catch (InterruptedException e) {
                 log.error(e.getMessage());
@@ -86,7 +85,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     }
 
     @Override
-    @KafkaListener(topics = KafkaProducerConfig.ORDER_PROCESSING_RESULT_REQUEST_STREAMS_ONLY_TOPIC)
+    @KafkaListener(topics = TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_STREAMS_ONLY_TOPIC)
     public void requestOrderProcessingResult(ConsumerRecord<String, OrderEvent> record) {
         assert record.key() != null & record.value() != null;
         log.info("Consuming message success -> Topic: {}, OrderEventKey: {}",
@@ -98,10 +97,10 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
         if (orderStatus.equals(OrderStatus.SUCCEEDED) || orderStatus.equals(OrderStatus.FAILED)) {
             if(!isExistOrderByOrderEventKey(record.key())) {
                 OrderEvent orderEvent = OrderEvent.of(record.key(), orderStatus);
-                kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, record.key(), orderEvent);
+                kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, record.key(), orderEvent);
             }
         } else if (orderStatus.equals(OrderStatus.SERVER_ERROR)) {
-            kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, record.key());
+            kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, record.key());
         } else {
             resendKafkaMessage(record.key(), record.value());
         }
@@ -110,7 +109,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     private void resendKafkaMessage(String key, OrderEvent orderEvent) {
         String[] redisKey = orderEvent.getRequestedAt().toString().split(":");  // key[0] -> order-event:yyyy-mm-dd'T'HH
         if(isFirstEvent(redisKey[0], orderEvent.getOrderEventKey()))
-            kafkaProducerService.send(KafkaProducerConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, key, orderEvent);
+            kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, key, orderEvent);
         else {
             updateOrderStatusByOrderEventKey(orderEvent.getOrderEventKey(), OrderStatus.FAILED);
             // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요
@@ -124,7 +123,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     private void updateOrderStatusByOrderEventKey(String orderEventKey, OrderStatus orderStatus) {
         if(!isExistOrderByOrderEventKey(orderEventKey)) {
             OrderEvent orderEvent = OrderEvent.of(orderEventKey, orderStatus);
-            kafkaProducerService.send(KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, orderEventKey, orderEvent);
+            kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, orderEventKey, orderEvent);
         }
     }
 

@@ -4,6 +4,7 @@ import com.ecommerce.orderservice.domain.order.BaseServiceTest;
 import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
+import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,8 +12,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Objects;
 import java.util.stream.IntStream;
-
-import static com.ecommerce.orderservice.kafka.streams.KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_TOPIC;
 
 @SpringBootTest
 @ActiveProfiles("local")
@@ -38,7 +37,7 @@ class OrderCreationByDBServiceImplTest extends BaseServiceTest {
 
         // when
         OrderStatus testStatus = OrderStatus.SUCCEEDED;
-        createOrderProcessingResult(order.getOrderEventKey(), testStatus, ORDER_PROCESSING_RESULT_TOPIC);
+        createOrderProcessingResult(order.getOrderEventKey(), testStatus, TopicConfig.ORDER_PROCESSING_RESULT_TOPIC);
         Thread.sleep(10000);
 
         // then

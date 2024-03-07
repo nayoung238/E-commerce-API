@@ -1,12 +1,14 @@
 package com.ecommerce.orderservice.kafka.streams;
 
 import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderEventSerde;
-import com.ecommerce.orderservice.kafka.producer.KafkaProducerConfig;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
@@ -16,11 +18,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -31,9 +35,6 @@ import java.util.UUID;
 @Slf4j
 public class KStreamKTableJoinConfig {
 
-    public static final String ORDER_PROCESSING_RESULT_TOPIC = "e-commerce.item.item-update-result";
-    public static final String ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC = "e-commerce.item.item-update-result-streams-only";
-    public static final String FINAL_ORDER_STREAMS_ONLY_TOPIC = "e-commerce.order.final-order-details-streams-only";
     private final String STATE_DIR = "/tmp/kafka-streams/";
     private final KafkaProducerService kafkaProducerService;
 
@@ -57,13 +58,20 @@ public class KStreamKTableJoinConfig {
     }
 
     @Bean
+    @KafkaListener(topics = TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC)
     public KTable<String, OrderEvent> requestedOrder(StreamsBuilder streamsBuilder) {
-        return streamsBuilder.table(KafkaProducerConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC);
+        return streamsBuilder.table(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC);
     }
 
     @Bean
-    public KStream<String, OrderEvent> orderProcessingResult(StreamsBuilder streamsBuilder) {
-        return streamsBuilder.stream(ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
+//    @KafkaListener(topics = TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC)
+    public KStream<String, OrderEvent> orderProcessingResult(KafkaStreamsConfiguration kafkaStreamsConfiguration,
+                                                             StreamsBuilder streamsBuilder) {
+        AdminClient adminClient = AdminClient.create(kafkaStreamsConfiguration.asProperties());
+        adminClient.createTopics(Collections.singleton(
+                new NewTopic(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, 1, (short) 1)));
+
+        return streamsBuilder.stream(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
     }
 
     @Bean
@@ -74,7 +82,7 @@ public class KStreamKTableJoinConfig {
                     if(!value.getOrderStatus().equals(OrderStatus.SUCCEEDED)
                             && !value.getOrderStatus().equals(OrderStatus.FAILED)) {
                         log.warn("Order status of {} -> {}", key, value.getOrderStatus());
-                        kafkaProducerService.setTombstoneRecord(KafkaProducerConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, key);
+                        kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, key);
                     }
                     return value.getOrderStatus().equals(OrderStatus.SUCCEEDED)
                             || value.getOrderStatus().equals(OrderStatus.FAILED);

@@ -5,6 +5,7 @@ import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
 import com.ecommerce.orderservice.exception.ExceptionCode;
 import com.ecommerce.orderservice.exception.OrderException;
+import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import org.junit.jupiter.api.*;
@@ -17,7 +18,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.ecommerce.orderservice.kafka.streams.KStreamKTableJoinConfig.ORDER_PROCESSING_RESULT_TOPIC;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -76,7 +76,7 @@ class OrderServiceTest extends BaseServiceTest {
                 .collect(Collectors.toList());
 
         orderDtoList
-                .forEach(orderDto -> createOrderProcessingResult(orderDto.getOrderEventKey(), OrderStatus.SUCCEEDED, ORDER_PROCESSING_RESULT_TOPIC));
+                .forEach(orderDto -> createOrderProcessingResult(orderDto.getOrderEventKey(), OrderStatus.SUCCEEDED, TopicConfig.ORDER_PROCESSING_RESULT_TOPIC));
     }
 
     private String createOrderEventKey(Long userId) {

@@ -18,11 +18,6 @@ import java.util.Map;
 @Configuration
 public class KafkaProducerConfig {
 
-    public static final String REQUESTED_ORDER_TOPIC = "e-commerce.order.requested-order-details";
-    public static final String REQUESTED_ORDER_STREAMS_ONLY_TOPIC = "e-commerce.order.requested-order-details-streams-only";
-    public static final String ORDER_PROCESSING_RESULT_REQUEST_TOPIC = "e-commerce.order.order-processing-result-request";
-    public static final String ORDER_PROCESSING_RESULT_REQUEST_STREAMS_ONLY_TOPIC = "e-commerce.order.order-processing-result-request-streams-only";
-
     @Value("${spring.kafka.bootstrap-servers}")
     private String BOOTSTRAP_SERVER;
 
