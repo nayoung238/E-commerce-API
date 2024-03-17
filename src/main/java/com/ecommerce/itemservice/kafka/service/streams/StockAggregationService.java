@@ -27,7 +27,6 @@ public class StockAggregationService {
     private final ItemStockService itemStockService;
 
     @Bean
-//    @KafkaListener(topics = TopicConfig.ITEM_UPDATE_LOG_TOPIC)
     public KStream<Windowed<String>, Long> calculateTotalQuantity(KafkaStreamsConfiguration kafkaStreamsConfiguration,
                                                                   StreamsBuilder streamsBuilder) {
         AdminClient adminClient = AdminClient.create(kafkaStreamsConfiguration.asProperties());
