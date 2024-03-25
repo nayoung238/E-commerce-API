@@ -5,8 +5,7 @@ eureka:
   client:
     register-with-eureka: true
     fetch-registry: true
-    service-url:
-      defaultZone: http://localhost:8061/eureka
+    eureka-server-port: 8761
 
 spring:
   application:
@@ -21,16 +20,16 @@ spring:
           predicates:
             - Path=/account-service/**
           filters:
-            - RewritePath=/account-service/(?<segment>.*), /$\{segment}
+            - RewritePath=/account-service/?(?<segment>.*), /$\{segment}
         - id: item-service
           uri: lb://ITEM-SERVICE
           predicates:
             - Path=/item-service/**
           filters:
-            - RewritePath=/item-service/(?<segment>.*), /$\{segment}
+            - RewritePath=/item-service/?(?<segment>.*), /$\{segment}
         - id: order-service
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/order-service/**
           filters:
-            - RewritePath=/order-service/(?<segment>.*), /$\{segment}
+            - RewritePath=/order-service/?(?<segment>.*), /$\{segment}
