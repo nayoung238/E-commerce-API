@@ -1,4 +1,4 @@
-package com.nayoung.apigatewayservice;
+package com.ecommerce.apigatewayservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
