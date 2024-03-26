@@ -53,6 +53,8 @@ eureka:
     eureka-server-port: 8761
     register-with-eureka: true
     fetch-registry: true
+    healthcheck:
+      enabled: true
 
 resilience4j:
   retry:
