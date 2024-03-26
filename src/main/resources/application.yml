@@ -6,6 +6,8 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     eureka-server-port: 8761
+    healthcheck:
+      enabled: true
 
 spring:
   application:
