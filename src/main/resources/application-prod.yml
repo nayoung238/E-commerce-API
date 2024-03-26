@@ -14,8 +14,10 @@ spring:
             host: api-gateway-service
 
 eureka:
+  instance:
+    hostname: service-discovery
   client:
     service-url:
-      defaultZone: http://service-discovery:${eureka.client.eureka-server-port}/eureka
+      defaultZone: http://${eureka.instance.hostname}:${eureka.client.eureka-server-port}/eureka
     healthcheck:
       enabled: true
