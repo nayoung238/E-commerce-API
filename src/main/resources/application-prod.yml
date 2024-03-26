@@ -8,6 +8,8 @@ spring:
     bootstrap-servers: kafka:9092
 
 eureka:
+  instance:
+    hostname: service-discovery
   client:
     service-url:
-      defaultZone: http://service-disconvery:${eureka.client.eureka-server-port}/eureka
+      defaultZone: http://${eureka.instance.hostname}:${eureka.client.eureka-server-port}/eureka
