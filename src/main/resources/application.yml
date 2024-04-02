@@ -17,21 +17,21 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: account-service
-          uri: lb://ACCOUNT-SERVICE
-          predicates:
-            - Path=/account-service/**
-          filters:
-            - RewritePath=/account-service/?(?<segment>.*), /$\{segment}
         - id: item-service
           uri: lb://ITEM-SERVICE
           predicates:
-            - Path=/item-service/**
+            - Path=/item-api/**
           filters:
-            - RewritePath=/item-service/?(?<segment>.*), /$\{segment}
+            - RewritePath=/item-api/?(?<segment>.*), /$\{segment}
         - id: order-service
           uri: lb://ORDER-SERVICE
           predicates:
-            - Path=/order-service/**
+            - Path=/order-api/**
           filters:
-            - RewritePath=/order-service/?(?<segment>.*), /$\{segment}
+            - RewritePath=/order-api/?(?<segment>.*), /$\{segment}
+        - id: account-service
+          uri: lb://ACCOUNT-SERVICE
+          predicates:
+            - Path=/account-api/**
+          filters:
+            - RewritePath=/account-api/?(?<segment>.*), /$\{segment}
