@@ -1,16 +1,34 @@
 ## E-commerce project: Order-service
 
 ![](/_img/e_commerce_240218.png)
+
 <br>
 
-| 🛠️ 사용 기술 | ⌨️ repo |
-| :---------------: | :-------------: |
-| java<br>Spring Boot, Spring Cloud Gateway<br>Kafka, Kafka Streams<br>MySql, Redis<br>Resilience 4J: CircuitBreaker, Retry | <a href='https://github.com/nayoung8142/Order-service'>주문 서비스</a><br><a href='https://github.com/nayoung8142/Item-service'>상품 서비스</a></br><a href='https://github.com/nayoung8142/Account-service'>계정 서비스</a><br><a href='https://github.com/nayoung8142/API-gateway-service'>API-gateway</a> |
+## 기능 관련 리뷰
 
-<br/>
+### Kafka Streams Join으로 주문 생성 이슈 해결
 
-## 📑 [Wiki](https://github.com/nayoung8142/Order-service/wiki)
+Kafka, DB 간 속도 차이 ➝ KStream-KTable Join으로 해결
 
-| 🛠️ 기능 | ❗️ 이슈 |
-| :---------------: | :-------------: |
-| <a href='https://github.com/nayoung8142/Order-service/wiki/%EC%A3%BC%EB%AC%B8-%EC%83%9D%EC%84%B1'>주문 생성</a> | <a href='https://github.com/nayoung8142/Order-service/wiki/Kafka-Streams-Join%EC%9C%BC%EB%A1%9C-%EC%A3%BC%EB%AC%B8-%EC%83%9D%EC%84%B1-%EC%9D%B4%EC%8A%88-%ED%95%B4%EA%B2%B0'>Kafka Streams Join으로 주문 생성 이슈 해결</a><br><a href='https://github.com/nayoung8142/Order-service/wiki/Kafka-Streams-%EB%82%B4%EB%B6%80-%EC%83%81%ED%83%9C-%EA%B4%80%EB%A6%AC'>카프카 스트림즈 내부 상태 관리</a><br><a href='https://github.com/nayoung8142/Order-service/wiki/Resilience4J-Retry,-CircuitBreaker-%EC%A1%B0%ED%95%A9%EC%9C%BC%EB%A1%9C-%EC%9D%91%EB%8B%B5-%EC%8B%9C%EA%B0%84-%EC%A0%9C%EC%96%B4'>Resilience4J Retry + CircuitBreaker 조합으로 응답 시간 제어</a> |
+- 코드: https://github.com/imzero238/Order-service/blob/master/src/main/java/com/ecommerce/orderservice/kafka/streams/KStreamKTableJoinConfig.java#L80
+- 리뷰 링크 추가 예정
+
+### Kafka Streams 내부 상태 관리
+
+Tombstone 레코드 설정으로 내부 상태 관리
+
+- 코드: https://github.com/imzero238/Order-service/blob/master/src/main/java/com/ecommerce/orderservice/kafka/producer/KafkaProducerService.java#L17
+- 리뷰: https://medium.com/@im_zero/kafka-streams-internal-state-management-6746c4898e34
+
+
+### Resilience4J CircuitBreaker + Retry 설정
+
+![](/_img/circuit-breaker-retry.png)
+
+OpenFeign 사용 메서드에 Resilience4J CircuitBreaker, Retry 모듈 추가해 무한 응답하는 상황 방지
+
+- OpenFeign 적용 코드: https://github.com/imzero238/Order-service/blob/master/src/main/java/com/ecommerce/orderservice/openfeign/ItemServiceClient.java
+- CircuitBreaker Config 코드: https://github.com/imzero238/Order-service/blob/master/src/main/java/com/ecommerce/orderservice/resilience4j/Resilience4jCircuitBreakerConfig.java
+- Retry Config 코드: https://github.com/imzero238/Order-service/blob/master/src/main/java/com/ecommerce/orderservice/resilience4j/Resilience4jRetryConfig.java
+- 리뷰: https://medium.com/@im_zero/resilience4j-retry-circuitbreaker-%EC%A0%81%EC%9A%A9%ED%95%98%EA%B8%B0-a60d06a46c54
+
