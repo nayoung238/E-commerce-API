@@ -4,6 +4,7 @@ import com.ecommerce.orderservice.domain.order.service.OrderCreationService;
 import com.ecommerce.orderservice.domain.order.service.OrderService;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/orders")
 public class OrderController {
@@ -29,5 +31,11 @@ public class OrderController {
     public ResponseEntity<?> getOrders(@PathVariable Long userId, @PathVariable(required = false) Long cursorOrderId) {
         List<OrderDto> response = orderService.findOrderByUserIdAndOrderId(userId, cursorOrderId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/health-check")
+    public ResponseEntity<?> healthCheck() {
+        log.info("health check...");
+        return ResponseEntity.ok("health check...");
     }
 }
