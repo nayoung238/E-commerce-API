@@ -41,11 +41,11 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends BaseServiceTest {
 
         // when
         OrderStatus testStatus = OrderStatus.SUCCEEDED;
-        createOrderProcessingResult(orderDto.getOrderEventKey(), testStatus, TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
+        createOrderProcessingResult(orderDto.getOrderEventId(), testStatus, TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
         Thread.sleep(10000);
 
         // then
-        Order finalOrder = orderRepository.findByOrderEventKey(orderDto.getOrderEventKey()).orElse(null);
+        Order finalOrder = orderRepository.findByOrderEventId(orderDto.getOrderEventId()).orElse(null);
         assert finalOrder != null;
         Assertions.assertEquals(testStatus, finalOrder.getOrderStatus());
         Assertions.assertTrue(finalOrder.getOrderItems()
@@ -64,7 +64,7 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends BaseServiceTest {
 
         // when
         OrderStatus testStatus = OrderStatus.CANCELED;
-        createOrderProcessingResult(orderDto.getOrderEventKey(), testStatus, TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
+        createOrderProcessingResult(orderDto.getOrderEventId(), testStatus, TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
         Thread.sleep(10000);
 
         Assertions.assertTrue(orderRepository.findAll().isEmpty());

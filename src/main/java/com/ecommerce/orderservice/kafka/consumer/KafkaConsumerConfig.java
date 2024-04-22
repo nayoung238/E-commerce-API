@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.kafka.consumer;
 
-import com.ecommerce.orderservice.kafka.dto.OrderEvent;
+import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderEventDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -26,7 +26,7 @@ public class KafkaConsumerConfig {
     private String CONSUMER_GROUP_ID;
 
     @Bean
-    public ConsumerFactory<String, OrderEvent> consumerFactory() {
+    public ConsumerFactory<String, OrderKafkaEvent> consumerFactory() {
         Map<String, Object> properties = new HashMap<>();
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER);
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, CONSUMER_GROUP_ID);
@@ -36,8 +36,8 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, OrderEvent> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, OrderEvent> kafkaListenerContainerFactory
+    public ConcurrentKafkaListenerContainerFactory<String, OrderKafkaEvent> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, OrderKafkaEvent> kafkaListenerContainerFactory
                 = new ConcurrentKafkaListenerContainerFactory<>();
 
         kafkaListenerContainerFactory.setConsumerFactory(consumerFactory());

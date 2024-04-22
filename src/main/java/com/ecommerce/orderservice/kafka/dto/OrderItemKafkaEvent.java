@@ -12,22 +12,22 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderItemEvent {
+public class OrderItemKafkaEvent {
 
     private Long itemId;
     private Long quantity;
     private OrderStatus orderStatus;
 
-    public static OrderItemEvent of(OrderItem orderItem) {
-        return OrderItemEvent.builder()
+    public static OrderItemKafkaEvent of(OrderItem orderItem) {
+        return OrderItemKafkaEvent.builder()
                 .itemId(orderItem.getItemId())
                 .quantity(orderItem.getQuantity())
                 .orderStatus(orderItem.getOrderStatus() != null ? orderItem.getOrderStatus() : null)
                 .build();
     }
 
-    public static OrderItemEvent of(OrderItemDto orderItemDto) {
-        return OrderItemEvent.builder()
+    public static OrderItemKafkaEvent of(OrderItemDto orderItemDto) {
+        return OrderItemKafkaEvent.builder()
                 .itemId(orderItemDto.getItemId())
                 .quantity(orderItemDto.getQuantity())
                 .orderStatus(orderItemDto.getOrderStatus() != null ? orderItemDto.getOrderStatus() : null)

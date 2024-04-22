@@ -4,7 +4,7 @@ import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
-import com.ecommerce.orderservice.kafka.dto.OrderEvent;
+import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
 import com.ecommerce.orderservice.openfeign.ItemServiceClient;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
@@ -36,21 +36,21 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     @Override
     @Transactional
     public OrderDto create(OrderDto orderDto) {
-        orderDto.initializeOrderEventKey(createOrderEventKey(orderDto.getUserId()));
+        orderDto.initializeOrderEventId(createOrderEventId(orderDto.getUserId()));
         orderDto.initializeRequestedAt();
         orderDto.setOrderStatus(OrderStatus.WAITING);
-        kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderDto.getOrderEventKey(), OrderEvent.of(orderDto));
+        kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderDto.getOrderEventId(), OrderKafkaEvent.of(orderDto));
         return orderDto;
     }
 
     @KafkaListener(topics = TopicConfig.FINAL_ORDER_STREAMS_ONLY_TOPIC)
-    public void create(ConsumerRecord<String, OrderEvent> record) {
+    public void create(ConsumerRecord<String, OrderKafkaEvent> record) {
         log.info("Consuming message success -> Topic: {}, OrderEventKey: {}, OrderStatus: {}",
                 record.topic(),
-                record.value().getOrderEventKey(),
+                record.value().getOrderEventId(),
                 record.value().getOrderStatus());
 
-        if(!isExistOrderByOrderEventKey(record.key())) {
+        if(!isExistOrderByOrderEventId(record.key())) {
             Order order = Order.of(record.value());
             orderRepository.save(order);
             kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, record.key());
@@ -59,7 +59,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
 
     @Override
     @KafkaListener(topics = TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC)
-    public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderEvent> record) {
+    public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderKafkaEvent> record) {
         if(record.key() != null && record.value() != null) {
             log.info("Consuming message success -> Topic: {}, Key(event Id): {}",
                     record.topic(),
@@ -68,7 +68,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
             try {
                 waitBasedOnTimestamp(record.timestamp());
 
-                if (!isExistOrderByOrderEventKey(record.key())) {
+                if (!isExistOrderByOrderEventId(record.key())) {
                     kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_STREAMS_ONLY_TOPIC, record.key(), record.value());
                 }
             } catch (InterruptedException e) {
@@ -86,7 +86,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
 
     @Override
     @KafkaListener(topics = TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_STREAMS_ONLY_TOPIC)
-    public void requestOrderProcessingResult(ConsumerRecord<String, OrderEvent> record) {
+    public void requestOrderProcessingResult(ConsumerRecord<String, OrderKafkaEvent> record) {
         assert record.key() != null & record.value() != null;
         log.info("Consuming message success -> Topic: {}, OrderEventKey: {}",
                 record.topic(),
@@ -95,8 +95,8 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
         // OpenFeign
         OrderStatus orderStatus = itemServiceClient.findOrderProcessingResult(record.key());
         if (orderStatus.equals(OrderStatus.SUCCEEDED) || orderStatus.equals(OrderStatus.FAILED)) {
-            if(!isExistOrderByOrderEventKey(record.key())) {
-                OrderEvent orderEvent = OrderEvent.of(record.key(), orderStatus);
+            if(!isExistOrderByOrderEventId(record.key())) {
+                OrderKafkaEvent orderEvent = OrderKafkaEvent.of(record.key(), orderStatus);
                 kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, record.key(), orderEvent);
             }
         } else if (orderStatus.equals(OrderStatus.SERVER_ERROR)) {
@@ -106,12 +106,12 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
         }
     }
 
-    private void resendKafkaMessage(String key, OrderEvent orderEvent) {
+    private void resendKafkaMessage(String key, OrderKafkaEvent orderEvent) {
         String[] redisKey = orderEvent.getRequestedAt().toString().split(":");  // key[0] -> order-event:yyyy-mm-dd'T'HH
-        if(isFirstEvent(redisKey[0], orderEvent.getOrderEventKey()))
+        if(isFirstEvent(redisKey[0], orderEvent.getOrderEventId()))
             kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, key, orderEvent);
         else {
-            updateOrderStatusByOrderEventKey(orderEvent.getOrderEventKey(), OrderStatus.FAILED);
+            updateOrderStatusByOrderEventId(orderEvent.getOrderEventId(), OrderStatus.FAILED);
             // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요
         }
     }
@@ -120,14 +120,14 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
         return orderRedisRepository.addOrderEventKey(key, orderEventKey) == 1;
     }
 
-    private void updateOrderStatusByOrderEventKey(String orderEventKey, OrderStatus orderStatus) {
-        if(!isExistOrderByOrderEventKey(orderEventKey)) {
-            OrderEvent orderEvent = OrderEvent.of(orderEventKey, orderStatus);
+    private void updateOrderStatusByOrderEventId(String orderEventKey, OrderStatus orderStatus) {
+        if(!isExistOrderByOrderEventId(orderEventKey)) {
+            OrderKafkaEvent orderEvent = OrderKafkaEvent.of(orderEventKey, orderStatus);
             kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, orderEventKey, orderEvent);
         }
     }
 
-    private boolean isExistOrderByOrderEventKey(String orderEventKey) {
-        return orderRepository.existsByOrderEventKey(orderEventKey);
+    private boolean isExistOrderByOrderEventId(String orderEventId) {
+        return orderRepository.existsByOrderEventId(orderEventId);
     }
 }

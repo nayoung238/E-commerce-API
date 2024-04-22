@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.domain.order;
 
 import com.ecommerce.orderservice.domain.order.dto.OrderItemDto;
-import com.ecommerce.orderservice.kafka.dto.OrderItemEvent;
+import com.ecommerce.orderservice.kafka.dto.OrderItemKafkaEvent;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -36,7 +36,7 @@ public class OrderItem {
                 .build();
     }
 
-    public static OrderItem of(OrderItemEvent orderItemEvent) {
+    public static OrderItem of(OrderItemKafkaEvent orderItemEvent) {
         return OrderItem.builder()
                 .itemId(orderItemEvent.getItemId())
                 .quantity(orderItemEvent.getQuantity())

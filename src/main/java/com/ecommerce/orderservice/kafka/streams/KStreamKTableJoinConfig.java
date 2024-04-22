@@ -2,7 +2,7 @@ package com.ecommerce.orderservice.kafka.streams;
 
 import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
-import com.ecommerce.orderservice.kafka.dto.OrderEvent;
+import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderEventSerde;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
@@ -57,8 +57,8 @@ public class KStreamKTableJoinConfig {
     }
 
     @Bean
-    public KTable<String, OrderEvent> requestedOrder(KafkaStreamsConfiguration kafkaStreamsConfiguration,
-                                                     StreamsBuilder streamsBuilder) {
+    public KTable<String, OrderKafkaEvent> requestedOrder(KafkaStreamsConfiguration kafkaStreamsConfiguration,
+                                                          StreamsBuilder streamsBuilder) {
         AdminClient adminClient = AdminClient.create(kafkaStreamsConfiguration.asProperties());
         adminClient.createTopics(Collections.singleton(
                 new NewTopic(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, 1, (short) 1)));
@@ -67,8 +67,8 @@ public class KStreamKTableJoinConfig {
     }
 
     @Bean
-    public KStream<String, OrderEvent> orderProcessingResult(KafkaStreamsConfiguration kafkaStreamsConfiguration,
-                                                             StreamsBuilder streamsBuilder) {
+    public KStream<String, OrderKafkaEvent> orderProcessingResult(KafkaStreamsConfiguration kafkaStreamsConfiguration,
+                                                                  StreamsBuilder streamsBuilder) {
         AdminClient adminClient = AdminClient.create(kafkaStreamsConfiguration.asProperties());
         adminClient.createTopics(Collections.singleton(
                 new NewTopic(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, 1, (short) 1)));
@@ -77,8 +77,8 @@ public class KStreamKTableJoinConfig {
     }
 
     @Bean
-    public KStream<String, OrderEvent> createOrder(KTable<String, OrderEvent> requestedOrder,
-                                                 KStream<String, OrderEvent> orderProcessingResult) {
+    public KStream<String, OrderKafkaEvent> createOrder(KTable<String, OrderKafkaEvent> requestedOrder,
+                                                        KStream<String, OrderKafkaEvent> orderProcessingResult) {
         return orderProcessingResult
                 .filter((key, value) -> {
                     if(!value.getOrderStatus().equals(OrderStatus.SUCCEEDED)
@@ -92,7 +92,7 @@ public class KStreamKTableJoinConfig {
                 .join(requestedOrder, (result, order) -> setOrderStatus(order, result));
     }
 
-    private OrderEvent setOrderStatus(OrderEvent orderEvent, OrderEvent result) {
+    private OrderKafkaEvent setOrderStatus(OrderKafkaEvent orderEvent, OrderKafkaEvent result) {
         orderEvent.updateOrderStatus(result);
         return orderEvent;
     }

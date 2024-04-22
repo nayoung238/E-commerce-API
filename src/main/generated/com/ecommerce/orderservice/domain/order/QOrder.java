@@ -24,7 +24,7 @@ public class QOrder extends EntityPathBase<Order> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final StringPath orderEventKey = createString("orderEventKey");
+    public final StringPath orderEventId = createString("orderEventId");
 
     public final ListPath<OrderItem, QOrderItem> orderItems = this.<OrderItem, QOrderItem>createList("orderItems", OrderItem.class, QOrderItem.class, PathInits.DIRECT2);
 

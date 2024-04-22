@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.kafka.producer;
 
-import com.ecommerce.orderservice.kafka.dto.OrderEvent;
+import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -12,14 +12,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KafkaProducerService {
 
-    private final KafkaTemplate<String, OrderEvent> orderEventKafkaTemplate;
+    private final KafkaTemplate<String, OrderKafkaEvent> orderEventKafkaTemplate;
 
     public void setTombstoneRecord(String topic, String key) {
         assert key != null;
         send(topic, key, null);
     }
 
-    public void send(String topic, String key, @Payload(required = false) OrderEvent value) {
+    public void send(String topic, String key, @Payload(required = false) OrderKafkaEvent value) {
         orderEventKafkaTemplate.send(topic, key, value)
                 .whenComplete((stringOrderEventSendResult, throwable) -> {
                     if(throwable == null) {

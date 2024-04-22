@@ -20,23 +20,23 @@ public class SseEventNotificationService {
     private final Map<String, SseEmitter> sseEmitterMap = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public SseEmitter subscribe(String key) {
+    public SseEmitter subscribe(String orderEventId) {
         SseEmitter sseEmitter = new SseEmitter(5 * 60 * 1000L);
         sseEmitter.onCompletion(() -> {
-            log.info("SSE Emitter Completion " + key);
-            sseEmitterMap.remove(key);
+            log.info("SSE Emitter Completion " + orderEventId);
+            sseEmitterMap.remove(orderEventId);
         });
         sseEmitter.onTimeout(() -> {
             log.error("SSE Emitter Timeout");
-            sseEmitterMap.remove(key);
+            sseEmitterMap.remove(orderEventId);
         });
         sseEmitter.onError((t) -> {
             log.error("SSE Emitter Error");
-            sseEmitterMap.remove(key);
+            sseEmitterMap.remove(orderEventId);
         });
 
-        sseEmitterMap.put(key, sseEmitter);
-        log.info("SSE subscription: " + key);
+        sseEmitterMap.put(orderEventId, sseEmitter);
+        log.info("SSE subscription: " + orderEventId);
 
         /*
             첫 SSE 연결 시 Dummy data 전달
@@ -46,40 +46,40 @@ public class SseEventNotificationService {
         try {
             sseEmitter.send(SseEmitter.event()
                     .name("First connection")
-                    .id(key)
-                    .data(key + " -> SSE subscription"));
+                    .id(orderEventId)
+                    .data(orderEventId + " -> SSE subscription"));
         } catch (IOException e) {
             log.error(e.getMessage());
         }
         return sseEmitter;
     }
 
-    public void sendOrderResult(String key, OrderStatus orderStatus) {
-        SseEmitter sseEmitter = sseEmitterMap.get(key);
+    public void sendOrderResult(String orderEventId, OrderStatus orderStatus) {
+        SseEmitter sseEmitter = sseEmitterMap.get(orderEventId);
         if(sseEmitter != null) {
             try {
                 sseEmitter.send(SseEmitter.event()
-                                            .id(key)
+                                            .id(orderEventId)
                                             .name("Order Status")
-                                            .data(objectMapper.writeValueAsString(new EmitterData(key, orderStatus)), MediaType.APPLICATION_JSON));
+                                            .data(objectMapper.writeValueAsString(new EmitterData(orderEventId, orderStatus)), MediaType.APPLICATION_JSON));
                 sseEmitter.complete();
             } catch (IOException e) {
                 log.error(e.getMessage());
             }
         }
         else {
-            log.error("SSE Emitter for event Id ("+ key + ") doesn't exist on this server");
+            log.error("SSE Emitter for event Id ("+ orderEventId + ") doesn't exist on this server");
             // TODO: 이벤트 생성
         }
     }
 
     private static class EmitterData {
-        @JsonProperty("Order-Event-Key")
-        String orderEventKey;
+        @JsonProperty("Order-Event-Id")
+        String orderEventId;
         @JsonProperty("Order-Status")
         String orderStatus;
-        EmitterData(String key, OrderStatus orderStatus) {
-            this.orderEventKey = key;
+        EmitterData(String orderEventId, OrderStatus orderStatus) {
+            this.orderEventId = orderEventId;
             this.orderStatus = String.valueOf(orderStatus);
         }
     }

@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.domain.order;
 
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
-import com.ecommerce.orderservice.kafka.dto.OrderEvent;
+import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +13,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Entity
@@ -30,8 +29,8 @@ public class Order {
     private Long id;
 
     // Kafka KTable & KStream key
-    @Column(name = "order_event_key", unique = true)
-    private String orderEventKey;
+    @Column(name = "order_event_id", unique = true)
+    private String orderEventId;
 
     @Column(name = "user_id")
     private Long userId;
@@ -61,18 +60,18 @@ public class Order {
                 .build();
     }
 
-    public static Order of(OrderEvent orderEvent) {
-        List<OrderItem> orderItems = orderEvent.getOrderItemEvents().stream()
+    public static Order of(OrderKafkaEvent orderKafkaEvent) {
+        List<OrderItem> orderItems = orderKafkaEvent.getOrderItemKafkaEvents().stream()
                 .map(OrderItem::of)
                 .collect(Collectors.toList());
 
         Order order = Order.builder()
-                .orderEventKey(orderEvent.getOrderEventKey())
-                .userId(orderEvent.getUserId())
+                .orderEventId(orderKafkaEvent.getOrderEventId())
+                .userId(orderKafkaEvent.getUserId())
                 .orderItems(orderItems)
-                .orderStatus(orderEvent.getOrderStatus())
-                .createdAt(orderEvent.getCreatedAt())
-                .requestedAt(orderEvent.getRequestedAt())
+                .orderStatus(orderKafkaEvent.getOrderStatus())
+                .createdAt(orderKafkaEvent.getCreatedAt())
+                .requestedAt(orderKafkaEvent.getRequestedAt())
                 .build();
 
         order.getOrderItems().
@@ -80,8 +79,8 @@ public class Order {
         return order;
     }
 
-    public void initializeOrderEventKey(String orderEventKey) {
-        this.orderEventKey = orderEventKey;
+    public void initializeOrderEventId(String orderEventId) {
+        this.orderEventId = orderEventId;
     }
 
     public void updateOrderStatus(OrderStatus status) {
@@ -90,11 +89,11 @@ public class Order {
                 .forEach(orderItem -> orderItem.updateOrderStatus(status));
     }
 
-    public void updateOrderStatus(OrderEvent orderEvent) {
+    public void updateOrderStatus(OrderKafkaEvent orderEvent) {
         this.orderStatus = orderEvent.getOrderStatus();
 
         HashMap<Long, OrderStatus> orderStatusHashMap = new HashMap<>();
-        orderEvent.getOrderItemEvents()
+        orderEvent.getOrderItemKafkaEvents()
                 .forEach(o -> orderStatusHashMap.put(o.getItemId(), o.getOrderStatus()));
 
         this.orderItems

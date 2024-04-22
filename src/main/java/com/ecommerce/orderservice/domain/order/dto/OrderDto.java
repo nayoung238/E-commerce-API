@@ -17,7 +17,7 @@ public class OrderDto {
 
     private Long id;
 
-    private String orderEventKey;
+    private String orderEventId;
 
     @Setter
     private OrderStatus orderStatus;
@@ -41,7 +41,7 @@ public class OrderDto {
 
         return OrderDto.builder()
                 .id(order.getId())
-                .orderEventKey(order.getOrderEventKey())
+                .orderEventId(order.getOrderEventId())
                 .orderStatus((order.getOrderStatus() == null) ? OrderStatus.WAITING : order.getOrderStatus())
                 .orderItemDtos(orderItemDtos)
                 .userId(order.getUserId())
@@ -50,8 +50,8 @@ public class OrderDto {
                 .build();
     }
 
-    public void initializeOrderEventKey(String orderEventKey) {
-        this.orderEventKey = orderEventKey;
+    public void initializeOrderEventId(String orderEventId) {
+        this.orderEventId = orderEventId;
     }
 
     public void initializeRequestedAt() {

@@ -7,12 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serializer;
 
 @Slf4j
-public class OrderEventSerializer implements Serializer<OrderEvent> {
+public class OrderEventSerializer implements Serializer<OrderKafkaEvent> {
 
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @Override
-    public byte[] serialize(String topic, OrderEvent data) {
+    public byte[] serialize(String topic, OrderKafkaEvent data) {
         byte[] serializeOrder = null;
         try {
             serializeOrder = objectMapper.writeValueAsBytes(data);

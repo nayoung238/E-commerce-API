@@ -17,63 +17,63 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderEvent {
+public class OrderKafkaEvent {
 
-    private String orderEventKey;
+    private String orderEventId;
     private OrderStatus orderStatus;
-    private List<OrderItemEvent> orderItemEvents;
+    private List<OrderItemKafkaEvent> orderItemKafkaEvents;
     private Long userId;
     private LocalDateTime createdAt;
     private LocalDateTime requestedAt;
 
-    public static OrderEvent of(Order order) {
-        List<OrderItemEvent> orderItemEvents = order
+    public static OrderKafkaEvent of(Order order) {
+        List<OrderItemKafkaEvent> orderItemKafkaEvents = order
                 .getOrderItems()
-                .stream().map(OrderItemEvent::of)
+                .stream().map(OrderItemKafkaEvent::of)
                 .collect(Collectors.toList());
 
-        return OrderEvent.builder()
-                .orderEventKey(order.getOrderEventKey())
+        return OrderKafkaEvent.builder()
+                .orderEventId(order.getOrderEventId())
                 .orderStatus(order.getOrderStatus() != null ? order.getOrderStatus() : null)
-                .orderItemEvents(orderItemEvents)
+                .orderItemKafkaEvents(orderItemKafkaEvents)
                 .userId(order.getUserId())
                 .createdAt(order.getCreatedAt() != null ? order.getCreatedAt() : null)
                 .requestedAt(LocalDateTime.now())
                 .build();
     }
 
-    public static OrderEvent of(OrderDto orderDto) {
-        List<OrderItemEvent> orderItemEvents = orderDto
+    public static OrderKafkaEvent of(OrderDto orderDto) {
+        List<OrderItemKafkaEvent> orderItemKafkaEvents = orderDto
                 .getOrderItemDtos()
-                .stream().map(OrderItemEvent::of)
+                .stream().map(OrderItemKafkaEvent::of)
                 .collect(Collectors.toList());
 
-        return OrderEvent.builder()
-                .orderEventKey(orderDto.getOrderEventKey())
+        return OrderKafkaEvent.builder()
+                .orderEventId(orderDto.getOrderEventId())
                 .orderStatus(orderDto.getOrderStatus() != null ? orderDto.getOrderStatus() : null)
-                .orderItemEvents(orderItemEvents)
+                .orderItemKafkaEvents(orderItemKafkaEvents)
                 .userId(orderDto.getUserId())
                 .createdAt(orderDto.getCreatedAt() != null ? orderDto.getCreatedAt() : null)
                 .requestedAt(LocalDateTime.now())
                 .build();
     }
 
-    public static OrderEvent of(String orderEventKey, OrderStatus orderStatus) {
-        return OrderEvent.builder()
-                .orderEventKey(orderEventKey)
+    public static OrderKafkaEvent of(String orderEventId, OrderStatus orderStatus) {
+        return OrderKafkaEvent.builder()
+                .orderEventId(orderEventId)
                 .orderStatus(orderStatus)
                 .build();
     }
 
-    public void updateOrderStatus(OrderEvent orderEvent) {
-        if(orderEvent.getOrderItemEvents() != null) {
+    public void updateOrderStatus(OrderKafkaEvent orderEvent) {
+        if(orderEvent.getOrderItemKafkaEvents() != null) {
             this.orderStatus = orderEvent.getOrderStatus();
 
             HashMap<Long, OrderStatus> orderStatusHashMap = new HashMap<>();
-            orderEvent.getOrderItemEvents()
+            orderEvent.getOrderItemKafkaEvents()
                     .forEach(o -> orderStatusHashMap.put(o.getItemId(), o.getOrderStatus()));
 
-            this.orderItemEvents
+            this.orderItemKafkaEvents
                     .forEach(o -> o.updateOrderStatus(orderStatusHashMap.get(o.getItemId())));
         }
         else updateOrderStatus(orderEvent.getOrderStatus());
@@ -81,7 +81,7 @@ public class OrderEvent {
 
     public void updateOrderStatus(OrderStatus status) {
         this.orderStatus = status;
-        this.orderItemEvents
+        this.orderItemKafkaEvents
                 .forEach(orderItem -> orderItem.updateOrderStatus(status));
     }
 }

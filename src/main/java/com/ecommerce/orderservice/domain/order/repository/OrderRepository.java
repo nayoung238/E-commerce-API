@@ -7,6 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long>, OrderRepositoryCustom {
-    Optional<Order> findByOrderEventKey(String orderEventKey);
-    boolean existsByOrderEventKey(String orderEventKey);
+    Optional<Order> findByOrderEventId(String orderEventId);
+    boolean existsByOrderEventId(String orderEventId);
 }

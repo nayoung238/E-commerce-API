@@ -70,16 +70,16 @@ class OrderServiceTest extends BaseServiceTest {
         List<OrderDto> orderDtoList = IntStream.range(0, n)
                 .mapToObj(i -> getRequestedOrder())
                 .map(o -> {
-                    o.initializeOrderEventKey(createOrderEventKey(o.getUserId()));
+                    o.initializeOrderEventId(createOrderEventId(o.getUserId()));
                     return orderCreationService.create(o);
                 })
                 .collect(Collectors.toList());
 
         orderDtoList
-                .forEach(orderDto -> createOrderProcessingResult(orderDto.getOrderEventKey(), OrderStatus.SUCCEEDED, TopicConfig.ORDER_PROCESSING_RESULT_TOPIC));
+                .forEach(orderDto -> createOrderProcessingResult(orderDto.getOrderEventId(), OrderStatus.SUCCEEDED, TopicConfig.ORDER_PROCESSING_RESULT_TOPIC));
     }
 
-    private String createOrderEventKey(Long userId) {
+    private String createOrderEventId(Long userId) {
         if(userId == null) {
             throw new OrderException(ExceptionCode.NOT_NULL_USER_ID);
         }

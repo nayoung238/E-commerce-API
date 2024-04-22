@@ -37,11 +37,11 @@ class OrderCreationByDBServiceImplTest extends BaseServiceTest {
 
         // when
         OrderStatus testStatus = OrderStatus.SUCCEEDED;
-        createOrderProcessingResult(order.getOrderEventKey(), testStatus, TopicConfig.ORDER_PROCESSING_RESULT_TOPIC);
+        createOrderProcessingResult(order.getOrderEventId(), testStatus, TopicConfig.ORDER_PROCESSING_RESULT_TOPIC);
         Thread.sleep(10000);
 
         // then
-        Order finalOrder = orderRepository.findByOrderEventKey(order.getOrderEventKey()).orElse(null);
+        Order finalOrder = orderRepository.findByOrderEventId(order.getOrderEventId()).orElse(null);
         assert finalOrder != null;
         Assertions.assertEquals(testStatus, finalOrder.getOrderStatus());
         Assertions.assertTrue(finalOrder.getOrderItems()

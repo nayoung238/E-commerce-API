@@ -2,8 +2,8 @@ package com.ecommerce.orderservice.domain.order;
 
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderItemDto;
-import com.ecommerce.orderservice.kafka.dto.OrderEvent;
-import com.ecommerce.orderservice.kafka.dto.OrderItemEvent;
+import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
+import com.ecommerce.orderservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,24 +20,24 @@ public class BaseServiceTest {
     public static final Long USER_ID = 2L;
     public static final int ORDER_ITEM_COUNT = 3;
 
-    protected void createOrderProcessingResult(String orderEventKey, OrderStatus orderStatus, final String topic) {
-        OrderEvent orderEvent = getOrderProcessingResult(orderEventKey, orderStatus);
-        kafkaProducerService.send(topic, orderEventKey, orderEvent);
+    protected void createOrderProcessingResult(String orderEventId, OrderStatus orderStatus, final String topic) {
+        OrderKafkaEvent orderKafkaEvent = getOrderProcessingResult(orderEventId, orderStatus);
+        kafkaProducerService.send(topic, orderEventId, orderKafkaEvent);
     }
 
-    private OrderEvent getOrderProcessingResult(String orderEventKey, OrderStatus orderItemStatus) {
-        List<OrderItemEvent> orderItemEvent = IntStream.range(0, ORDER_ITEM_COUNT)
-                .mapToObj(i -> OrderItemEvent.builder()
+    private OrderKafkaEvent getOrderProcessingResult(String orderEventId, OrderStatus orderItemStatus) {
+        List<OrderItemKafkaEvent> orderItemEvent = IntStream.range(0, ORDER_ITEM_COUNT)
+                .mapToObj(i -> OrderItemKafkaEvent.builder()
                         .itemId((long) i + 1)
                         .orderStatus(orderItemStatus)
                         .build())
                 .toList();
 
-        return OrderEvent.builder()
+        return OrderKafkaEvent.builder()
                 .userId(USER_ID)
-                .orderEventKey(orderEventKey)
+                .orderEventId(orderEventId)
                 .orderStatus(orderItemStatus)
-                .orderItemEvents(orderItemEvent)
+                .orderItemKafkaEvents(orderItemEvent)
                 .build();
     }
 

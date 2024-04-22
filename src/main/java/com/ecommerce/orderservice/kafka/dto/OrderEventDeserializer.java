@@ -8,15 +8,15 @@ import org.apache.kafka.common.serialization.Deserializer;
 import java.io.IOException;
 
 @Slf4j
-public class OrderEventDeserializer implements Deserializer<OrderEvent> {
+public class OrderEventDeserializer implements Deserializer<OrderKafkaEvent> {
 
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @Override
-    public OrderEvent deserialize(String topic, byte[] data) {
-        OrderEvent message = null;
+    public OrderKafkaEvent deserialize(String topic, byte[] data) {
+        OrderKafkaEvent message = null;
         try {
-            message = objectMapper.readValue(data, OrderEvent.class);
+            message = objectMapper.readValue(data, OrderKafkaEvent.class);
         } catch (IOException e) {
             log.error(e.getMessage());
         }

@@ -4,7 +4,7 @@ import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.exception.ExceptionCode;
 import com.ecommerce.orderservice.exception.OrderException;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
-import com.ecommerce.orderservice.kafka.dto.OrderEvent;
+import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.openfeign.ItemServiceClient;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.Order;
@@ -14,7 +14,6 @@ import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,23 +38,23 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     @Transactional
     public OrderDto create(OrderDto orderDto) {
         Order order = Order.fromTemporaryOrderDto(orderDto);
-        order.initializeOrderEventKey(createOrderEventKey(order.getUserId()));
+        order.initializeOrderEventId(createOrderEventId(order.getUserId()));
         order.getOrderItems()
                 .forEach(o -> o.initializeOrder(order));
 
         orderRepository.save(order);
-        kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, null, OrderEvent.of(order));
+        kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, null, OrderKafkaEvent.of(order));
         return OrderDto.of(order);
     }
 
 //    @KafkaListener(topics = TopicConfig.ORDER_PROCESSING_RESULT_TOPIC)
-    public void updateOrderStatus(ConsumerRecord<String, OrderEvent> record) {
+    public void updateOrderStatus(ConsumerRecord<String, OrderKafkaEvent> record) {
         log.info("Consuming message success -> Topic: {}, OrderEventKey: {}, OrderStatus: {}",
                 record.topic(),
-                record.value().getOrderEventKey(),
+                record.value().getOrderEventId(),
                 record.value().getOrderStatus());
 
-        Optional<Order> order = orderRepository.findByOrderEventKey(record.value().getOrderEventKey());
+        Optional<Order> order = orderRepository.findByOrderEventId(record.value().getOrderEventId());
         order.ifPresent(value -> {
             value.updateOrderStatus(record.value());
             orderRepository.save(order.get());
@@ -64,16 +63,16 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
 
     @Override
 //    @KafkaListener(topics = TopicConfig.REQUESTED_ORDER_TOPIC)
-    public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderEvent> record) {
+    public void checkFinalStatusOfOrder(ConsumerRecord<String, OrderKafkaEvent> record) {
         if(record.value() != null) {
             log.info("Consuming message success -> Topic: {}, OrderEventKey: {}",
                     record.topic(),
-                    record.value().getOrderEventKey());
+                    record.value().getOrderEventId());
 
             try {
                 waitBasedOnTimestamp(record.timestamp());
 
-                Optional<Order> order = orderRepository.findByOrderEventKey(record.value().getOrderEventKey());
+                Optional<Order> order = orderRepository.findByOrderEventId(record.value().getOrderEventId());
                 if (order.isPresent()) {
                     if (Objects.equals(OrderStatus.WAITING, order.get().getOrderStatus())) {
                         kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC, null, record.value());
@@ -94,24 +93,24 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
 
     @Override
 //    @KafkaListener(topics = TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC)
-    public void requestOrderProcessingResult(ConsumerRecord<String, OrderEvent> record) {
+    public void requestOrderProcessingResult(ConsumerRecord<String, OrderKafkaEvent> record) {
         log.info("Consuming message success -> Topic: {}, order-event-key: {}",
                 record.topic(),
-                record.value().getOrderEventKey());
+                record.value().getOrderEventId());
 
         // OpenFeign
-        OrderStatus orderItemStatus = itemServiceClient.findOrderProcessingResult(record.value().getOrderEventKey());
+        OrderStatus orderItemStatus = itemServiceClient.findOrderProcessingResult(record.value().getOrderEventId());
         if(!orderItemStatus.equals(OrderStatus.NOT_EXIST))
-            updateOrderStatus(record.value().getOrderEventKey(), orderItemStatus);
+            updateOrderStatus(record.value().getOrderEventId(), orderItemStatus);
         else resendKafkaMessage(null, record.value());
     }
 
-    private void resendKafkaMessage(String key, OrderEvent value) {
+    private void resendKafkaMessage(String key, OrderKafkaEvent value) {
         String[] redisKey = value.getRequestedAt().toString().split(":");  // key[0] -> order-event:yyyy-mm-dd'T'HH
-        if(isFirstEvent(redisKey[0], value.getOrderEventKey()))
+        if(isFirstEvent(redisKey[0], value.getOrderEventId()))
             kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, key, value);
         else {
-            updateOrderStatus(value.getOrderEventKey(), OrderStatus.FAILED);
+            updateOrderStatus(value.getOrderEventId(), OrderStatus.FAILED);
             // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요
         }
     }
@@ -121,7 +120,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     }
 
     private void updateOrderStatus(String orderEventKey, OrderStatus orderStatus) {
-        Order order = orderRepository.findByOrderEventKey(orderEventKey)
+        Order order = orderRepository.findByOrderEventId(orderEventKey)
                 .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
 
         order.updateOrderStatus(orderStatus);

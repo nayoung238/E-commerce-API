@@ -4,7 +4,7 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 
-public class OrderEventSerde implements Serde<OrderEvent> {
+public class OrderEventSerde implements Serde<OrderKafkaEvent> {
 
     private final OrderEventSerializer orderEventSerializer = new OrderEventSerializer();
     private final OrderEventDeserializer orderEventDeserializer = new OrderEventDeserializer();
@@ -19,12 +19,12 @@ public class OrderEventSerde implements Serde<OrderEvent> {
     }
 
     @Override
-    public Serializer<OrderEvent> serializer() {
+    public Serializer<OrderKafkaEvent> serializer() {
         return orderEventSerializer;
     }
 
     @Override
-    public Deserializer<OrderEvent> deserializer() {
+    public Deserializer<OrderKafkaEvent> deserializer() {
         return orderEventDeserializer;
     }
 }
