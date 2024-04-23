@@ -1,6 +1,8 @@
 package com.ecommerce.orderservice.domain.order;
 
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
+import com.ecommerce.orderservice.internalevent.ordercreation.OrderCreationInternalEvent;
+import com.ecommerce.orderservice.internalevent.InternalEventStatus;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -89,14 +91,21 @@ public class Order {
                 .forEach(orderItem -> orderItem.updateOrderStatus(status));
     }
 
-    public void updateOrderStatus(OrderKafkaEvent orderEvent) {
-        this.orderStatus = orderEvent.getOrderStatus();
+    public void updateOrderStatus(OrderKafkaEvent orderKafkaEvent) {
+        this.orderStatus = orderKafkaEvent.getOrderStatus();
 
         HashMap<Long, OrderStatus> orderStatusHashMap = new HashMap<>();
-        orderEvent.getOrderItemKafkaEvents()
+        orderKafkaEvent.getOrderItemKafkaEvents()
                 .forEach(o -> orderStatusHashMap.put(o.getItemId(), o.getOrderStatus()));
 
         this.orderItems
                 .forEach(o -> o.updateOrderStatus(orderStatusHashMap.get(o.getItemId())));
+    }
+
+    public OrderCreationInternalEvent getOrderCreationInternalEvent() {
+        return OrderCreationInternalEvent.builder()
+                .orderEventId(orderEventId)
+                .publicationStatus(InternalEventStatus.init)
+                .build();
     }
 }

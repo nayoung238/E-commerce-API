@@ -14,6 +14,9 @@ import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Primary;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +27,7 @@ import java.util.*;
  * waiting 상태의 주문을 DB insert -> 재고 변경 결과 이벤트를 바탕으로 주문 상태를 update 하는 방식 (v1)
  * 주문 생성을 위해 DB 두 번 접근 (insert -> update)
  */
-@Service
+@Service @Primary
 @Slf4j
 @RequiredArgsConstructor
 public class OrderCreationByDBServiceImpl implements OrderCreationService {
@@ -33,6 +36,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     private final OrderRedisRepository orderRedisRepository;
     public final KafkaProducerService kafkaProducerService;
     private final ItemServiceClient itemServiceClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -43,22 +47,21 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
                 .forEach(o -> o.initializeOrder(order));
 
         orderRepository.save(order);
-        kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, null, OrderKafkaEvent.of(order));
+        eventPublisher.publishEvent(order.getOrderCreationInternalEvent());
         return OrderDto.of(order);
     }
 
-//    @KafkaListener(topics = TopicConfig.ORDER_PROCESSING_RESULT_TOPIC)
+    @KafkaListener(topics = TopicConfig.ORDER_PROCESSING_RESULT_TOPIC)
+    @Transactional
     public void updateOrderStatus(ConsumerRecord<String, OrderKafkaEvent> record) {
         log.info("Consuming message success -> Topic: {}, OrderEventKey: {}, OrderStatus: {}",
                 record.topic(),
                 record.value().getOrderEventId(),
                 record.value().getOrderStatus());
 
-        Optional<Order> order = orderRepository.findByOrderEventId(record.value().getOrderEventId());
-        order.ifPresent(value -> {
-            value.updateOrderStatus(record.value());
-            orderRepository.save(order.get());
-        });
+        Order order = orderRepository.findByOrderEventId(record.value().getOrderEventId())
+                        .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
+        order.updateOrderStatus(record.value());
     }
 
     @Override

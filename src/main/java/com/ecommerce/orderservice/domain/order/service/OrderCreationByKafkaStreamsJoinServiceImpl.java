@@ -23,7 +23,7 @@ import java.time.Instant;
  * KStream(주문에 대한 재고 변경 결과) + KTable(waiting 상태의 주문) Join 한 결과(주문 상세)를 DB에 insert 하는 방식 (v2)
  * 주문 생성을 위해 DB 한 번 접근 (insert)
  */
-@Service @Primary
+@Service //@Primary
 @Slf4j
 @RequiredArgsConstructor
 public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreationService {
