@@ -7,6 +7,7 @@ import com.ecommerce.itemservice.domain.item.dto.ItemDto;
 import com.ecommerce.itemservice.domain.item.service.ItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/")
+@Slf4j
 public class ItemController {
 
     private final ItemService itemService;
@@ -32,5 +34,11 @@ public class ItemController {
         } catch (OrderException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
         }
+    }
+
+    @GetMapping("/health-check")
+    public ResponseEntity<?> healthCheck() {
+        log.info("health check...");
+        return ResponseEntity.ok("health check...");
     }
 }
