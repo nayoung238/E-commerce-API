@@ -1,5 +1,6 @@
 package com.ecommerce.orderservice.domain.order.api;
 
+import com.ecommerce.orderservice.domain.order.dto.OrderListDto;
 import com.ecommerce.orderservice.domain.order.service.OrderCreationService;
 import com.ecommerce.orderservice.domain.order.service.OrderService;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
@@ -21,15 +22,15 @@ public class OrderController {
     private final OrderCreationService orderCreationService;
     private final OrderService orderService;
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody @Validated OrderDto orderDto) {
         OrderDto response = orderCreationService.create(orderDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping(value = {"/{userId}/{cursorOrderId}", "/{userId}"})
-    public ResponseEntity<?> getOrders(@PathVariable Long userId, @PathVariable(required = false) Long cursorOrderId) {
-        List<OrderDto> response = orderService.findOrderByUserIdAndOrderId(userId, cursorOrderId);
+    public ResponseEntity<?> getOrderList(@PathVariable Long userId, @PathVariable(required = false) Long cursorOrderId) {
+        OrderListDto response = orderService.findOrderByUserIdAndOrderId(userId, cursorOrderId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

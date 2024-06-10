@@ -1,6 +1,8 @@
 package com.ecommerce.orderservice.domain.order.service;
 
 import com.ecommerce.orderservice.domain.order.Order;
+import com.ecommerce.orderservice.domain.order.dto.OrderListDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderSimpleDto;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.exception.ExceptionCode;
@@ -12,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +22,7 @@ public class OrderService {
     public final OrderRepository orderRepository;
     public static final int PAGE_SIZE = 5;
 
-    public List<OrderDto> findOrderByUserIdAndOrderId(Long userId, Long orderId) {
+    public OrderListDto findOrderByUserIdAndOrderId(Long userId, Long orderId) {
         PageRequest pageRequest = PageRequest.of(0, PAGE_SIZE);
         List<Order> orders;
         if(orderId != null)
@@ -29,10 +30,12 @@ public class OrderService {
         else
             orders = orderRepository.findByUserIdOrderByOrderIdDesc(userId, pageRequest);
 
-        return orders.stream()
+        List<OrderSimpleDto> orderSimpleDtoList =  orders.stream()
                 .sorted(Comparator.comparing(Order::getId).reversed())
-                .map(OrderDto::of)
-                .collect(Collectors.toList());
+                .map(OrderSimpleDto::of)
+                .toList();
+
+        return new OrderListDto(orderSimpleDtoList);
     }
 
     @Transactional
