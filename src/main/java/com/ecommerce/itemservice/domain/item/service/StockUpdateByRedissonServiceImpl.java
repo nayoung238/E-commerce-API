@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.domain.item.service;
 
-import com.ecommerce.itemservice.kafka.dto.OrderItemEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,29 +36,29 @@ public class StockUpdateByRedissonServiceImpl implements StockUpdateService {
 
     @Override
     @Transactional
-    public OrderItemEvent updateStock(OrderItemEvent orderItemEvent) {
-        RLock lock = redissonClient.getLock(generateKey(orderItemEvent.getItemId()));
+    public OrderItemKafkaEvent updateStock(OrderItemKafkaEvent orderItemKafkaEvent) {
+        RLock lock = redissonClient.getLock(generateKey(orderItemKafkaEvent.getItemId()));
         try {
             boolean available = lock.tryLock(RLOCK_WAIT_TIME, RLOCK_LEASE_TIME, TimeUnit.MILLISECONDS);
             if(available) {
                 log.info("Acquired the RLock -> Redisson Lock: {}", lock.getName());
                 // Transaction Propagation.REQUIRES_NEW
-                return itemService.updateStockByOptimisticLock(orderItemEvent);
+                return itemService.updateStockByOptimisticLock(orderItemKafkaEvent);
             }
             else {
-                orderItemEvent.updateOrderStatus(OrderStatus.FAILED);
-                return orderItemEvent;
+                orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
+                return orderItemKafkaEvent;
             }
         } catch (InterruptedException e) {
             log.error(e.getMessage());
-            orderItemEvent.updateOrderStatus(OrderStatus.FAILED);
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
         } finally {
             if(lock.isHeldByCurrentThread()) {
                 log.info("Unlock -> Redisson Lock: {}", lock.getName());
                 lock.unlock();
             }
         }
-        return orderItemEvent;
+        return orderItemKafkaEvent;
     }
 
     private String generateKey(Long key) {

@@ -1,8 +1,8 @@
 package com.ecommerce.itemservice.domain.item.service;
 
-import com.ecommerce.itemservice.kafka.dto.OrderItemEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 
 public interface StockUpdateService {
 
-    OrderItemEvent updateStock(OrderItemEvent orderItemEvent);
+    OrderItemKafkaEvent updateStock(OrderItemKafkaEvent orderItemKafkaEvent);
 }

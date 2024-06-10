@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.kafka.service.producer;
 
-import com.ecommerce.itemservice.kafka.dto.OrderEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class KafkaProducerService {
 
     private final KafkaTemplate<String, Long> stockQuantityTemplate;
-    private final KafkaTemplate<String, OrderEvent> orderDtoKafkaTemplate;
+    private final KafkaTemplate<String, OrderKafkaEvent> orderDtoKafkaTemplate;
 
     public void sendMessage(String topic, String key, Long value) {
         stockQuantityTemplate.send(topic, key, value)
@@ -29,7 +29,7 @@ public class KafkaProducerService {
                 });
     }
 
-    public void sendMessage(String topic, String key, OrderEvent value) {
+    public void sendMessage(String topic, String key, OrderKafkaEvent value) {
         orderDtoKafkaTemplate.send(topic, key, value)
                 .whenComplete((stringOrderDtoSendResult, throwable) -> {
                     if(throwable == null) {
@@ -38,7 +38,7 @@ public class KafkaProducerService {
                                 metadata.topic(),
                                 metadata.partition(),
                                 metadata.offset(),
-                                value.getOrderEventKey());
+                                value.getOrderEventId());
                     } else {
                         log.error("Producing message Failure " + throwable.getMessage());
                     }

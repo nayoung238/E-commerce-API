@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.kafka.service.consumer;
 
-import com.ecommerce.itemservice.kafka.dto.OrderEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.itemservice.domain.item.service.ItemStockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,11 +23,11 @@ public class KafkaConsumerService {
             REQUESTED_ORDER_TOPIC,
             REQUESTED_ORDER_STREAMS_ONLY_TOPIC
     })
-    public void updateStock(ConsumerRecord<String, OrderEvent> record) {
+    public void updateStock(ConsumerRecord<String, OrderKafkaEvent> record) {
         if(record.value() != null) {
             log.info("Consuming message Success -> Topic: {}, OrderEventKey:{}",
                     record.topic(),
-                    record.value().getOrderEventKey());
+                    record.value().getOrderEventId());
 
             boolean isStreamsOnly = Objects.equals(record.topic(), REQUESTED_ORDER_STREAMS_ONLY_TOPIC);
             itemStockService.updateStock(record.value(), isStreamsOnly);

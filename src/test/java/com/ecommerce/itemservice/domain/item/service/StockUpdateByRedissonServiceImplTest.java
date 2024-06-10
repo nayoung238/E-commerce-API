@@ -2,7 +2,7 @@ package com.ecommerce.itemservice.domain.item.service;
 
 import com.ecommerce.itemservice.domain.item.Item;
 import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
-import com.ecommerce.itemservice.kafka.dto.OrderItemEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -49,15 +49,15 @@ class StockUpdateByRedissonServiceImplTest {
     void 재고_변경_테스트() {
         // given
         final Long REQUESTED_QUANTITY = 10L;
-        List<OrderItemEvent> orderItemEvents = getOrderItemEvents(REQUESTED_QUANTITY);
+        List<OrderItemKafkaEvent> orderItemKafkaEvents = getOrderItemEvents(REQUESTED_QUANTITY);
 
         // when
-        List<OrderItemEvent> result = orderItemEvents.stream()
+        List<OrderItemKafkaEvent> result = orderItemKafkaEvents.stream()
                 .map(o -> service.updateStock(o))
                 .toList();
 
         // then
-        assert result.size() == orderItemEvents.size();
+        assert result.size() == orderItemKafkaEvents.size();
         assertTrue(result.stream()
                 .allMatch(o -> o.getOrderStatus().equals(OrderStatus.SUCCEEDED)));
 
@@ -68,9 +68,9 @@ class StockUpdateByRedissonServiceImplTest {
         });
     }
 
-    private List<OrderItemEvent> getOrderItemEvents(Long requestedQuantity) {
+    private List<OrderItemKafkaEvent> getOrderItemEvents(Long requestedQuantity) {
         return IntStream.rangeClosed(1, NUMBER_OF_ITEMS)
-                .mapToObj(i -> OrderItemEvent.builder()
+                .mapToObj(i -> OrderItemKafkaEvent.builder()
                         .itemId((long) i)
                         .quantity(-requestedQuantity)
                         .build()

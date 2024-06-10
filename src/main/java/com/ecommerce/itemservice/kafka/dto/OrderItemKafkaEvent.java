@@ -6,7 +6,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderItemEvent {
+public class OrderItemKafkaEvent {
 
     private Long itemId;
     private Long quantity;

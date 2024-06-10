@@ -3,8 +3,8 @@ package com.ecommerce.itemservice.domain.item.service;
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.exception.ItemException;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
-import com.ecommerce.itemservice.kafka.dto.OrderEvent;
-import com.ecommerce.itemservice.kafka.dto.OrderItemEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.kafka.service.producer.KafkaProducerService;
 import com.ecommerce.itemservice.domain.item.Item;
@@ -28,9 +28,9 @@ public class ItemStockService {
     private final StockUpdateService stockUpdateService;
 
     @Transactional
-    public void updateStock(OrderEvent orderEvent, boolean isStreamsOnly) {
-        if (isFirstEvent(orderEvent)) {  // 최초 요청만 재고 변경 진행
-            List<OrderItemEvent> result = orderEvent.getOrderItemEvents()
+    public void updateStock(OrderKafkaEvent orderKafkaEvent, boolean isStreamsOnly) {
+        if (isFirstEvent(orderKafkaEvent)) {  // 최초 요청만 재고 변경 진행
+            List<OrderItemKafkaEvent> result = orderKafkaEvent.getOrderItemKafkaEvents()
                     .stream()
                     .map(o -> {
                         o.convertSign();
@@ -39,57 +39,57 @@ public class ItemStockService {
                     .toList();
 
             if (isAllSucceeded(result)) {
-                orderEvent.updateOrderStatus(OrderStatus.SUCCEEDED);
+                orderKafkaEvent.updateOrderStatus(OrderStatus.SUCCEEDED);
             } else {
-                List<OrderItemEvent> orderItemEvents = undo(result);
-                orderEvent.updateOrderStatus(OrderStatus.FAILED);
-                orderEvent.updateOrderItemDtos(orderItemEvents);
+                List<OrderItemKafkaEvent> orderItemKafkaEvents = undo(result);
+                orderKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
+                orderKafkaEvent.updateOrderItemDtos(orderItemKafkaEvents);
             }
-            orderRedisRepository.setOrderStatus(orderEvent.getOrderEventKey(), orderEvent.getOrderStatus());
+            orderRedisRepository.setOrderStatus(orderKafkaEvent.getOrderEventId(), orderKafkaEvent.getOrderStatus());
             String topic = (isStreamsOnly) ? TopicConfig.ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC : TopicConfig.ITEM_UPDATE_RESULT_TOPIC;
-            kafkaProducerService.sendMessage(topic, orderEvent.getOrderEventKey(), orderEvent);
+            kafkaProducerService.sendMessage(topic, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
         }
         else {
-            updateOrderStatus(orderEvent);
+            updateOrderStatus(orderKafkaEvent);
             String topic = (isStreamsOnly) ? TopicConfig.ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC : TopicConfig.ITEM_UPDATE_RESULT_TOPIC;
-            kafkaProducerService.sendMessage(topic, orderEvent.getOrderEventKey(), orderEvent);
+            kafkaProducerService.sendMessage(topic, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
         }
     }
 
-    private boolean isFirstEvent(OrderEvent orderEvent) {
-        String redisKey = getRedisKey(orderEvent);
-        return orderRedisRepository.addEventId(redisKey, orderEvent.getOrderEventKey()) == 1;
+    private boolean isFirstEvent(OrderKafkaEvent orderKafkaEvent) {
+        String redisKey = getRedisKey(orderKafkaEvent);
+        return orderRedisRepository.addEventId(redisKey, orderKafkaEvent.getOrderEventId()) == 1;
     }
 
-    private String getRedisKey(OrderEvent orderEvent) {
+    private String getRedisKey(OrderKafkaEvent orderKafkaEvent) {
         String[] keys;
-        if(orderEvent.getCreatedAt() != null)
-            keys = orderEvent.getCreatedAt().toString().split(":");
+        if(orderKafkaEvent.getCreatedAt() != null)
+            keys = orderKafkaEvent.getCreatedAt().toString().split(":");
         else
-            keys = orderEvent.getRequestedAt().toString().split(":");
+            keys = orderKafkaEvent.getRequestedAt().toString().split(":");
 
         return keys[0]; // yyyy-mm-dd'T'HH
     }
 
-    private boolean isAllSucceeded(List<OrderItemEvent> orderItemEvents) {
-        return orderItemEvents.stream()
+    private boolean isAllSucceeded(List<OrderItemKafkaEvent> orderItemKafkaEvents) {
+        return orderItemKafkaEvents.stream()
                 .allMatch(o -> Objects.equals(OrderStatus.SUCCEEDED, o.getOrderStatus()));
     }
 
-    private void updateOrderStatus(OrderEvent orderEvent) {
-        String orderProcessingResult = orderRedisRepository.getOrderStatus(orderEvent.getOrderEventKey());
+    private void updateOrderStatus(OrderKafkaEvent orderKafkaEvent) {
+        String orderProcessingResult = orderRedisRepository.getOrderStatus(orderKafkaEvent.getOrderEventId());
 
         OrderStatus orderStatus;
         if(orderProcessingResult == null) orderStatus = OrderStatus.NOT_EXIST;
         else orderStatus = OrderStatus.getStatus(orderProcessingResult);
 
-        orderEvent.updateOrderStatus(orderStatus);
-        orderEvent.getOrderItemEvents()
+        orderKafkaEvent.updateOrderStatus(orderStatus);
+        orderKafkaEvent.getOrderItemKafkaEvents()
                 .forEach(orderItemDto -> orderItemDto.updateOrderStatus(orderStatus));
     }
 
-    private List<OrderItemEvent> undo(List<OrderItemEvent> orderItemEvents) {
-        orderItemEvents.stream()
+    private List<OrderItemKafkaEvent> undo(List<OrderItemKafkaEvent> orderItemKafkaEvents) {
+        orderItemKafkaEvents.stream()
                 .filter(o -> Objects.equals(OrderStatus.SUCCEEDED, o.getOrderStatus()))
                 .forEach(o -> {
                     o.convertSign();
@@ -97,7 +97,7 @@ public class ItemStockService {
                     o.updateOrderStatus(OrderStatus.CANCELED);
                 });
 
-        return orderItemEvents;
+        return orderItemKafkaEvents;
     }
 
     @Transactional

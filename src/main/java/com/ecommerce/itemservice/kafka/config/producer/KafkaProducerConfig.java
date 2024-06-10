@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.kafka.config.producer;
 
-import com.ecommerce.itemservice.kafka.dto.OrderEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderEventSerializer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.LongSerializer;
@@ -39,7 +39,7 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public ProducerFactory<String, OrderEvent> orderEventProducerFactory() {
+    public ProducerFactory<String, OrderKafkaEvent> orderEventProducerFactory() {
         Map<String, Object> properties = new HashMap<>();
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER);
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -49,7 +49,7 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, OrderEvent> orderEventKafkaTemplate() {
+    public KafkaTemplate<String, OrderKafkaEvent> orderEventKafkaTemplate() {
         return new KafkaTemplate<>(orderEventProducerFactory());
     }
 }

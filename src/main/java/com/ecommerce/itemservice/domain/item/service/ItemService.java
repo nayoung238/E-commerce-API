@@ -5,7 +5,7 @@ import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.exception.ItemException;
 import com.ecommerce.itemservice.exception.OrderException;
 import com.ecommerce.itemservice.exception.StockException;
-import com.ecommerce.itemservice.kafka.dto.OrderItemEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.domain.item.dto.ItemDto;
 import com.ecommerce.itemservice.domain.item.Item;
@@ -37,27 +37,27 @@ public class ItemService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public OrderItemEvent updateStockByOptimisticLock(OrderItemEvent orderItemEvent) {
+    public OrderItemKafkaEvent updateStockByOptimisticLock(OrderItemKafkaEvent orderItemKafkaEvent) {
         try {
-            Item item = itemRepository.findByIdWithOptimisticLock(orderItemEvent.getItemId())
+            Item item = itemRepository.findByIdWithOptimisticLock(orderItemKafkaEvent.getItemId())
                     .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
-            item.updateStock(orderItemEvent.getQuantity());
-            orderItemEvent.updateOrderStatus(OrderStatus.SUCCEEDED);
+            item.updateStock(orderItemKafkaEvent.getQuantity());
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.SUCCEEDED);
             itemRepository.save(item);
         } catch (ItemException e) {
             log.error(String.valueOf(e.getExceptionCode()));
-            orderItemEvent.updateOrderStatus(OrderStatus.FAILED);
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
         } catch (StockException e) {
             log.error(String.valueOf(e.getExceptionCode()));
-            orderItemEvent.updateOrderStatus(OrderStatus.OUT_OF_STOCK);
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.OUT_OF_STOCK);
         } catch (ObjectOptimisticLockingFailureException e) {
-            log.error(e.getMessage() + " -> ItemId: {}", orderItemEvent.getItemId());
-            orderItemEvent.updateOrderStatus(OrderStatus.FAILED);
+            log.error(e.getMessage() + " -> ItemId: {}", orderItemKafkaEvent.getItemId());
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
         } catch (Exception e) {
             log.error(e.getMessage());
-            orderItemEvent.updateOrderStatus(OrderStatus.FAILED);
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
         }
-        return orderItemEvent;
+        return orderItemKafkaEvent;
     }
 
     public OrderStatus findOrderProcessingStatus(String orderEventKey) {

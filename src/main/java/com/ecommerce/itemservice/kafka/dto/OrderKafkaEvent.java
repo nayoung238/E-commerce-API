@@ -12,17 +12,17 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderEvent {
+public class OrderKafkaEvent {
 
-    private String orderEventKey;
+    private String orderEventId;
     private OrderStatus orderStatus;
-    private List<OrderItemEvent> orderItemEvents;
+    private List<OrderItemKafkaEvent> orderItemKafkaEvents;
     private Long userId;
     private LocalDateTime createdAt;
     private LocalDateTime requestedAt;
 
-    public void updateOrderItemDtos(List<OrderItemEvent> orderItemEvents) {
-        this.orderItemEvents = orderItemEvents;
+    public void updateOrderItemDtos(List<OrderItemKafkaEvent> orderItemKafkaEvents) {
+        this.orderItemKafkaEvents = orderItemKafkaEvents;
     }
 
     public void updateOrderStatus(OrderStatus status) {

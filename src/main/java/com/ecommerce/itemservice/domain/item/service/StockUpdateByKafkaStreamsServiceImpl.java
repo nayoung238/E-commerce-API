@@ -6,7 +6,7 @@ import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.exception.ItemException;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
-import com.ecommerce.itemservice.kafka.dto.OrderItemEvent;
+import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.kafka.service.producer.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
@@ -33,21 +33,21 @@ public class StockUpdateByKafkaStreamsServiceImpl implements StockUpdateService 
     private final KafkaProducerService kafkaProducerService;
 
     @Override
-    public OrderItemEvent updateStock(OrderItemEvent orderItemEvent) {
-        Item item = itemRepository.findById(orderItemEvent.getItemId())
+    public OrderItemKafkaEvent updateStock(OrderItemKafkaEvent orderItemKafkaEvent) {
+        Item item = itemRepository.findById(orderItemKafkaEvent.getItemId())
                 .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
 
         // Redis에서 재고 차감 시도
-        if(isUpdatableStockByRedis(item.getId(), orderItemEvent.getQuantity())) {
-            orderItemEvent.updateOrderStatus((orderItemEvent.getQuantity() < 0) ?
+        if(isUpdatableStockByRedis(item.getId(), orderItemKafkaEvent.getQuantity())) {
+            orderItemKafkaEvent.updateOrderStatus((orderItemKafkaEvent.getQuantity() < 0) ?
                     OrderStatus.SUCCEEDED  // consumption
                     : OrderStatus.CANCELED);  // production (undo)
 
-            sendMessageToKafka(orderItemEvent.getItemId(), orderItemEvent.getQuantity());
+            sendMessageToKafka(orderItemKafkaEvent.getItemId(), orderItemKafkaEvent.getQuantity());
         } else {
-            orderItemEvent.updateOrderStatus(OrderStatus.OUT_OF_STOCK);
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.OUT_OF_STOCK);
         }
-        return orderItemEvent;
+        return orderItemKafkaEvent;
     }
 
     private boolean isUpdatableStockByRedis(Long itemId, Long quantity) {
