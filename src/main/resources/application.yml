@@ -8,47 +8,49 @@ eureka:
     eureka-server-port: 8761
     healthcheck:
       enabled: true
+  instance:
+    prefer-ip-address: true
 
 spring:
   application:
     name: api-gateway-service
-  config:
-    import: "optional:configserver:"
-  cloud:
-    gateway:
-#      httpclient:
-#        connect-timeout: 10000
-#        response-timeout: 10s
-      routes:
-        - id: item-service
-          uri: lb://ITEM-SERVICE
-          predicates:
-            - Path=/item-api/**
-          filters:
-            - RewritePath=/item-api/?(?<segment>.*), /$\{segment}
-            - name: CircuitBreaker
-              args:
-                name: itemCircuitBreaker
-                fallbackUri: forward:/fallback
-#          metadata:
-#            connect-timeout: 10000
-#            response-timeout: 10000
-        - id: order-service
-          uri: lb://ORDER-SERVICE
-          predicates:
-            - Path=/order-api/**
-          filters:
-            - RewritePath=/order-api/?(?<segment>.*), /$\{segment}
-            - name: CircuitBreaker
-              args:
-                name: orderCircuitBreaker
-                fallbackUri: forward:/fallback
-        - id: account-service
-          uri: lb://ACCOUNT-SERVICE
-          predicates:
-            - Path=/account-api/**
-          filters:
-            - RewritePath=/account-api/?(?<segment>.*), /$\{segment}
+#  config:
+#    import: "optional:configserver:"
+#  cloud:
+#    gateway:
+##      httpclient:
+##        connect-timeout: 10000
+##        response-timeout: 10s
+#      routes:
+#        - id: item-service
+#          uri: lb://ITEM-SERVICE
+#          predicates:
+#            - Path=/item-api/**
+#          filters:
+#            - RewritePath=/item-api/?(?<segment>.*), /$\{segment}
+#            - name: CircuitBreaker
+#              args:
+#                name: itemCircuitBreaker
+#                fallbackUri: forward:/fallback
+##          metadata:
+##            connect-timeout: 10000
+##            response-timeout: 10000
+#        - id: order-service
+#          uri: lb://ORDER-SERVICE
+#          predicates:
+#            - Path=/order-api/**
+#          filters:
+#            - RewritePath=/order-api/?(?<segment>.*), /$\{segment}
+#            - name: CircuitBreaker
+#              args:
+#                name: orderCircuitBreaker
+#                fallbackUri: forward:/fallback
+#        - id: account-service
+#          uri: lb://ACCOUNT-SERVICE
+#          predicates:
+#            - Path=/account-api/**
+#          filters:
+#            - RewritePath=/account-api/?(?<segment>.*), /$\{segment}
 
 resilience4j:
   timelimiter:
