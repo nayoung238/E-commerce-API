@@ -17,7 +17,7 @@ public class OrderKafkaEvent {
     private String orderEventId;
     private OrderStatus orderStatus;
     private List<OrderItemKafkaEvent> orderItemKafkaEvents;
-    private Long userId;
+    private Long accountId;
     private LocalDateTime createdAt;
     private LocalDateTime requestedAt;
 
