@@ -27,7 +27,7 @@ public class OrderDto {
 
     @NotNull
     @Min(value = 1)
-    private Long userId;
+    private Long accountId;
 
     private LocalDateTime createdAt;
 
@@ -44,7 +44,7 @@ public class OrderDto {
                 .orderEventId(order.getOrderEventId())
                 .orderStatus((order.getOrderStatus() == null) ? OrderStatus.WAITING : order.getOrderStatus())
                 .orderItemDtos(orderItemDtos)
-                .userId(order.getUserId())
+                .accountId(order.getAccountId())
                 .createdAt(order.getCreatedAt())
                 .requestedAt(order.getRequestedAt())
                 .build();

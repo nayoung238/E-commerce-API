@@ -42,7 +42,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     @Transactional
     public OrderDto create(OrderDto orderDto) {
         Order order = Order.fromTemporaryOrderDto(orderDto);
-        order.initializeOrderEventId(createOrderEventId(order.getUserId()));
+        order.initializeOrderEventId(createOrderEventId(order.getAccountId()));
         order.getOrderItems()
                 .forEach(o -> o.initializeOrder(order));
 

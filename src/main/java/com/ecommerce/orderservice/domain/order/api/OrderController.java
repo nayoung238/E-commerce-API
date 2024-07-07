@@ -28,9 +28,9 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping(value = {"/{userId}/{cursorOrderId}", "/{userId}"})
-    public ResponseEntity<?> getOrderList(@PathVariable Long userId, @PathVariable(required = false) Long cursorOrderId) {
-        OrderListDto response = orderService.findOrderByUserIdAndOrderId(userId, cursorOrderId);
+    @GetMapping(value = {"/{accountId}/{cursorOrderId}", "/{accountId}"})
+    public ResponseEntity<?> getOrderList(@PathVariable Long accountId, @PathVariable(required = false) Long cursorOrderId) {
+        OrderListDto response = orderService.findOrderByAccountIdAndOrderId(accountId, cursorOrderId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

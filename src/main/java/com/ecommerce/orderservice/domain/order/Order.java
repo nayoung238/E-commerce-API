@@ -34,8 +34,8 @@ public class Order {
     @Column(name = "order_event_id", unique = true)
     private String orderEventId;
 
-    @Column(name = "user_id")
-    private Long userId;
+    @Column(name = "account_id")
+    private Long accountId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems;
@@ -55,7 +55,7 @@ public class Order {
                 .collect(Collectors.toList());
 
         return Order.builder()
-                .userId(orderDto.getUserId())
+                .accountId(orderDto.getAccountId())
                 .orderItems(orderItems)
                 .orderStatus(OrderStatus.WAITING)
                 .requestedAt(LocalDateTime.now())
@@ -69,7 +69,7 @@ public class Order {
 
         Order order = Order.builder()
                 .orderEventId(orderKafkaEvent.getOrderEventId())
-                .userId(orderKafkaEvent.getUserId())
+                .accountId(orderKafkaEvent.getAccountId())
                 .orderItems(orderItems)
                 .orderStatus(orderKafkaEvent.getOrderStatus())
                 .createdAt(orderKafkaEvent.getCreatedAt())

@@ -22,7 +22,7 @@ public class OrderKafkaEvent {
     private String orderEventId;
     private OrderStatus orderStatus;
     private List<OrderItemKafkaEvent> orderItemKafkaEvents;
-    private Long userId;
+    private Long accountId;
     private LocalDateTime createdAt;
     private LocalDateTime requestedAt;
 
@@ -36,7 +36,7 @@ public class OrderKafkaEvent {
                 .orderEventId(order.getOrderEventId())
                 .orderStatus(order.getOrderStatus() != null ? order.getOrderStatus() : null)
                 .orderItemKafkaEvents(orderItemKafkaEvents)
-                .userId(order.getUserId())
+                .accountId(order.getAccountId())
                 .createdAt(order.getCreatedAt() != null ? order.getCreatedAt() : null)
                 .requestedAt(LocalDateTime.now())
                 .build();
@@ -52,7 +52,7 @@ public class OrderKafkaEvent {
                 .orderEventId(orderDto.getOrderEventId())
                 .orderStatus(orderDto.getOrderStatus() != null ? orderDto.getOrderStatus() : null)
                 .orderItemKafkaEvents(orderItemKafkaEvents)
-                .userId(orderDto.getUserId())
+                .accountId(orderDto.getAccountId())
                 .createdAt(orderDto.getCreatedAt() != null ? orderDto.getCreatedAt() : null)
                 .requestedAt(LocalDateTime.now())
                 .build();

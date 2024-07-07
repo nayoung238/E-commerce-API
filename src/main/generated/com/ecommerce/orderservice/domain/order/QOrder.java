@@ -20,6 +20,8 @@ public class QOrder extends EntityPathBase<Order> {
 
     public static final QOrder order = new QOrder("order1");
 
+    public final NumberPath<Long> accountId = createNumber("accountId", Long.class);
+
     public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
@@ -31,8 +33,6 @@ public class QOrder extends EntityPathBase<Order> {
     public final EnumPath<OrderStatus> orderStatus = createEnum("orderStatus", OrderStatus.class);
 
     public final DateTimePath<java.time.LocalDateTime> requestedAt = createDateTime("requestedAt", java.time.LocalDateTime.class);
-
-    public final NumberPath<Long> userId = createNumber("userId", Long.class);
 
     public QOrder(String variable) {
         super(Order.class, forVariable(variable));
