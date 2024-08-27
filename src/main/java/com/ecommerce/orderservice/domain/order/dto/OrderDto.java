@@ -5,6 +5,7 @@ import com.ecommerce.orderservice.domain.order.OrderStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -23,10 +24,11 @@ public class OrderDto {
     private OrderStatus orderStatus;
 
     @Valid
+    @Size(min = 1, message = "주문 아이템은 필수입니다")
     private List<OrderItemDto> orderItemDtos;
 
-    @NotNull
-    @Min(value = 1)
+    @NotNull(message = "사용자 아이디는 필수입니다.")
+    @Min(value = 1, message = "사용자 아이디는 1 이상이어야 합니다.")
     private Long accountId;
 
     private LocalDateTime createdAt;
