@@ -7,10 +7,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Item {
 
     @Id
@@ -27,10 +25,22 @@ public class Item {
     @Column(nullable = false)
     private Long stock;
 
+    @Column(nullable = false)
+    private Long price;
+
+    @Builder
+    private Item(Long id, String name, Long stock, Long price) {
+        this.id = id;
+        this.name = name;
+        this.stock = stock;
+        this.price = price;
+    }
+
     public static Item of(ItemRegisterRequest request) {
         return Item.builder()
                 .name(request.getName())
                 .stock(request.getStock())
+                .price(request.getPrice())
                 .build();
     }
 
