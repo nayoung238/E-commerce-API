@@ -22,7 +22,10 @@ public enum ExceptionCode {
     ALREADY_EXIST_SHOP(HttpStatus.BAD_REQUEST, "이미 존재하는 상점입니다."),
     ALREADY_EXIST_SHOP_NAME(HttpStatus.BAD_REQUEST, "사용 중인 상점 이름입니다."),
     NON_SERVICE_LOCATION(HttpStatus.BAD_REQUEST, "서비스를 지원하지 않는 지역입니다."),
-    UNAUTHORIZED_MANAGER(HttpStatus.BAD_REQUEST, "권한없는 매니저입니다.");
+    UNAUTHORIZED_MANAGER(HttpStatus.BAD_REQUEST, "권한없는 매니저입니다."),
+
+    NOT_VALID(HttpStatus.BAD_REQUEST, "유효하지 않은 값입니다."),
+    CONSTRAINT_VIOLATION(HttpStatus.BAD_REQUEST, "제약조건 위반");
 
     private final HttpStatus httpStatus;
     private final String message;
