@@ -20,4 +20,12 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     Optional<Item> findByIdWithOptimisticLock(Long id);
 
     List<Item> findAllByName(String name);
+
+    List<Item> findAllByNameContaining(String name);
+
+    List<Item> findAllByNameIn(List<String> name);
+
+    List<Item> findAllByPriceBetween(long lowestPrice, long highestPrice);
+
+    List<Item> findALLByNameContainingAndPriceBetween(String name, long lowestPrice, long highestPrice);
 }
