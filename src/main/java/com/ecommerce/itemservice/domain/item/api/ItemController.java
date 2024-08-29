@@ -1,10 +1,14 @@
 package com.ecommerce.itemservice.domain.item.api;
 
 import com.ecommerce.itemservice.domain.item.dto.ItemRegisterRequest;
-import com.ecommerce.itemservice.exception.OrderException;
-import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.domain.item.dto.ItemDto;
 import com.ecommerce.itemservice.domain.item.service.ItemService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,29 +16,28 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "ItemController", description = "상품 생성 ")
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/items")
 @Slf4j
 public class ItemController {
 
     private final ItemService itemService;
 
-    @PostMapping("/items/create")
+    @Operation(summary = "상품 생성", description = "이름, 재고, 가격 데이터로 상품을 생성합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "상품 생성 성공", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
+            @ApiResponse(responseCode = "400", description = "조건을 위반한 데이터 입력 시 주문 실패", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
+            @ApiResponse(responseCode = "500", description = "서버 오류 발생", content = @Content(schema = @Schema(implementation = Exception.class)))
+    })
+    @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody @Valid ItemRegisterRequest request) {
         ItemDto response = itemService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/order-processing-result/{orderEventKey}")
-    public ResponseEntity<?> findOrderProcessingResult(@PathVariable String orderEventKey) {
-        try {
-            OrderStatus orderItemStatus = itemService.findOrderProcessingStatus(orderEventKey);
-            return ResponseEntity.status(HttpStatus.OK).body(orderItemStatus);
-        } catch (OrderException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
-        }
-    }
-
+    @Operation(summary = "상태 검사")
     @GetMapping("/health-check")
     public ResponseEntity<?> healthCheck() {
         log.info("health check...");
