@@ -1,10 +1,10 @@
-package com.ecommerce.orderservice.kafka.streams;
+package com.ecommerce.orderservice.kafka.config.streams;
 
 import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderEventSerde;
-import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
+import com.ecommerce.orderservice.kafka.service.producer.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;

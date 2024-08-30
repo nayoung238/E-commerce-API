@@ -11,7 +11,7 @@ import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.repository.OrderRedisRepository;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
-import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
+import com.ecommerce.orderservice.kafka.service.producer.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;

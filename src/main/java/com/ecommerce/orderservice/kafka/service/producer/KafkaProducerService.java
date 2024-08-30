@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.kafka.producer;
+package com.ecommerce.orderservice.kafka.service.producer;
 
 import com.ecommerce.orderservice.internalevent.InternalEventStatus;
 import com.ecommerce.orderservice.internalevent.service.InternalEventService;

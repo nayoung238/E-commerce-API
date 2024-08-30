@@ -2,7 +2,7 @@ package com.ecommerce.orderservice.domain.order;
 
 import com.ecommerce.orderservice.domain.order.dto.OrderItemRequestDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
-import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
+import com.ecommerce.orderservice.kafka.service.producer.KafkaProducerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 

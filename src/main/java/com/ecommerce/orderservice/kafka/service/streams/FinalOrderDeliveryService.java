@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.kafka.streams;
+package com.ecommerce.orderservice.kafka.service.streams;
 
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;

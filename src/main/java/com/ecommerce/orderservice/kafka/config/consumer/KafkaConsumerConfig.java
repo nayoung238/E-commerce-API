@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.kafka.consumer;
+package com.ecommerce.orderservice.kafka.config.consumer;
 
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderEventDeserializer;
