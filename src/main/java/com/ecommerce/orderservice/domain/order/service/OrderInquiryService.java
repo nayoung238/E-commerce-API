@@ -6,21 +6,33 @@ import com.ecommerce.orderservice.domain.order.dto.OrderSimpleDto;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.exception.ExceptionCode;
-import com.ecommerce.orderservice.exception.OrderException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class OrderService {
+public class OrderInquiryService {
 
     public final OrderRepository orderRepository;
     public static final int PAGE_SIZE = 5;
+
+    public OrderDto findLatestOrderByAccountId(Long accountId) {
+        Order order = orderRepository.findLatestOrderByAccountId(accountId)
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ORDER.getMessage()));
+
+        return OrderDto.of(order);
+    }
+
+    public OrderDto findOrderByOrderEventId(String orderEventId) {
+        Order order = orderRepository.findByOrderEventId(orderEventId)
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ORDER.getMessage()));
+        return OrderDto.of(order);
+    }
 
     public OrderListDto findOrderByAccountIdAndOrderId(Long accountId, Long orderId) {
         PageRequest pageRequest = PageRequest.of(0, PAGE_SIZE);
@@ -36,12 +48,5 @@ public class OrderService {
                 .toList();
 
         return new OrderListDto(orderSimpleDtoList);
-    }
-
-    @Transactional
-    public OrderDto findOrderByOrderEventId(String orderEventId) {
-        Order order = orderRepository.findByOrderEventId(orderEventId)
-                .orElseThrow(() -> new OrderException(ExceptionCode.NOT_FOUND_ORDER));
-        return OrderDto.of(order);
     }
 }

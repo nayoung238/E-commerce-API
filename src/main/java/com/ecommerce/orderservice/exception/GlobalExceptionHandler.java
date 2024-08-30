@@ -1,6 +1,7 @@
 package com.ecommerce.orderservice.exception;
 
 import com.ecommerce.orderservice.exception.response.ExceptionResponse;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -34,6 +35,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(exceptionResponse, ExceptionCode.CONSTRAINT_VIOLATION.getHttpStatus());
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException e) {
+        ExceptionResponse exceptionResponse = ExceptionResponse.builder()
+                .code(String.valueOf(ExceptionCode.NOT_FOUND))
+                .message(e.getMessage())
+                .build();
+
+        return new ResponseEntity<>(exceptionResponse, ExceptionCode.NOT_FOUND.getHttpStatus());
     }
 
     private ResponseEntity<Object> handleExceptionInternal(ExceptionCode exceptionCode) {
