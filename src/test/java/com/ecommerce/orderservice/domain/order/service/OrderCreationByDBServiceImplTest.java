@@ -1,24 +1,26 @@
 package com.ecommerce.orderservice.domain.order.service;
 
 import com.ecommerce.orderservice.domain.order.BaseServiceTest;
-import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderItemDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
-import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.Objects;
-import java.util.stream.IntStream;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("local")
 class OrderCreationByDBServiceImplTest extends BaseServiceTest {
 
     @Autowired
-    OrderCreationByDBServiceImpl orderCreationByDBService;
+    OrderCreationByDBServiceImpl orderCreationByDBServiceImpl;
 
     @Autowired
     OrderRepository orderRepository;
@@ -28,30 +30,29 @@ class OrderCreationByDBServiceImplTest extends BaseServiceTest {
         orderRepository.deleteAll();
     }
 
+    @DisplayName("주문 생성 시 주문 상태는 WAITING")
     @Test
-    void 최종_주문_생성 () throws InterruptedException {
+    void 요청_주문_생성_테스트() throws InterruptedException {
         // given
-        createOrders(1);
-        Order order = orderRepository.findById(1L).orElse(null);
-        assert order != null;
+        final long accountId = 2L;
+        final List<Long> orderItemIds = List.of(2L, 3L, 7L);
+        OrderRequestDto orderRequestDto = getOrderRequestDto(accountId, orderItemIds);
 
         // when
-        OrderStatus testStatus = OrderStatus.SUCCEEDED;
-        createOrderProcessingResult(order.getOrderEventId(), testStatus, TopicConfig.ORDER_PROCESSING_RESULT_TOPIC);
-        Thread.sleep(10000);
+        OrderDto response = orderCreationByDBServiceImpl.create(orderRequestDto);
 
         // then
-        Order finalOrder = orderRepository.findByOrderEventId(order.getOrderEventId()).orElse(null);
-        assert finalOrder != null;
-        Assertions.assertEquals(testStatus, finalOrder.getOrderStatus());
-        Assertions.assertTrue(finalOrder.getOrderItems()
-                .stream()
-                .allMatch(orderItem -> Objects.equals(testStatus, orderItem.getOrderStatus())));
-    }
+        assertThat(response.getId()).isPositive();
+        assertThat(response.getAccountId()).isEqualTo(accountId);
+        assertThat(response.getOrderStatus()).isEqualTo(OrderStatus.WAITING);
 
-    private void createOrders(int n) {
-        IntStream.range(0, n)
-                .mapToObj(i -> getRequestedOrder())
-                .forEach(o -> orderCreationByDBService.create(o));
+        List<OrderItemDto> orderItemDtos = response.getOrderItemDtos();
+        assertThat(orderItemDtos)
+                .hasSize(orderItemDtos.size())
+                .allMatch(o -> o.getOrderStatus().equals(OrderStatus.WAITING));
+
+        assertThat(orderItemDtos)
+                .extracting(OrderItemDto::getItemId)
+                .containsExactlyInAnyOrderElementsOf(orderItemIds);
     }
 }
