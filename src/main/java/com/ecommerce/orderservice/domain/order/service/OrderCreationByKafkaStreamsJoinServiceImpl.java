@@ -2,11 +2,12 @@ package com.ecommerce.orderservice.domain.order.service;
 
 import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.kafka.producer.KafkaProducerService;
-import com.ecommerce.orderservice.openfeign.ItemServiceClient;
+//import com.ecommerce.orderservice.openfeign.ItemServiceClient;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.repository.OrderRedisRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,16 +32,15 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     public final OrderRepository orderRepository;
     private final OrderRedisRepository orderRedisRepository;
     public final KafkaProducerService kafkaProducerService;
-    private final ItemServiceClient itemServiceClient;
+//    private final ItemServiceClient itemServiceClient;
 
     @Override
     @Transactional
-    public OrderDto create(OrderDto orderDto) {
-        orderDto.initializeOrderEventId(createOrderEventId(orderDto.getAccountId()));
-        orderDto.initializeRequestedAt();
-        orderDto.setOrderStatus(OrderStatus.WAITING);
-        kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderDto.getOrderEventId(), OrderKafkaEvent.of(orderDto));
-        return orderDto;
+    public OrderDto create(OrderRequestDto orderRequestDto) {
+        String orderEventId = getOrderEventId(orderRequestDto.getAccountId());
+        OrderKafkaEvent orderKafkaEvent = OrderKafkaEvent.of(orderRequestDto, orderEventId);
+        kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
+        return OrderDto.of(orderKafkaEvent);
     }
 
     @KafkaListener(topics = TopicConfig.FINAL_ORDER_STREAMS_ONLY_TOPIC)
@@ -93,17 +93,17 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
                 record.key());
 
         // OpenFeign
-        OrderStatus orderStatus = itemServiceClient.findOrderProcessingResult(record.key());
-        if (orderStatus.equals(OrderStatus.SUCCEEDED) || orderStatus.equals(OrderStatus.FAILED)) {
-            if(!isExistOrderByOrderEventId(record.key())) {
-                OrderKafkaEvent orderEvent = OrderKafkaEvent.of(record.key(), orderStatus);
-                kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, record.key(), orderEvent);
-            }
-        } else if (orderStatus.equals(OrderStatus.SERVER_ERROR)) {
-            kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, record.key());
-        } else {
-            resendKafkaMessage(record.key(), record.value());
-        }
+//        OrderStatus orderStatus = itemServiceClient.findOrderProcessingResult(record.key());
+//        if (orderStatus.equals(OrderStatus.SUCCEEDED) || orderStatus.equals(OrderStatus.FAILED)) {
+//            if(!isExistOrderByOrderEventId(record.key())) {
+//                OrderKafkaEvent orderEvent = OrderKafkaEvent.of(record.key(), orderStatus);
+//                kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, record.key(), orderEvent);
+//            }
+//        } else if (orderStatus.equals(OrderStatus.SERVER_ERROR)) {
+//            kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, record.key());
+//        } else {
+//            resendKafkaMessage(record.key(), record.value());
+//        }
     }
 
     private void resendKafkaMessage(String key, OrderKafkaEvent orderEvent) {

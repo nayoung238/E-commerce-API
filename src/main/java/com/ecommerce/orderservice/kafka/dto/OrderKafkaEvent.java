@@ -3,6 +3,7 @@ package com.ecommerce.orderservice.kafka.dto;
 import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -54,6 +55,23 @@ public class OrderKafkaEvent {
                 .orderItemKafkaEvents(orderItemKafkaEvents)
                 .accountId(orderDto.getAccountId())
                 .createdAt(orderDto.getCreatedAt() != null ? orderDto.getCreatedAt() : null)
+                .requestedAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static OrderKafkaEvent of(OrderRequestDto orderRequestDto, String orderEventId) {
+        List<OrderItemKafkaEvent> orderItemKafkaEvents = orderRequestDto
+                .getOrderItemRequestDtos()
+                .stream()
+                .map(OrderItemKafkaEvent::of)
+                .toList();
+
+        return OrderKafkaEvent.builder()
+                .orderEventId(orderEventId)
+                .orderStatus(OrderStatus.WAITING)
+                .orderItemKafkaEvents(orderItemKafkaEvents)
+                .accountId(orderRequestDto.getAccountId())
+                .createdAt(null)
                 .requestedAt(LocalDateTime.now())
                 .build();
     }

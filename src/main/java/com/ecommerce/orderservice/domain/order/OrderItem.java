@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.domain.order;
 
-import com.ecommerce.orderservice.domain.order.dto.OrderItemDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderItemRequestDto;
 import com.ecommerce.orderservice.kafka.dto.OrderItemKafkaEvent;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -28,10 +28,10 @@ public class OrderItem {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    public static OrderItem fromTemporaryOrderItemDto(OrderItemDto orderItemDto) {
+    public static OrderItem of(OrderItemRequestDto orderItemRequestDto) {
         return OrderItem.builder()
-                .itemId(orderItemDto.getItemId())
-                .quantity(orderItemDto.getQuantity())
+                .itemId(orderItemRequestDto.getItemId())
+                .quantity(orderItemRequestDto.getQuantity())
                 .orderStatus(OrderStatus.WAITING)
                 .build();
     }

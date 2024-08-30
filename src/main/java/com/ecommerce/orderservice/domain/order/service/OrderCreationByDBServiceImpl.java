@@ -1,11 +1,12 @@
 package com.ecommerce.orderservice.domain.order.service;
 
 import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.exception.ExceptionCode;
 import com.ecommerce.orderservice.exception.OrderException;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
-import com.ecommerce.orderservice.openfeign.ItemServiceClient;
+//import com.ecommerce.orderservice.openfeign.ItemServiceClient;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.repository.OrderRedisRepository;
@@ -35,14 +36,14 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     public final OrderRepository orderRepository;
     private final OrderRedisRepository orderRedisRepository;
     public final KafkaProducerService kafkaProducerService;
-    private final ItemServiceClient itemServiceClient;
+//    private final ItemServiceClient itemServiceClient;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
-    public OrderDto create(OrderDto orderDto) {
-        Order order = Order.fromTemporaryOrderDto(orderDto);
-        order.initializeOrderEventId(createOrderEventId(order.getAccountId()));
+    public OrderDto create(OrderRequestDto orderRequestDto) {
+        Order order = Order.of(orderRequestDto);
+        order.initializeOrderEventId(getOrderEventId(order.getAccountId()));
         order.getOrderItems()
                 .forEach(o -> o.initializeOrder(order));
 
@@ -102,10 +103,10 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
                 record.value().getOrderEventId());
 
         // OpenFeign
-        OrderStatus orderItemStatus = itemServiceClient.findOrderProcessingResult(record.value().getOrderEventId());
-        if(!orderItemStatus.equals(OrderStatus.NOT_EXIST))
-            updateOrderStatus(record.value().getOrderEventId(), orderItemStatus);
-        else resendKafkaMessage(null, record.value());
+//        OrderStatus orderItemStatus = itemServiceClient.findOrderProcessingResult(record.value().getOrderEventId());
+//        if(!orderItemStatus.equals(OrderStatus.NOT_EXIST))
+//            updateOrderStatus(record.value().getOrderEventId(), orderItemStatus);
+//        else resendKafkaMessage(null, record.value());
     }
 
     private void resendKafkaMessage(String key, OrderKafkaEvent value) {

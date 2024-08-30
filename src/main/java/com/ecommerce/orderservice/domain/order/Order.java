@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.domain.order;
 
-import com.ecommerce.orderservice.domain.order.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.internalevent.ordercreation.OrderCreationInternalEvent;
 import com.ecommerce.orderservice.internalevent.InternalEventStatus;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Getter @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "orders", indexes = @Index(name = "idx_order_event_key", columnList = "orderEventKey"))
+@Table(name = "orders", indexes = @Index(name = "idx_order_event_id", columnList = "orderEventId"))
 @EntityListeners(AuditingEntityListener.class)
 public class Order {
 
@@ -37,7 +37,7 @@ public class Order {
     @Column(name = "account_id")
     private Long accountId;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<OrderItem> orderItems;
 
     @Enumerated(EnumType.STRING)
@@ -47,15 +47,21 @@ public class Order {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    /*
+        KStream-KTable Join 방식에서 사용
+        -> 클라이언트 요청 발생 즉시 DB insert하지 않고,
+           Kafka 내부에서 최종 결과가 만들어지면 DB에 접근하므로
+           지연 시간 체크를 위해 requestedAt 필드 추가
+     */
     private LocalDateTime requestedAt;
 
-    public static Order fromTemporaryOrderDto(OrderDto orderDto) {
-        List<OrderItem> orderItems = orderDto.getOrderItemDtos().stream()
-                .map(OrderItem::fromTemporaryOrderItemDto)
+    public static Order of(OrderRequestDto orderRequestDto) {
+        List<OrderItem> orderItems = orderRequestDto.getOrderItemRequestDtos().stream()
+                .map(OrderItem::of)
                 .collect(Collectors.toList());
 
         return Order.builder()
-                .accountId(orderDto.getAccountId())
+                .accountId(orderRequestDto.getAccountId())
                 .orderItems(orderItems)
                 .orderStatus(OrderStatus.WAITING)
                 .requestedAt(LocalDateTime.now())

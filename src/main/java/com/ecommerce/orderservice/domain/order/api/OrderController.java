@@ -1,5 +1,6 @@
 package com.ecommerce.orderservice.domain.order.api;
 
+import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderListDto;
 import com.ecommerce.orderservice.domain.order.service.OrderCreationService;
 import com.ecommerce.orderservice.domain.order.service.OrderService;
@@ -37,8 +38,8 @@ public class OrderController {
             @ApiResponse(responseCode = "500", description = "서버 오류 발생", content = @Content(schema = @Schema(implementation = Exception.class)))
     })
     @PostMapping("/create")
-    public ResponseEntity<?> create(@RequestBody @Valid OrderDto orderDto) {
-        OrderDto response = orderCreationService.create(orderDto);
+    public ResponseEntity<?> create(@RequestBody @Valid OrderRequestDto orderRequestDto) {
+        OrderDto response = orderCreationService.create(orderRequestDto);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 

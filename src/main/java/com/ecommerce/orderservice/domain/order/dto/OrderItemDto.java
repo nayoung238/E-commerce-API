@@ -2,9 +2,7 @@ package com.ecommerce.orderservice.domain.order.dto;
 
 import com.ecommerce.orderservice.domain.order.OrderItem;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import com.ecommerce.orderservice.kafka.dto.OrderItemKafkaEvent;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,14 +12,8 @@ public class OrderItemDto {
 
     private Long id;
 
-    @NotNull(message = "아이템 아이디는 필수입니다.")
-    @Min(value = 1, message = "아이템 아이디는 1 이상이어야 합니다.")
-    @Schema(description = "아이템 아이디", nullable = false)
     private Long itemId;
 
-    @NotNull(message = "주문 수량은 필수입니다.")
-    @Min(value = 1, message = "주문 수량은 1 이상이어야 합니다.")
-    @Schema(description = "주문 수량", nullable = false)
     private Long quantity;
 
     private OrderStatus orderStatus;
@@ -35,7 +27,17 @@ public class OrderItemDto {
                 .build();
     }
 
-    public void updateOrderStatus(OrderStatus orderStatus) {
-        this.orderStatus = orderStatus;
+    /**
+     * KStream-KTable Join으로 주문 생성하는 방식에서 사용
+     * @param orderItemKafkaEvent DB insert 전이라 id 설정 안됨 (OrderItemDto.id null로 설정)
+     * @return
+     */
+    public static OrderItemDto of(OrderItemKafkaEvent orderItemKafkaEvent) {
+        return OrderItemDto.builder()
+                .id(null)
+                .itemId(orderItemKafkaEvent.getItemId())
+                .quantity(orderItemKafkaEvent.getQuantity())
+                .orderStatus(orderItemKafkaEvent.getOrderStatus())
+                .build();
     }
 }
