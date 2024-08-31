@@ -4,15 +4,16 @@ import com.ecommerce.itemservice.domain.item.Item;
 import com.ecommerce.itemservice.domain.item.repository.ItemRedisRepository;
 import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
 import com.ecommerce.itemservice.exception.ExceptionCode;
-import com.ecommerce.itemservice.exception.ItemException;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.kafka.service.producer.KafkaProducerService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaProducerException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Kafka Streams 이용해 이벤트 집계 후 DB에 반영하는 방식
@@ -33,9 +34,10 @@ public class StockUpdateByKafkaStreamsServiceImpl implements StockUpdateService 
     private final KafkaProducerService kafkaProducerService;
 
     @Override
+    @Transactional
     public OrderItemKafkaEvent updateStock(OrderItemKafkaEvent orderItemKafkaEvent) {
         Item item = itemRepository.findById(orderItemKafkaEvent.getItemId())
-                .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ITEM.getMessage()));
 
         // Redis에서 재고 차감 시도
         if(isUpdatableStockByRedis(item.getId(), orderItemKafkaEvent.getQuantity())) {

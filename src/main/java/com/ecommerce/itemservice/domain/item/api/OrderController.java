@@ -1,7 +1,6 @@
 package com.ecommerce.itemservice.domain.item.api;
 
 import com.ecommerce.itemservice.domain.item.service.ItemService;
-import com.ecommerce.itemservice.exception.OrderException;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -36,12 +35,8 @@ public class OrderController {
     })
     @GetMapping("/processing-result/{orderEventKey}")
     public ResponseEntity<?> findOrderProcessingResult(@PathVariable String orderEventKey) {
-        try {
-            OrderStatus orderItemStatus = itemService.findOrderProcessingStatus(orderEventKey);
-            return ResponseEntity.status(HttpStatus.OK).body(orderItemStatus);
-        } catch (OrderException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
-        }
+        OrderStatus orderItemStatus = itemService.findOrderProcessingStatus(orderEventKey);
+        return ResponseEntity.status(HttpStatus.OK).body(orderItemStatus);
     }
 
     @Operation(summary = "상태 검사")

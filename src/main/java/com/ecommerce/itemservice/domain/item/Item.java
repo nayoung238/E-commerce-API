@@ -2,7 +2,6 @@ package com.ecommerce.itemservice.domain.item;
 
 import com.ecommerce.itemservice.domain.item.dto.ItemRegisterRequest;
 import com.ecommerce.itemservice.exception.ExceptionCode;
-import com.ecommerce.itemservice.exception.StockException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -45,11 +44,11 @@ public class Item {
     }
 
     public void updateStock(Long quantity) {
-        if(quantity >= 0)  // production
+        if(quantity >= 0 || this.stock >= -quantity) {   // production || consumption
             this.stock += quantity;
-        else if(this.stock >= -quantity)  // consumption
-            this.stock += quantity;
-        else
-            throw new StockException(ExceptionCode.INSUFFICIENT_STOCK_EXCEPTION);
+        }
+        else {
+            throw new IllegalArgumentException(ExceptionCode.INSUFFICIENT_STOCK_EXCEPTION.getMessage());
+        }
     }
 }

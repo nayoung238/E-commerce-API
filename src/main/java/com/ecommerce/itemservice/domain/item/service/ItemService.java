@@ -2,9 +2,6 @@ package com.ecommerce.itemservice.domain.item.service;
 
 import com.ecommerce.itemservice.domain.item.dto.ItemRegisterRequest;
 import com.ecommerce.itemservice.exception.ExceptionCode;
-import com.ecommerce.itemservice.exception.ItemException;
-import com.ecommerce.itemservice.exception.OrderException;
-import com.ecommerce.itemservice.exception.StockException;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.domain.item.dto.ItemDto;
@@ -12,6 +9,7 @@ import com.ecommerce.itemservice.domain.item.Item;
 import com.ecommerce.itemservice.domain.item.repository.ItemRedisRepository;
 import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
 import com.ecommerce.itemservice.domain.item.repository.OrderRedisRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -40,15 +38,15 @@ public class ItemService {
     public OrderItemKafkaEvent updateStockByOptimisticLock(OrderItemKafkaEvent orderItemKafkaEvent) {
         try {
             Item item = itemRepository.findByIdWithOptimisticLock(orderItemKafkaEvent.getItemId())
-                    .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+                    .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ITEM.getMessage()));
             item.updateStock(orderItemKafkaEvent.getQuantity());
             orderItemKafkaEvent.updateOrderStatus(OrderStatus.SUCCEEDED);
             itemRepository.save(item);
-        } catch (ItemException e) {
-            log.error(String.valueOf(e.getExceptionCode()));
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
             orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
-        } catch (StockException e) {
-            log.error(String.valueOf(e.getExceptionCode()));
+        } catch (IllegalArgumentException e) {
+            log.error(e.getMessage());
             orderItemKafkaEvent.updateOrderStatus(OrderStatus.OUT_OF_STOCK);
         } catch (ObjectOptimisticLockingFailureException e) {
             log.error(e.getMessage() + " -> ItemId: {}", orderItemKafkaEvent.getItemId());
@@ -62,9 +60,9 @@ public class ItemService {
 
     public OrderStatus findOrderProcessingStatus(String orderEventKey) {
         String orderProcessingStatus = orderRedisRepository.getOrderStatus(orderEventKey);
-        if (orderProcessingStatus != null)
+        if (orderProcessingStatus != null) {
             return OrderStatus.getStatus(orderProcessingStatus);
-        else
-            throw new OrderException(ExceptionCode.NOT_FOUND_ORDER_DETAILS);
+        }
+        throw new EntityNotFoundException(ExceptionCode.NOT_FOUND_ORDER_DETAILS.getMessage());
     }
 }

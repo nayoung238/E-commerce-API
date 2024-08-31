@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ExceptionCode {
 
+    NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않습니다."),
     NOT_FOUND_ITEM(HttpStatus.BAD_REQUEST, "존재하지 않는 상품입니다."),
     ALREADY_EXIST_ITEM(HttpStatus.BAD_REQUEST, "이미 존재하는 상품입니다."),
     NOT_FOUND_ORDER_DETAILS(HttpStatus.NOT_FOUND, "주문 내역이 없습니다."),
@@ -25,6 +26,7 @@ public enum ExceptionCode {
     UNAUTHORIZED_MANAGER(HttpStatus.BAD_REQUEST, "권한없는 매니저입니다."),
 
     NOT_VALID(HttpStatus.BAD_REQUEST, "유효하지 않은 값입니다."),
+    ILLEGAL_ARGUMENT(HttpStatus.BAD_REQUEST, "위반된 인수"),
     CONSTRAINT_VIOLATION(HttpStatus.BAD_REQUEST, "제약조건 위반");
 
     private final HttpStatus httpStatus;

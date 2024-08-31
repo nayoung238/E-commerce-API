@@ -1,10 +1,12 @@
 package com.ecommerce.itemservice.exception;
 
 import com.ecommerce.itemservice.exception.response.ExceptionResponse;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -22,6 +24,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(exceptionResponse, ExceptionCode.NOT_VALID.getHttpStatus());
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException e) {
+        ExceptionResponse exceptionResponse = ExceptionResponse.builder()
+                .code(String.valueOf(ExceptionCode.NOT_FOUND))
+                .message(e.getMessage())
+                .build();
+
+        return new ResponseEntity<>(exceptionResponse, ExceptionCode.NOT_FOUND.getHttpStatus());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException e) {
+        ExceptionResponse exceptionResponse = ExceptionResponse.builder()
+                .code(String.valueOf(ExceptionCode.ILLEGAL_ARGUMENT))
+                .message(e.getMessage())
+                .build();
+
+        return new ResponseEntity<>(exceptionResponse, ExceptionCode.ILLEGAL_ARGUMENT.getHttpStatus());
     }
 
     private ResponseEntity<Object> handleExceptionInternal(ExceptionCode exceptionCode) {
