@@ -10,6 +10,9 @@ public class TopicConfig {
     public static final String ITEM_UPDATE_RESULT_TOPIC = "e-commerce.item.item-update-result";
     public static final String ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC = "e-commerce.item.item-update-result-streams-only";
 
+    public static final String REQUESTED_ORDER_TOPIC = "e-commerce.order.requested-order-details";
+    public static final String REQUESTED_ORDER_STREAMS_ONLY_TOPIC = "e-commerce.order.requested-order-details-streams-only";
+
     @Bean
     public KafkaAdmin.NewTopics newTopics() {
         return new KafkaAdmin.NewTopics(

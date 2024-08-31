@@ -18,9 +18,6 @@ import java.util.Map;
 @Configuration
 public class KafkaConsumerConfig {
 
-    public static final String REQUESTED_ORDER_TOPIC = "e-commerce.order.requested-order-details";
-    public static final String REQUESTED_ORDER_STREAMS_ONLY_TOPIC = "e-commerce.order.requested-order-details-streams-only";
-
     @Value("${spring.kafka.bootstrap-servers}")
     private String BOOTSTRAP_SERVER;
 
