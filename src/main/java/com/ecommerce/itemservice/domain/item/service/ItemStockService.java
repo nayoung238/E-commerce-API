@@ -1,7 +1,6 @@
 package com.ecommerce.itemservice.domain.item.service;
 
 import com.ecommerce.itemservice.exception.ExceptionCode;
-import com.ecommerce.itemservice.exception.ItemException;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
@@ -10,11 +9,13 @@ import com.ecommerce.itemservice.kafka.service.producer.KafkaProducerService;
 import com.ecommerce.itemservice.domain.item.Item;
 import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
 import com.ecommerce.itemservice.domain.item.repository.OrderRedisRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -30,30 +31,14 @@ public class ItemStockService {
     @Transactional
     public void updateStock(OrderKafkaEvent orderKafkaEvent, boolean isStreamsOnly) {
         if (isFirstEvent(orderKafkaEvent)) {  // 최초 요청만 재고 변경 진행
-            List<OrderItemKafkaEvent> result = orderKafkaEvent.getOrderItemKafkaEvents()
-                    .stream()
-                    .map(o -> {
-                        o.convertSign();
-                        return stockUpdateService.updateStock(o);
-                    })
-                    .toList();
-
-            if (isAllSucceeded(result)) {
-                orderKafkaEvent.updateOrderStatus(OrderStatus.SUCCEEDED);
-            } else {
-                List<OrderItemKafkaEvent> orderItemKafkaEvents = undo(result);
-                orderKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
-                orderKafkaEvent.updateOrderItemDtos(orderItemKafkaEvents);
-            }
-            orderRedisRepository.setOrderStatus(orderKafkaEvent.getOrderEventId(), orderKafkaEvent.getOrderStatus());
-            String topic = (isStreamsOnly) ? TopicConfig.ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC : TopicConfig.ITEM_UPDATE_RESULT_TOPIC;
-            kafkaProducerService.sendMessage(topic, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
+            processFirstEvent(orderKafkaEvent);
         }
-        else {
+        else {  // 최초 요청이 아니면 결과만 반환
             updateOrderStatus(orderKafkaEvent);
-            String topic = (isStreamsOnly) ? TopicConfig.ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC : TopicConfig.ITEM_UPDATE_RESULT_TOPIC;
-            kafkaProducerService.sendMessage(topic, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
         }
+
+        String topic = (isStreamsOnly) ? TopicConfig.ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC : TopicConfig.ITEM_UPDATE_RESULT_TOPIC;
+        kafkaProducerService.sendMessage(topic, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
     }
 
     private boolean isFirstEvent(OrderKafkaEvent orderKafkaEvent) {
@@ -62,18 +47,36 @@ public class ItemStockService {
     }
 
     private String getRedisKey(OrderKafkaEvent orderKafkaEvent) {
-        String[] keys;
-        if(orderKafkaEvent.getCreatedAt() != null)
-            keys = orderKafkaEvent.getCreatedAt().toString().split(":");
-        else
-            keys = orderKafkaEvent.getRequestedAt().toString().split(":");
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd:HH");
+        return orderKafkaEvent.getRequestedAt().format(formatter);
+    }
 
-        return keys[0]; // yyyy-mm-dd'T'HH
+    private void processFirstEvent(OrderKafkaEvent orderKafkaEvent) {
+        List<OrderItemKafkaEvent> result = orderKafkaEvent.getOrderItemKafkaEvents()
+                .stream()
+                .map(o -> {
+                    o.convertSign();
+                    return stockUpdateService.updateStock(o);
+                })
+                .toList();
+
+        if (isAllSucceeded(result)) {
+            orderKafkaEvent.updateOrderStatus(OrderStatus.SUCCEEDED);
+        } else {
+            handleFailedUpdate(orderKafkaEvent, result);
+        }
+        orderRedisRepository.setOrderStatus(orderKafkaEvent.getOrderEventId(), orderKafkaEvent.getOrderStatus());
     }
 
     private boolean isAllSucceeded(List<OrderItemKafkaEvent> orderItemKafkaEvents) {
         return orderItemKafkaEvents.stream()
                 .allMatch(o -> Objects.equals(OrderStatus.SUCCEEDED, o.getOrderStatus()));
+    }
+
+    private void handleFailedUpdate(OrderKafkaEvent orderKafkaEvent, List<OrderItemKafkaEvent> orderItemKafkaEvents) {
+        undo(orderItemKafkaEvents);
+        orderKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
+        orderKafkaEvent.updateOrderItemDtos(orderItemKafkaEvents);
     }
 
     private void updateOrderStatus(OrderKafkaEvent orderKafkaEvent) {
@@ -88,7 +91,7 @@ public class ItemStockService {
                 .forEach(orderItemDto -> orderItemDto.updateOrderStatus(orderStatus));
     }
 
-    private List<OrderItemKafkaEvent> undo(List<OrderItemKafkaEvent> orderItemKafkaEvents) {
+    private void undo(List<OrderItemKafkaEvent> orderItemKafkaEvents) {
         orderItemKafkaEvents.stream()
                 .filter(o -> Objects.equals(OrderStatus.SUCCEEDED, o.getOrderStatus()))
                 .forEach(o -> {
@@ -96,14 +99,12 @@ public class ItemStockService {
                     stockUpdateService.updateStock(o);
                     o.updateOrderStatus(OrderStatus.CANCELED);
                 });
-
-        return orderItemKafkaEvents;
     }
 
     @Transactional
     public void updateStockWithPessimisticLock(Long itemId, Long quantity) {
         Item item = itemRepository.findByIdWithPessimisticLock(itemId)
-                .orElseThrow(() -> new ItemException(ExceptionCode.NOT_FOUND_ITEM));
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ITEM.getMessage()));
 
         item.updateStock(quantity);
     }
