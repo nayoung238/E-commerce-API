@@ -1,5 +1,6 @@
 package com.ecommerce.orderservice.domain.order.repository;
 
+import com.ecommerce.orderservice.BaseServiceTest;
 import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.OrderItem;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
@@ -8,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +17,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("local")
-class OrderRepositoryTest {
+class OrderRepositoryTest extends BaseServiceTest {
 
     @Autowired
     private OrderRepository orderRepository;
@@ -50,7 +49,7 @@ class OrderRepositoryTest {
 
         assertThat(savedOrder.getOrderItems())
                 .hasSize(orderItemIds.size())
-                .allMatch(orderItem -> orderItem.getOrderStatus().equals(orderStatus))
+                .allMatch(orderItem -> orderItem.getStatus().equals(orderStatus))
                 .extracting(OrderItem::getItemId)
                 .containsExactlyInAnyOrderElementsOf(orderItemIds);
     }
@@ -83,14 +82,14 @@ class OrderRepositoryTest {
         Order savedOrder1 = orders.get(0);
         assertThat(savedOrder1.getOrderItems())
                 .hasSize(orderItemIds1.size())
-                .allMatch(orderItem -> orderItem.getOrderStatus().equals(orderStatus1))
+                .allMatch(orderItem -> orderItem.getStatus().equals(orderStatus1))
                 .extracting(OrderItem::getItemId)
                 .containsExactlyInAnyOrderElementsOf(orderItemIds1);
 
         Order savedOrder2 = orders.get(1);
         assertThat(savedOrder2.getOrderItems())
                 .hasSize(orderItemIds2.size())
-                .allMatch(orderItem -> orderItem.getOrderStatus().equals(orderStatus2))
+                .allMatch(orderItem -> orderItem.getStatus().equals(orderStatus2))
                 .extracting(OrderItem::getItemId)
                 .containsExactlyInAnyOrderElementsOf(orderItemIds2);
     }
@@ -132,7 +131,7 @@ class OrderRepositoryTest {
                 .map(i -> OrderItem.builder()
                         .itemId(i)
                         .quantity(3L)
-                        .orderStatus(orderStatus)
+                        .status(orderStatus)
                         .build())
                 .toList();
 

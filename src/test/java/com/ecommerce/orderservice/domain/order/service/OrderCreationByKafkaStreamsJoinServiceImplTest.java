@@ -1,27 +1,37 @@
 package com.ecommerce.orderservice.domain.order.service;
 
-import com.ecommerce.orderservice.domain.order.BaseServiceTest;
-import com.ecommerce.orderservice.domain.order.Order;
+import com.ecommerce.orderservice.BaseServiceTest;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
-import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderItemDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
+import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
-import org.junit.jupiter.api.*;
+import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
+import com.ecommerce.orderservice.kafka.service.producer.KafkaProducerService;
+import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@ActiveProfiles("local")
 class OrderCreationByKafkaStreamsJoinServiceImplTest extends BaseServiceTest {
 
     @Autowired
     OrderCreationByKafkaStreamsJoinServiceImpl orderCreationByKafkaStreamsJoinService;
+
+    @Autowired
+    OrderInquiryService orderInquiryService;
+
+    @Autowired
+    KafkaProducerService kafkaProducerService;
 
     @Autowired
     OrderRepository orderRepository;
@@ -31,49 +41,56 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends BaseServiceTest {
         orderRepository.deleteAll();
     }
 
+    @DisplayName("KStream-KTable Join된 이벤트만 최종 상태(SUCCEEDED or FAILED) 설정 후 DB Insert")
     @Test
     void 최종_주문_생성 () throws InterruptedException {
-        //given
-        List<OrderDto> orderDtoList = createOrders(1);
-        assert orderDtoList.size() == 1;
-        assert orderRepository.findAll().isEmpty();
-        OrderDto orderDto = orderDtoList.get(0);
+        // given & when
+        final long accountId = 2L;
+        final List<Long> orderItemIds = List.of(34L, 12L, 4L);
+        OrderRequestDto orderRequestDto = getOrderRequestDto(accountId, orderItemIds);
+        OrderDto requestedOrder = orderCreationByKafkaStreamsJoinService.create(orderRequestDto);
 
-        // when
-        OrderStatus testStatus = OrderStatus.SUCCEEDED;
-        createOrderProcessingResult(orderDto.getOrderEventId(), testStatus, TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
-        Thread.sleep(10000);
+        Thread.sleep(2000);
+
+        final OrderStatus finalOrderStatus = OrderStatus.SUCCEEDED;
+        OrderKafkaEvent event = getOrderKafkaEvent(requestedOrder, finalOrderStatus);
+        kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, requestedOrder.getOrderEventId(), event);
+
+        Thread.sleep(5000);
 
         // then
-        Order finalOrder = orderRepository.findByOrderEventId(orderDto.getOrderEventId()).orElse(null);
-        assert finalOrder != null;
-        Assertions.assertEquals(testStatus, finalOrder.getOrderStatus());
-        Assertions.assertTrue(finalOrder.getOrderItems()
-                .stream()
-                .allMatch(orderItem -> Objects.equals(testStatus, orderItem.getOrderStatus())));
+        OrderDto finalOrder = orderInquiryService.findLatestOrderByAccountId(accountId);
+        assertThat(finalOrder).isNotNull();
+        assertThat(finalOrder.getOrderEventId()).isEqualTo(requestedOrder.getOrderEventId());
+        assertThat(finalOrder.getOrderItemDtos())
+                .hasSize(orderItemIds.size())
+                .extracting(OrderItemDto::getItemId)
+                .containsExactlyInAnyOrderElementsOf(orderItemIds);
+
+        assertThat(finalOrder.getOrderStatus()).isEqualTo(finalOrderStatus);
+        assertThat(finalOrder.getOrderItemDtos())
+                .allMatch(orderItemDto -> orderItemDto.getStatus().equals(finalOrderStatus));
     }
 
+    @DisplayName("결과 이벤트의 상태가 SUCCEEDED or FAILED 인 경우에만 스트림즈 조인")
     @Test
-    @DisplayName("SUCCEEDED or FAILED 상태만 스트림즈 조인")
     void 스트림즈_조인_필터 () throws InterruptedException {
-        //given
-        List<OrderDto> orderDtoList = createOrders(1);
-        assert orderDtoList.size() == 1;
-        assert orderRepository.findAll().isEmpty();
-        OrderDto orderDto = orderDtoList.get(0);
+        // given & when
+        final long accountId = 2L;
+        final List<Long> orderItemIds = List.of(1L, 2L, 3L);
+        OrderRequestDto orderRequestDto = getOrderRequestDto(accountId, orderItemIds);
+        OrderDto requestedOrder = orderCreationByKafkaStreamsJoinService.create(orderRequestDto);
 
-        // when
-        OrderStatus testStatus = OrderStatus.CANCELED;
-        createOrderProcessingResult(orderDto.getOrderEventId(), testStatus, TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
-        Thread.sleep(10000);
+        Thread.sleep(2000);
 
-        Assertions.assertTrue(orderRepository.findAll().isEmpty());
-    }
+        final OrderStatus finalOrderStatus = OrderStatus.SERVER_ERROR;
+        OrderKafkaEvent event = getOrderKafkaEvent(requestedOrder, finalOrderStatus);
+        kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, requestedOrder.getOrderEventId(), event);
 
-    private List<OrderDto> createOrders(int n) {
-        return IntStream.range(0, n)
-                .mapToObj(i -> getRequestedOrder())
-                .map(o -> orderCreationByKafkaStreamsJoinService.create(o))
-                .collect(Collectors.toList());
+        Thread.sleep(5000);
+
+        // then
+        Assertions.assertThrows(EntityNotFoundException.class,
+                () -> orderInquiryService.findLatestOrderByAccountId(accountId));
     }
 }

@@ -1,0 +1,25 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+  datasource:
+    url: jdbc:mysql://localhost:3306/test_order_service
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+    listener:
+      ack-mode: manual
+
+  cloud:
+    discovery:
+      client:
+        simple:
+          local:
+            host: localhost
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:${eureka.client.eureka-server-port}/eureka
