@@ -1,4 +1,4 @@
-package com.ecommerce.itemservice.kafka.service.streams;
+package com.ecommerce.itemservice.kafka.config.streams;
 
 import com.ecommerce.itemservice.domain.item.service.ItemStockService;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
@@ -12,17 +12,16 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.state.WindowStore;
 import org.springframework.context.annotation.Bean;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
-import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.Collections;
 
-@Service
+@Configuration
 @RequiredArgsConstructor
 @Slf4j
-public class StockAggregationService {
+public class StockAggregationTopology {
 
     private final ItemStockService itemStockService;
 
@@ -50,12 +49,14 @@ public class StockAggregationService {
                 .toStream()
                 .peek((key, value) -> {
                     Long itemId = Long.valueOf(key.key());
-                    itemStockService.updateStockWithPessimisticLock(itemId, value);
-                    log.info("Aggregation results [ {} - {} ] -> itemId={}, quantity={}",
-                            key.window().startTime(),
-                            key.window().endTime(),
-                            itemId,
-                            value);
+                    if(value != 0) {
+                        itemStockService.updateStockWithPessimisticLock(itemId, value);
+                        log.info("Aggregation results [ {} - {} ] -> itemId={}, quantity={}",
+                                key.window().startTime(),
+                                key.window().endTime(),
+                                itemId,
+                                value);
+                    }
                 });
     }
 }
