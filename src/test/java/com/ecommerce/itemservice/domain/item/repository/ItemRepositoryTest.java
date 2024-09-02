@@ -1,5 +1,6 @@
 package com.ecommerce.itemservice.domain.item.repository;
 
+import com.ecommerce.itemservice.BaseServiceTest;
 import com.ecommerce.itemservice.domain.item.Item;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +18,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class ItemRepositoryTest {
+class ItemRepositoryTest extends BaseServiceTest {
 
     @Autowired
     private ItemRepository itemRepository;
@@ -212,13 +213,5 @@ class ItemRepositoryTest {
         assertThat(savedItems)
                 .extracting(Item::getName)
                 .containsOnly(itemName1);
-    }
-
-    private Item getItem(String name, long stock, long price) {
-        return Item.builder()
-                .name(name)
-                .stock(stock)
-                .price(price)
-                .build();
     }
 }
