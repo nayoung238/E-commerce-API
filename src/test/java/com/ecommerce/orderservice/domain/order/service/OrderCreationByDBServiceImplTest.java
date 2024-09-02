@@ -71,6 +71,15 @@ class OrderCreationByDBServiceImplTest extends BaseServiceTest {
         assertThat(orderItemDtos)
                 .extracting(OrderItemDto::getItemId)
                 .containsExactlyInAnyOrderElementsOf(orderItemIds);
+
+        verify(internalEventService, times(1)).publishInternalEvent(any());
+
+        /*
+            KafkaProducerService @MockBean 설정해야만 검증 가능
+            최종_주문_상태_테스트 에서 KafkaProducerService 사용 중이라 @MockBean 설정 불가
+         */
+//        verify(kafkaProducerService, times(0))
+//                .send(anyString(), anyString(), any());
     }
 
     @DisplayName("주문에 대한 처리 결과 이벤트 수신 후 최종 상태(SUCCEEDED or FAILED)로 update")
