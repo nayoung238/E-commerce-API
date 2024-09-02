@@ -6,6 +6,7 @@ import com.ecommerce.orderservice.internalevent.InternalEventStatus;
 import com.ecommerce.orderservice.internalevent.ordercreation.OrderCreationInternalEvent;
 import com.ecommerce.orderservice.internalevent.ordercreation.repository.OrderCreationInternalEventRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +16,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class InternalEventService {
 
+    private final ApplicationEventPublisher eventPublisher;
     private final OrderCreationInternalEventRepository orderCreationInternalEventRepository;
+
+    @Transactional
+    public void publishInternalEvent(OrderCreationInternalEvent orderCreationInternalEvent) {
+        eventPublisher.publishEvent(orderCreationInternalEvent);
+    }
 
     @Transactional
     public void saveOrderCreationInternalEvent(OrderCreationInternalEvent event) {

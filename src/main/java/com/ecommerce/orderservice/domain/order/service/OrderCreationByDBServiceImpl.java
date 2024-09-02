@@ -3,6 +3,7 @@ package com.ecommerce.orderservice.domain.order.service;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.exception.ExceptionCode;
+import com.ecommerce.orderservice.internalevent.service.InternalEventService;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 //import com.ecommerce.orderservice.openfeign.ItemServiceClient;
@@ -14,7 +15,6 @@ import com.ecommerce.orderservice.kafka.service.producer.KafkaProducerService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +34,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     private final OrderRedisRepository orderRedisRepository;
     public final KafkaProducerService kafkaProducerService;
 //    private final ItemServiceClient itemServiceClient;
-    private final ApplicationEventPublisher eventPublisher;
+    private final InternalEventService internalEventService;
 
     @Override
     @Transactional
@@ -45,7 +45,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
                 .forEach(o -> o.initializeOrder(order));
 
         orderRepository.save(order);
-        eventPublisher.publishEvent(order.getOrderCreationInternalEvent());
+        internalEventService.publishInternalEvent(order.getOrderCreationInternalEvent());
         return OrderDto.of(order);
     }
 
