@@ -5,17 +5,20 @@ import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderItemDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
-import com.ecommerce.orderservice.domain.order.repository.OrderRepository;;
+import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
+import com.ecommerce.orderservice.internalevent.service.InternalEventService;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.kafka.service.producer.KafkaProducerService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 class OrderCreationByDBServiceImplTest extends BaseServiceTest {
@@ -32,6 +35,9 @@ class OrderCreationByDBServiceImplTest extends BaseServiceTest {
     @Autowired
     OrderRepository orderRepository;
 
+    @MockBean
+    InternalEventService internalEventService;
+
     @AfterEach
     void afterEach() {
         orderRepository.deleteAll();
@@ -44,6 +50,10 @@ class OrderCreationByDBServiceImplTest extends BaseServiceTest {
         final long accountId = 2L;
         final List<Long> orderItemIds = List.of(2L, 3L, 7L);
         OrderRequestDto orderRequestDto = getOrderRequestDto(accountId, orderItemIds);
+
+        // stubbing
+        doNothing()
+                .when(internalEventService).publishInternalEvent(any());
 
         // when
         OrderDto response = orderCreationByDBServiceImpl.create(orderRequestDto);
@@ -66,6 +76,10 @@ class OrderCreationByDBServiceImplTest extends BaseServiceTest {
     @DisplayName("주문에 대한 처리 결과 이벤트 수신 후 최종 상태(SUCCEEDED or FAILED)로 update")
     @Test
     void 최종_주문_상태_테스트() throws InterruptedException {
+        // stubbing
+        doNothing()
+                .when(internalEventService).publishInternalEvent(any());
+
         // given & when
         final long accountId = 2L;
         final List<Long> orderItemIds = List.of(2L, 3L, 7L);
