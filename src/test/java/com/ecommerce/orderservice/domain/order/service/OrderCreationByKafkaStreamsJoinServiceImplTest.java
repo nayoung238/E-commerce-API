@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.domain.order.service;
 
-import com.ecommerce.orderservice.BaseServiceTest;
+import com.ecommerce.orderservice.IntegrationTestSupport;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderItemDto;
@@ -15,14 +15,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-class OrderCreationByKafkaStreamsJoinServiceImplTest extends BaseServiceTest {
+class OrderCreationByKafkaStreamsJoinServiceImplTest extends IntegrationTestSupport {
 
     @Autowired
     OrderCreationByKafkaStreamsJoinServiceImpl orderCreationByKafkaStreamsJoinService;

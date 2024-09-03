@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.domain.order.service;
 
-import com.ecommerce.orderservice.BaseServiceTest;
+import com.ecommerce.orderservice.IntegrationTestSupport;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderItemDto;
@@ -12,7 +12,6 @@ import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.kafka.service.producer.KafkaProducerService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
@@ -20,8 +19,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
-class OrderCreationByDBServiceImplTest extends BaseServiceTest {
+
+class OrderCreationByDBServiceImplTest extends IntegrationTestSupport {
 
     @Autowired
     OrderCreationByDBServiceImpl orderCreationByDBServiceImpl;

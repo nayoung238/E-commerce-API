@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.domain.order.repository;
 
-import com.ecommerce.orderservice.BaseServiceTest;
+import com.ecommerce.orderservice.IntegrationTestSupport;
 import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.OrderItem;
 import com.ecommerce.orderservice.domain.order.OrderStatus;
@@ -8,7 +8,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +15,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 
-@SpringBootTest
-class OrderRepositoryTest extends BaseServiceTest {
+class OrderRepositoryTest extends IntegrationTestSupport {
 
     @Autowired
     private OrderRepository orderRepository;
