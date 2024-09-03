@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.domain.item.repository;
 
-import com.ecommerce.itemservice.BaseServiceTest;
+import com.ecommerce.itemservice.IntegrationTestSupport;
 import com.ecommerce.itemservice.domain.item.Item;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class ItemRepositoryTest extends BaseServiceTest {
+class ItemRepositoryTest extends IntegrationTestSupport {
 
     @Autowired
     private ItemRepository itemRepository;

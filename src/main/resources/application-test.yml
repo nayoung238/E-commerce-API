@@ -10,7 +10,12 @@ spring:
       mode: always
       data-locations: classpath:db/data.sql
   kafka:
-    bootstrap-servers: localhost:29092
+    bootstrap-servers: localhost:9092
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+    listener:
+      ack-mode: manual
 
 eureka:
   client:

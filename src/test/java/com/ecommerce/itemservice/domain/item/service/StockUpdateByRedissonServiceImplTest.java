@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.domain.item.service;
 
-import com.ecommerce.itemservice.BaseServiceTest;
+import com.ecommerce.itemservice.IntegrationTestSupport;
 import com.ecommerce.itemservice.domain.item.Item;
 import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
@@ -8,8 +8,6 @@ import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,9 +16,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-class StockUpdateByRedissonServiceImplTest extends BaseServiceTest {
+class StockUpdateByRedissonServiceImplTest extends IntegrationTestSupport {
 
     @Autowired
     private StockUpdateByRedissonServiceImpl stockUpdateByRedissonServiceImpl;
