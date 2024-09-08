@@ -1,4 +1,4 @@
-package com.ecommerce.itemservice.domain.item.api;
+package com.ecommerce.itemservice.api.order;
 
 import com.ecommerce.itemservice.domain.item.service.ItemService;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
