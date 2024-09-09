@@ -16,11 +16,3 @@ spring:
           auto: create
         show_sql: true
         format_sql: true
-
-  kafka:
-    bootstrap-servers: localhost:9092
-    consumer:
-      auto-offset-reset: earliest
-      enable-auto-commit: false
-    listener:
-      ack-mode: manual
