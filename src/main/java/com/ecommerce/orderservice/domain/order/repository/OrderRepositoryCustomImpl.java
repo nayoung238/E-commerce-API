@@ -28,10 +28,12 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
     @Override
     public List<Order> findByAccountIdAndOrderIdLessThanOrderByOrderIdDesc(Long accountId, Long orderId, PageRequest pageRequest) {
         return queryFactory.selectFrom(QOrder.order)
-                .where(QOrder.order.accountId.eq(accountId))
+                .where(
+                        QOrder.order.accountId.eq(accountId),
+                        QOrder.order.id.lt(orderId)
+                )
                 .join(QOrder.order.orderItems, QOrderItem.orderItem).fetchJoin()
-                .orderBy(new OrderSpecifier<>(com.querydsl.core.types.Order.DESC, QOrder.order.id))
-                .offset(orderId)
+                .orderBy(QOrder.order.id.desc())
                 .limit(pageRequest.getPageSize())
                 .fetch();
     }
