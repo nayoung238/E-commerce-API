@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.domain.order.api;
+package com.ecommerce.orderservice.api;
 
 import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderListDto;
