@@ -12,10 +12,6 @@ public class OrderItemKafkaEvent {
     private Long quantity;
     private OrderStatus orderStatus;
 
-    public void convertSign() {
-        quantity *= -1;
-    }
-
     public void updateOrderStatus(OrderStatus status) {
         this.orderStatus = status;
     }

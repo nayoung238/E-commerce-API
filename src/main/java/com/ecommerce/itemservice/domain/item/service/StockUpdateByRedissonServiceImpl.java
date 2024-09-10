@@ -1,5 +1,6 @@
 package com.ecommerce.itemservice.domain.item.service;
 
+import com.ecommerce.itemservice.domain.item.service.stockupdate.ItemUpdateStatus;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import lombok.RequiredArgsConstructor;
@@ -36,14 +37,14 @@ public class StockUpdateByRedissonServiceImpl implements StockUpdateService {
 
     @Override
     @Transactional
-    public OrderItemKafkaEvent updateStock(OrderItemKafkaEvent orderItemKafkaEvent) {
+    public OrderItemKafkaEvent updateStock(OrderItemKafkaEvent orderItemKafkaEvent, ItemUpdateStatus itemUpdateStatus) {
         RLock lock = redissonClient.getLock(generateKey(orderItemKafkaEvent.getItemId()));
         try {
             boolean available = lock.tryLock(RLOCK_WAIT_TIME, RLOCK_LEASE_TIME, TimeUnit.MILLISECONDS);
             if(available) {
                 log.info("Acquired the RLock -> Redisson Lock: {}", lock.getName());
                 // Transaction Propagation.REQUIRES_NEW
-                return itemService.updateStockByOptimisticLock(orderItemKafkaEvent);
+                return itemService.updateStockByOptimisticLock(orderItemKafkaEvent, itemUpdateStatus);
             }
             else {
                 orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);

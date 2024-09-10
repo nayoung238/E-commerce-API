@@ -3,6 +3,7 @@ package com.ecommerce.itemservice.domain.item.service;
 import com.ecommerce.itemservice.domain.item.Item;
 import com.ecommerce.itemservice.domain.item.repository.ItemRedisRepository;
 import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
+import com.ecommerce.itemservice.domain.item.service.stockupdate.ItemUpdateStatus;
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
@@ -35,33 +36,46 @@ public class StockUpdateByKafkaStreamsServiceImpl implements StockUpdateService 
 
     @Override
     @Transactional
-    public OrderItemKafkaEvent updateStock(OrderItemKafkaEvent orderItemKafkaEvent) {
+    public OrderItemKafkaEvent updateStock(OrderItemKafkaEvent orderItemKafkaEvent, ItemUpdateStatus itemUpdateStatus) {
         Item item = itemRepository.findById(orderItemKafkaEvent.getItemId())
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ITEM.getMessage()));
 
         // Redis에서 재고 차감 시도
-        if(isUpdatableStockByRedis(item.getId(), orderItemKafkaEvent.getQuantity())) {
-            orderItemKafkaEvent.updateOrderStatus((orderItemKafkaEvent.getQuantity() < 0) ?
-                    OrderStatus.SUCCEEDED  // consumption
-                    : OrderStatus.CANCELED);  // production (undo)
-
-            sendMessageToKafka(orderItemKafkaEvent.getItemId(), orderItemKafkaEvent.getQuantity());
+        if(isUpdatableStockByRedis(item.getId(), orderItemKafkaEvent.getQuantity(), itemUpdateStatus)) {
+            if(itemUpdateStatus == ItemUpdateStatus.STOCK_CONSUMPTION) {
+                orderItemKafkaEvent.updateOrderStatus(OrderStatus.SUCCEEDED);
+            }
+            else if(itemUpdateStatus == ItemUpdateStatus.STOCK_PRODUCTION) {
+                orderItemKafkaEvent.updateOrderStatus(OrderStatus.CANCELED);
+            }
+            sendMessageToKafka(orderItemKafkaEvent.getItemId(), orderItemKafkaEvent.getQuantity(), itemUpdateStatus);
         } else {
             orderItemKafkaEvent.updateOrderStatus(OrderStatus.OUT_OF_STOCK);
         }
         return orderItemKafkaEvent;
     }
 
-    private boolean isUpdatableStockByRedis(Long itemId, Long quantity) {
-        Long stock = itemRedisRepository.incrementItemStock(itemId, quantity);
-        if(stock >= 0) return true;
+    private boolean isUpdatableStockByRedis(Long itemId, Long quantity, ItemUpdateStatus itemUpdateStatus) {
+        if(itemUpdateStatus == ItemUpdateStatus.STOCK_CONSUMPTION) {
+            Long stock = itemRedisRepository.decrementItemStock(itemId, quantity);
+            if(stock >= 0) return true;
 
-        itemRedisRepository.decrementItemStock(itemId, quantity);   // undo
+            itemRedisRepository.incrementItemStock(itemId, quantity);
+            return false;
+        }
+        else if(itemUpdateStatus == ItemUpdateStatus.STOCK_PRODUCTION) {
+            itemRedisRepository.incrementItemStock(itemId, quantity);
+            return true;
+            // TODO: Redis에 Item이 없는 경우
+        }
         return false;
     }
 
-    private void sendMessageToKafka(Long itemId, Long quantity) {
+    private void sendMessageToKafka(Long itemId, Long quantity, ItemUpdateStatus itemUpdateStatus) {
         try {
+            if(itemUpdateStatus == ItemUpdateStatus.STOCK_CONSUMPTION) {
+                quantity += -1;
+            }
             kafkaProducerService.sendMessage(TopicConfig.ITEM_UPDATE_LOG_TOPIC, String.valueOf(itemId), quantity);
         } catch(KafkaProducerException e) {
             log.error("Kafka Exception " + e.getMessage());

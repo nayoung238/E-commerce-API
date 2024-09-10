@@ -1,6 +1,7 @@
 package com.ecommerce.itemservice.kafka.config.streams;
 
 import com.ecommerce.itemservice.domain.item.service.ItemStockService;
+import com.ecommerce.itemservice.domain.item.service.stockupdate.ItemUpdateStatus;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,12 +49,17 @@ public class StockAggregationTopology {
                 .suppress(Suppressed.untilWindowCloses(Suppressed.BufferConfig.unbounded().shutDownWhenFull()))
                 .toStream()
                 .peek((key, value) -> {
-                    Long itemId = Long.valueOf(key.key());
-                    if(value != 0) {
-                        itemStockService.updateStockWithPessimisticLock(itemId, value);
-                        log.info("Aggregation results [ {} - {} ] -> itemId={}, quantity={}",
+                    if (value != 0) {
+                        Long itemId = Long.valueOf(key.key());
+
+                        ItemUpdateStatus itemUpdateStatus = (value > 0) ?
+                                ItemUpdateStatus.STOCK_PRODUCTION : ItemUpdateStatus.STOCK_CONSUMPTION;
+
+                        itemStockService.updateStockWithPessimisticLock(itemId, value, itemUpdateStatus);
+                        log.info("Aggregation results [ {} - {} ], {} -> itemId={}, quantity={}",
                                 key.window().startTime(),
                                 key.window().endTime(),
+                                itemUpdateStatus,
                                 itemId,
                                 value);
                     }

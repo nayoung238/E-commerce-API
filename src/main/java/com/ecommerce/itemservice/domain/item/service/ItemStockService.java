@@ -1,5 +1,6 @@
 package com.ecommerce.itemservice.domain.item.service;
 
+import com.ecommerce.itemservice.domain.item.service.stockupdate.ItemUpdateStatus;
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
@@ -31,7 +32,12 @@ public class ItemStockService {
     @Transactional
     public void updateStock(OrderKafkaEvent orderKafkaEvent, boolean isStreamsOnly) {
         if (isFirstEvent(orderKafkaEvent)) {  // 최초 요청만 재고 변경 진행
-            processFirstEvent(orderKafkaEvent);
+            if(orderKafkaEvent.getOrderStatus() == OrderStatus.WAITING) {
+                processFirstEvent(orderKafkaEvent, ItemUpdateStatus.STOCK_CONSUMPTION);
+            }
+            else if(orderKafkaEvent.getOrderStatus() == OrderStatus.CANCELED) {
+                processFirstEvent(orderKafkaEvent, ItemUpdateStatus.STOCK_PRODUCTION);
+            }
         }
         else {  // 최초 요청이 아니면 결과만 반환
             updateOrderStatus(orderKafkaEvent);
@@ -51,19 +57,21 @@ public class ItemStockService {
         return orderKafkaEvent.getRequestedAt().format(formatter);
     }
 
-    private void processFirstEvent(OrderKafkaEvent orderKafkaEvent) {
+    private void processFirstEvent(OrderKafkaEvent orderKafkaEvent, ItemUpdateStatus itemUpdateStatus) {
         List<OrderItemKafkaEvent> result = orderKafkaEvent.getOrderItemKafkaEvents()
                 .stream()
-                .map(o -> {
-                    o.convertSign();
-                    return stockUpdateService.updateStock(o);
-                })
+                .map(o -> stockUpdateService.updateStock(o, itemUpdateStatus))
                 .toList();
 
         if (isAllSucceeded(result)) {
             orderKafkaEvent.updateOrderStatus(OrderStatus.SUCCEEDED);
         } else {
-            handleFailedUpdate(orderKafkaEvent, result);
+            if(itemUpdateStatus == ItemUpdateStatus.STOCK_CONSUMPTION) {
+                handleFailedUpdate(orderKafkaEvent, result, ItemUpdateStatus.STOCK_PRODUCTION);
+            }
+            else if(itemUpdateStatus == ItemUpdateStatus.STOCK_PRODUCTION) {
+                handleFailedUpdate(orderKafkaEvent, result, ItemUpdateStatus.STOCK_CONSUMPTION);
+            }
         }
         orderRedisRepository.setOrderStatus(orderKafkaEvent.getOrderEventId(), orderKafkaEvent.getOrderStatus());
     }
@@ -73,8 +81,8 @@ public class ItemStockService {
                 .allMatch(o -> Objects.equals(OrderStatus.SUCCEEDED, o.getOrderStatus()));
     }
 
-    private void handleFailedUpdate(OrderKafkaEvent orderKafkaEvent, List<OrderItemKafkaEvent> orderItemKafkaEvents) {
-        undo(orderItemKafkaEvents);
+    private void handleFailedUpdate(OrderKafkaEvent orderKafkaEvent, List<OrderItemKafkaEvent> orderItemKafkaEvents, ItemUpdateStatus itemUpdateStatus) {
+        undo(orderItemKafkaEvents, itemUpdateStatus);
         orderKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
         orderKafkaEvent.updateOrderItemDtos(orderItemKafkaEvents);
     }
@@ -91,21 +99,26 @@ public class ItemStockService {
                 .forEach(orderItemDto -> orderItemDto.updateOrderStatus(orderStatus));
     }
 
-    private void undo(List<OrderItemKafkaEvent> orderItemKafkaEvents) {
+    private void undo(List<OrderItemKafkaEvent> orderItemKafkaEvents, ItemUpdateStatus itemUpdateStatus) {
         orderItemKafkaEvents.stream()
                 .filter(o -> Objects.equals(OrderStatus.SUCCEEDED, o.getOrderStatus()))
                 .forEach(o -> {
-                    o.convertSign();
-                    stockUpdateService.updateStock(o);
+                    stockUpdateService.updateStock(o, itemUpdateStatus);
                     o.updateOrderStatus(OrderStatus.CANCELED);
                 });
     }
 
     @Transactional
-    public void updateStockWithPessimisticLock(Long itemId, Long quantity) {
+    public void updateStockWithPessimisticLock(Long itemId, Long quantity, ItemUpdateStatus itemUpdateStatus) {
         Item item = itemRepository.findByIdWithPessimisticLock(itemId)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ITEM.getMessage()));
 
-        item.updateStock(quantity);
+        if(quantity < 0) quantity *= -1;
+        if(itemUpdateStatus == ItemUpdateStatus.STOCK_CONSUMPTION) {
+            item.decreaseStock(quantity);
+        }
+        else if(itemUpdateStatus == ItemUpdateStatus.STOCK_PRODUCTION) {
+            item.increaseStock(quantity);
+        }
     }
 }

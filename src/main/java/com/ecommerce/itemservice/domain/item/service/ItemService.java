@@ -1,6 +1,7 @@
 package com.ecommerce.itemservice.domain.item.service;
 
 import com.ecommerce.itemservice.domain.item.dto.ItemRegisterRequest;
+import com.ecommerce.itemservice.domain.item.service.stockupdate.ItemUpdateStatus;
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
@@ -35,11 +36,17 @@ public class ItemService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public OrderItemKafkaEvent updateStockByOptimisticLock(OrderItemKafkaEvent orderItemKafkaEvent) {
+    public OrderItemKafkaEvent updateStockByOptimisticLock(OrderItemKafkaEvent orderItemKafkaEvent, ItemUpdateStatus itemUpdateStatus) {
         try {
             Item item = itemRepository.findByIdWithOptimisticLock(orderItemKafkaEvent.getItemId())
                     .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ITEM.getMessage()));
-            item.updateStock(orderItemKafkaEvent.getQuantity());
+
+            if(itemUpdateStatus == ItemUpdateStatus.STOCK_CONSUMPTION) {
+                item.decreaseStock(orderItemKafkaEvent.getQuantity());
+            }
+            else if(itemUpdateStatus == ItemUpdateStatus.STOCK_PRODUCTION) {
+                item.increaseStock(orderItemKafkaEvent.getQuantity());
+            }
             orderItemKafkaEvent.updateOrderStatus(OrderStatus.SUCCEEDED);
             itemRepository.save(item);
         } catch (EntityNotFoundException e) {

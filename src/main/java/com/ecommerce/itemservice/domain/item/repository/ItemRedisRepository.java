@@ -20,8 +20,8 @@ public class ItemRedisRepository {
                 .set(getItemStockKey(itemId), stock.toString());
     }
 
-    public void decrementItemStock(Long itemId, Long quantity) {
-        redisTemplate
+    public Long decrementItemStock(Long itemId, Long quantity) {
+        return redisTemplate
                 .opsForValue()
                 .decrement(getItemStockKey(itemId), quantity);
     }
