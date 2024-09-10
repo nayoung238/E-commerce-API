@@ -1,14 +1,15 @@
 spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/local_item_db
   jpa:
     hibernate:
       ddl-auto: create
-    defer-datasource-initialization: false
-  datasource:
-    url: jdbc:mysql://localhost:3306/local_item_db
-#  sql:
-#    init:
-#      mode: always
-#      data-locations: classpath:db/data.sql
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:db/data.sql
+
   kafka:
     bootstrap-servers: localhost:29092
 
