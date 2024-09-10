@@ -3,11 +3,13 @@ package com.ecommerce.itemservice.domain.item.service;
 import com.ecommerce.itemservice.IntegrationTestSupport;
 import com.ecommerce.itemservice.domain.item.Item;
 import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
+import com.ecommerce.itemservice.domain.item.service.stockupdate.ItemUpdateStatus;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.*;
 
+@SpringBootTest
 class StockUpdateByRedissonServiceImplTest extends IntegrationTestSupport {
 
     @Autowired
@@ -46,17 +49,17 @@ class StockUpdateByRedissonServiceImplTest extends IntegrationTestSupport {
 
     @DisplayName("아이템 재고보다 적은 수량으로 차감하면 DB에 값이 반영되어야 함")
     @Test
-    void 재고보다_이하인_수량_변경_테스트() {
+    void 재고보다_이하인_수량_소비_테스트() {
         // given
-        final long REQUESTED_QUANTITY = -(INITIAL_STOCK / 2);   // 차감이면 음수, 생산이면 양수 (e.g., -3: 수량 3개를 차감)
+        final long REQUESTED_QUANTITY = INITIAL_STOCK / 2;
         List<OrderItemKafkaEvent> requestedEvents = new ArrayList<>();
         itemIds.forEach(id -> {
-            requestedEvents.add(getOrderItemEvent(id, REQUESTED_QUANTITY, OrderStatus.WAITING));
+            requestedEvents.add(getOrderItemKafkaEvent(id, REQUESTED_QUANTITY, OrderStatus.WAITING));
         });
 
         // when
         List<OrderItemKafkaEvent> responseEvents = requestedEvents.stream()
-                .map(stockUpdateByRedissonServiceImpl::updateStock)
+                .map(event -> stockUpdateByRedissonServiceImpl.updateStock(event, ItemUpdateStatus.STOCK_CONSUMPTION))
                 .toList();
 
         // then
@@ -68,7 +71,7 @@ class StockUpdateByRedissonServiceImplTest extends IntegrationTestSupport {
         assertThat(items).allMatch(
                 item -> {
                     assert item.isPresent();
-                    return item.get().getStock().equals(INITIAL_STOCK + REQUESTED_QUANTITY);  // 차감이면 REQUESTED_QUANTITY가 음수
+                    return item.get().getStock().equals(INITIAL_STOCK - REQUESTED_QUANTITY);
                 }
         );
         assertThat(responseEvents).allMatch(responseEvent -> responseEvent.getOrderStatus().equals(OrderStatus.SUCCEEDED));
@@ -76,14 +79,14 @@ class StockUpdateByRedissonServiceImplTest extends IntegrationTestSupport {
 
     @DisplayName("아이템 재고보다 많은 수량으로 차감하면 DB에 반영되면 안 됨")
     @Test
-    void 재고보다_초과된_수량_변경_테스트() {
+    void 재고보다_초과된_수량_소비_테스트() {
         // given
-        final long REQUESTED_QUANTITY = -(INITIAL_STOCK + 100L);    // 차감이면 음수, 생산이면 양수 (e.g., -3: 수량 3개를 차감)
+        final long REQUESTED_QUANTITY = INITIAL_STOCK + 100L;
         final long targetItemId = itemIds.get(0);
-        OrderItemKafkaEvent request = getOrderItemEvent(targetItemId, REQUESTED_QUANTITY, OrderStatus.WAITING);
+        OrderItemKafkaEvent request = getOrderItemKafkaEvent(targetItemId, REQUESTED_QUANTITY, OrderStatus.WAITING);
 
         // when
-        OrderItemKafkaEvent response = stockUpdateByRedissonServiceImpl.updateStock(request);
+        OrderItemKafkaEvent response = stockUpdateByRedissonServiceImpl.updateStock(request, ItemUpdateStatus.STOCK_CONSUMPTION);
 
         // then
         assertThat(response.getItemId()).isEqualTo(targetItemId);

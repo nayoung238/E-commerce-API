@@ -1,31 +1,31 @@
 package com.ecommerce.itemservice.domain.item.service;
 
+import com.ecommerce.itemservice.IntegrationTestSupport;
 import com.ecommerce.itemservice.domain.item.Item;
 import com.ecommerce.itemservice.domain.item.repository.ItemRedisRepository;
 import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
-import com.ecommerce.itemservice.kafka.config.TopicConfig;
+import com.ecommerce.itemservice.domain.item.service.stockupdate.ItemUpdateStatus;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.kafka.service.producer.KafkaProducerService;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
 import java.util.stream.IntStream;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
-@Slf4j
-@ActiveProfiles("local")
-class StockUpdateByKafkaStreamsServiceImplTest {
+class StockUpdateByKafkaStreamsServiceImplTest extends IntegrationTestSupport {
 
     @Autowired
-    private StockUpdateByKafkaStreamsServiceImpl service;
+    private StockUpdateByKafkaStreamsServiceImpl stockUpdateByKafkaStreamsService;
 
     @Autowired
     private ItemRepository itemRepository;
@@ -33,80 +33,72 @@ class StockUpdateByKafkaStreamsServiceImplTest {
     @Autowired
     private ItemRedisRepository itemRedisRepository;
 
-    @Autowired
+    @MockBean
     private KafkaProducerService kafkaProducerService;
 
-    private static final int NUMBER_OF_ITEMS = 2;
-    private static final Long INITIAL_STOCK = 100L;
-
     @BeforeEach
-    void beforeEach() {
-        IntStream.rangeClosed(1, NUMBER_OF_ITEMS)
-                .forEach(i -> {
-                    Item item = Item.builder().name("item-" + i).stock(INITIAL_STOCK).build();
-                    item = itemRepository.save(item);
-                    itemRedisRepository.initializeItemStock(item.getId(), INITIAL_STOCK);
-                });
-    }
-
-    @AfterEach
     void afterEach() {
         itemRepository.deleteAll();
-        IntStream.rangeClosed(1, NUMBER_OF_ITEMS)
-                .forEach(i -> itemRedisRepository.deleteKey((long) i));
     }
 
+    @DisplayName("Redis에서 실시간으로 아이템 재고 소비")
     @Test
-    void 재고_변경_테스트() {
-        // given
-        final Long REQUESTED_QUANTITY = 10L;
-        List<OrderItemKafkaEvent> orderItemKafkaEvents = getOrderItemEvents(REQUESTED_QUANTITY);
+    void 재고_소비_테스트() {
+        // setup(data)
+        final long INITIAL_STOCK = 100L;
+        Item item = getItem("TEST_ITEM_NAME", INITIAL_STOCK, 1000L);
+        saveItem(item);
 
-        // when
-        List<OrderItemKafkaEvent> result = orderItemKafkaEvents.stream()
-                .map(o -> service.updateStock(o))
+        doNothing()
+                .when(kafkaProducerService)
+                .sendMessage(anyString(), anyString(), anyLong());
+
+        final long REQUESTED_QUANTITY = 10L;
+        OrderItemKafkaEvent orderItemKafkaEvent = getOrderItemKafkaEvent(item.getId(), REQUESTED_QUANTITY, OrderStatus.WAITING);
+
+        // exercise
+        stockUpdateByKafkaStreamsService.updateStock(orderItemKafkaEvent, ItemUpdateStatus.STOCK_CONSUMPTION);
+
+        // verify
+        // Redis에서 실시간으로 재고 변경 작업이 반영되어야 함
+        final Long expectedStock = INITIAL_STOCK - REQUESTED_QUANTITY;
+        long stockInRedis = itemRedisRepository.findItemStock(item.getId());
+        assertThat(stockInRedis).isEqualTo(expectedStock);
+    }
+
+    @DisplayName("Kafka Streams Join을 위해 이벤트 발행")
+    @Test
+    void 카프카_스트림즈_조인_이벤트_발행_테스트 () {
+        // setup(data)
+        final long INITIAL_STOCK = 100L;
+        final int NUMBER_OF_ITEMS = 3;
+        List<Item> items = IntStream.rangeClosed(1, NUMBER_OF_ITEMS)
+                .mapToObj(i -> getItem("test_item_" + i, INITIAL_STOCK, 1000))
                 .toList();
 
-        // then
-        assert result.size() == orderItemKafkaEvents.size();
-        assertTrue(result.stream()
-                .allMatch(o -> o.getOrderStatus().equals(OrderStatus.SUCCEEDED)));
+        items.forEach(this::saveItem);
 
-        // Redis 데이터 확인
-        result.forEach(o -> {
-            Long stock = itemRedisRepository.findItemStock(o.getItemId());
-            assertEquals(INITIAL_STOCK - REQUESTED_QUANTITY, stock);
-        });
+        final long REQUESTED_QUANTITY = 10L;
+        List<OrderItemKafkaEvent> orderItemKafkaEvents = items.stream()
+                .map(i -> getOrderItemKafkaEvent(i.getId(), REQUESTED_QUANTITY, OrderStatus.WAITING))
+                .toList();
 
-        try {
-            sendDummyData();
-            Thread.sleep(20000); // window-size=5s, grace-period=5s
-        } catch (InterruptedException e) {
-            log.error(e.getMessage());
-        }
+        // setup(expectations)
+        doNothing()
+                .when(kafkaProducerService)
+                .sendMessage(anyString(), anyString(), anyLong());
 
-        // DB 데이터 확인
-         result.forEach(o -> {
-             Item item = itemRepository.findById(o.getItemId())
-                     .orElseThrow(() -> new IllegalArgumentException("id="+ o.getItemId() + " 상품 존재하지 않음"));
-             assertEquals(INITIAL_STOCK - REQUESTED_QUANTITY, item.getStock());
-         });
+        // exercise
+        orderItemKafkaEvents
+                        .forEach(event -> stockUpdateByKafkaStreamsService.updateStock(event, ItemUpdateStatus.STOCK_CONSUMPTION));
+
+        // verify
+        verify(kafkaProducerService, times(NUMBER_OF_ITEMS))
+                .sendMessage(anyString(), anyString(), anyLong());
     }
 
-    private List<OrderItemKafkaEvent> getOrderItemEvents(Long requestedQuantity) {
-        return IntStream.rangeClosed(1, NUMBER_OF_ITEMS)
-                .mapToObj(i -> OrderItemKafkaEvent.builder()
-                        .itemId((long) i)
-                        .quantity(-requestedQuantity)
-                        .build()
-                ).toList();
-    }
-
-    private void sendDummyData() {
-        IntStream.rangeClosed(1, NUMBER_OF_ITEMS).forEach(i -> {
-            IntStream.rangeClosed(1, 100).forEach(j ->
-                    kafkaProducerService.sendMessage(TopicConfig.ITEM_UPDATE_LOG_TOPIC, String.valueOf(i), 0L)
-            );
-        });
+    private void saveItem(Item item) {
+        itemRepository.save(item);
+        itemRedisRepository.initializeItemStock(item.getId(), item.getStock());
     }
 }
