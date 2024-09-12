@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 public enum ExceptionCode {
 
     NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않습니다."),
-    NOT_FOUND_ITEM(HttpStatus.BAD_REQUEST, "존재하지 않는 상품입니다."),
+    NOT_FOUND_ITEM(HttpStatus.NOT_FOUND, "존재하지 않는 상품입니다."),
+    NOT_FOUND_ITEM_IN_REDIS(HttpStatus.NOT_FOUND,"Item not found in Redis"),
     ALREADY_EXIST_ITEM(HttpStatus.BAD_REQUEST, "이미 존재하는 상품입니다."),
     NOT_FOUND_ORDER_DETAILS(HttpStatus.NOT_FOUND, "주문 내역이 없습니다."),
     NOT_FOUND_ITEM_UPDATE_LOG(HttpStatus.NOT_FOUND, "업데이트 기록이 없습니다."),
