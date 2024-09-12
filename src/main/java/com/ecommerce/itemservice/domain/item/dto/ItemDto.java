@@ -22,7 +22,7 @@ public class ItemDto {
     @Min(value = 0, message = "가격은 0 이상이어야 합니다.")
     private Long price;
 
-    @Builder
+    @Builder(access = AccessLevel.PRIVATE)
     private ItemDto(Long id, String name, Long stock, Long price) {
         this.id = id;
         this.name = name;

@@ -2,7 +2,7 @@ package com.ecommerce.itemservice;
 
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
-import com.ecommerce.itemservice.kafka.dto.OrderStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
@@ -12,19 +12,18 @@ import java.util.UUID;
 @ActiveProfiles("test")
 public class UnitTestSupport {
 
-    protected OrderKafkaEvent getOrderKafkaEvent(long accountId, List<Long> itemIds, long quantity, OrderStatus status) {
+    protected OrderKafkaEvent getOrderKafkaEvent(long accountId, List<Long> itemIds, long quantity, OrderProcessingStatus orderProcessingStatus) {
         List<OrderItemKafkaEvent> orderItemKafkaEvents = itemIds.stream()
-                .map(i -> getOrderItemKafkaEvent(i, quantity, status))
+                .map(i -> getOrderItemKafkaEvent(i, quantity, orderProcessingStatus))
                 .toList();
 
-        return OrderKafkaEvent.builder()
-                .orderEventId(getOrderEventId(accountId))
-                .orderStatus(status)
-                .orderItemKafkaEvents(orderItemKafkaEvents)
-                .accountId(accountId)
-                .createdAt(LocalDateTime.now())
-                .requestedAt(LocalDateTime.now())
-                .build();
+        return OrderKafkaEvent.of(
+                getOrderEventId(accountId),
+                accountId,
+                orderProcessingStatus,
+                orderItemKafkaEvents,
+                LocalDateTime.now(),
+                LocalDateTime.now());
     }
 
     private String getOrderEventId(long accountId) {
@@ -34,11 +33,7 @@ public class UnitTestSupport {
     /*
         OrderStatus 설정 이유: Order-Service에서 OrderStatus.WAITING 설정해서 이벤트 전송함
      */
-    protected OrderItemKafkaEvent getOrderItemKafkaEvent(long itemId, long quantity, OrderStatus status) {
-        return OrderItemKafkaEvent.builder()
-                .itemId(itemId)
-                .quantity(quantity)
-                .orderStatus(status)
-                .build();
+    protected OrderItemKafkaEvent getOrderItemKafkaEvent(long itemId, long quantity, OrderProcessingStatus status) {
+        return OrderItemKafkaEvent.of(itemId, quantity, status);
     }
 }

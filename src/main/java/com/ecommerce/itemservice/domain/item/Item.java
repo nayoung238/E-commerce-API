@@ -27,7 +27,7 @@ public class Item {
     @Column(nullable = false)
     private Long price;
 
-    @Builder
+    @Builder(access = AccessLevel.PRIVATE)
     private Item(Long id, String name, Long stock, Long price) {
         this.id = id;
         this.name = name;
@@ -40,6 +40,15 @@ public class Item {
                 .name(request.getName())
                 .stock(request.getStock())
                 .price(request.getPrice())
+                .build();
+    }
+
+    // Test 코드에서 사용
+    public static Item of(String name, long stock, long price) {
+        return Item.builder()
+                .name(name)
+                .stock(stock)
+                .price(price)
                 .build();
     }
 
