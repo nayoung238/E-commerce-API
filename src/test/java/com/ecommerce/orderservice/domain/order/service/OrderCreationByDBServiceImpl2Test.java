@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.domain.order.service;
 
 import com.ecommerce.orderservice.IntegrationTestSupport;
-import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
@@ -63,7 +63,7 @@ class OrderCreationByDBServiceImpl2Test extends IntegrationTestSupport {
         verify(internalEventService, times(1)).publishInternalEvent(any());
     }
 
-    @DisplayName("주문에 대한 처리 결과 이벤트 수신 후 최종 상태(SUCCEEDED or FAILED)로 update")
+    @DisplayName("주문에 대한 처리 결과 이벤트 수신 후 최종 상태(SUCCESSFUL or FAILED)로 update")
     @Test
     void 최종_주문_상태_테스트() throws InterruptedException {
         // setup(expectations)
@@ -78,8 +78,8 @@ class OrderCreationByDBServiceImpl2Test extends IntegrationTestSupport {
 
         Thread.sleep(2000);
 
-        final OrderStatus finalOrderStatus = OrderStatus.SUCCEEDED;
-        sendOrderProcessingResultKafkaEvent(waitingOrder, finalOrderStatus);
+        final OrderProcessingStatus finalOrderProcessingStatus = OrderProcessingStatus.SUCCESSFUL;
+        sendOrderProcessingResultKafkaEvent(waitingOrder, finalOrderProcessingStatus);
 
         Thread.sleep(3000);
 
@@ -88,16 +88,16 @@ class OrderCreationByDBServiceImpl2Test extends IntegrationTestSupport {
         assertThat(finalOrder).isNotNull();
         assertThat(finalOrder.getOrderEventId()).isEqualTo(waitingOrder.getOrderEventId());
 
-        assertThat(finalOrder.getOrderStatus()).isEqualTo(finalOrderStatus);
+        assertThat(finalOrder.getOrderProcessingStatus()).isEqualTo(finalOrderProcessingStatus);
         assertThat(finalOrder.getOrderItemDtos())
-                .allMatch(orderItemDto -> orderItemDto.getStatus().equals(finalOrderStatus));
+                .allMatch(orderItemDto -> orderItemDto.getOrderProcessingStatus().equals(finalOrderProcessingStatus));
     }
 
     /*
         주문에 대한 부수 작업 처리 결과를 이벤트로 발행
      */
-    private void sendOrderProcessingResultKafkaEvent(OrderDto orderDto, OrderStatus orderStatus) {
-        OrderKafkaEvent event = getOrderKafkaEvent(orderDto, orderStatus);
+    private void sendOrderProcessingResultKafkaEvent(OrderDto orderDto, OrderProcessingStatus orderProcessingStatus) {
+        OrderKafkaEvent event = getOrderKafkaEvent(orderDto, orderProcessingStatus);
         kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_TOPIC, orderDto.getOrderEventId(), event);
     }
 }

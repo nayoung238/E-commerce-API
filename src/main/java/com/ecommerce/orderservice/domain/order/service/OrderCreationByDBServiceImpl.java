@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.domain.order.service;
 
-import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.exception.ExceptionCode;
 import com.ecommerce.orderservice.internalevent.service.InternalEventService;
@@ -62,7 +62,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
 
         Optional<Order> order = orderRepository.findByOrderEventId(orderKafkaEvent.getOrderEventId());
         if(order.isPresent()) {
-            if(Objects.equals(OrderStatus.WAITING, order.get().getOrderStatus())) {
+            if(Objects.equals(OrderProcessingStatus.PROCESSING, order.get().getOrderProcessingStatus())) {
                 kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC, null, orderKafkaEvent);
             }
         } else kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, null, orderKafkaEvent);
@@ -83,7 +83,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
         if(isFirstEvent(redisKey, orderKafkaEvent.getOrderEventId()))
             kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, null, orderKafkaEvent);
         else {
-            updateOrderStatus(orderKafkaEvent.getOrderEventId(), OrderStatus.FAILED);
+            updateOrderStatus(orderKafkaEvent.getOrderEventId(), OrderProcessingStatus.FAILED);
             // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요
         }
     }
@@ -94,11 +94,11 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     }
 
     @Override
-    public void updateOrderStatus(String orderEventId, OrderStatus orderStatus) {
+    public void updateOrderStatus(String orderEventId, OrderProcessingStatus orderProcessingStatus) {
         Order order = orderRepository.findByOrderEventId(orderEventId)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ORDER.getMessage()));
 
-        order.updateOrderStatus(orderStatus);
+        order.updateOrderStatus(orderProcessingStatus);
         orderRepository.save(order);
     }
 }

@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.domain.order.service;
 
 import com.ecommerce.orderservice.IntegrationTestSupport;
-import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderItemDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
@@ -61,7 +61,7 @@ class OrderCreationByDBServiceImpl1Test extends IntegrationTestSupport {
                 .send(anyString(), anyString(), any());
     }
 
-    @DisplayName("주문 생성 시 주문 상태는 WAITING")
+    @DisplayName("주문 생성 시 주문 상태는 PROCESSING")
     @Test
     void 요청_주문_생성_테스트() {
         // setup(data)
@@ -77,11 +77,11 @@ class OrderCreationByDBServiceImpl1Test extends IntegrationTestSupport {
         OrderDto response = orderCreationByDBServiceImpl.create(orderRequestDto);
 
         // verify
-        assertThat(response.getOrderStatus()).isEqualTo(OrderStatus.WAITING);
+        assertThat(response.getOrderProcessingStatus()).isEqualTo(OrderProcessingStatus.PROCESSING);
         List<OrderItemDto> orderItemDtos = response.getOrderItemDtos();
         assertThat(orderItemDtos)
                 .hasSize(orderItemDtos.size())
-                .allMatch(o -> o.getStatus().equals(OrderStatus.WAITING));
+                .allMatch(o -> o.getOrderProcessingStatus().equals(OrderProcessingStatus.PROCESSING));
     }
 
     @DisplayName("주문 응답에 요청한 주문 아이템이 포함되었는지 확인")

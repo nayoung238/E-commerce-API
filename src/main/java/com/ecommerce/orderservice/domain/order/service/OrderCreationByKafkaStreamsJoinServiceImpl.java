@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.domain.order.service;
 
 import com.ecommerce.orderservice.domain.order.Order;
-import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
@@ -80,7 +80,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
         if(isFirstEvent(redisKey, orderKafkaEvent.getOrderEventId()))
             kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
         else {
-            updateOrderStatus(orderKafkaEvent.getOrderEventId(), OrderStatus.FAILED);
+            updateOrderStatus(orderKafkaEvent.getOrderEventId(), OrderProcessingStatus.FAILED);
             // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요
         }
     }
@@ -91,9 +91,9 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     }
 
     @Override
-    public void updateOrderStatus(String orderEventId, OrderStatus orderStatus) {
+    public void updateOrderStatus(String orderEventId, OrderProcessingStatus orderProcessingStatus) {
         if(!isExistOrderByOrderEventId(orderEventId)) {
-            OrderKafkaEvent orderEvent = OrderKafkaEvent.of(orderEventId, orderStatus);
+            OrderKafkaEvent orderEvent = OrderKafkaEvent.of(orderEventId, orderProcessingStatus);
             kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, orderEventId, orderEvent);
         }
     }

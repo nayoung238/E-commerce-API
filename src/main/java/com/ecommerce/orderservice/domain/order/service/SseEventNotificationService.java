@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.domain.order.service;
 
-import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -54,14 +54,14 @@ public class SseEventNotificationService {
         return sseEmitter;
     }
 
-    public void sendOrderResult(String orderEventId, OrderStatus orderStatus) {
+    public void sendOrderResult(String orderEventId, OrderProcessingStatus orderProcessingStatus) {
         SseEmitter sseEmitter = sseEmitterMap.get(orderEventId);
         if(sseEmitter != null) {
             try {
                 sseEmitter.send(SseEmitter.event()
                                             .id(orderEventId)
-                                            .name("Order Status")
-                                            .data(objectMapper.writeValueAsString(new EmitterData(orderEventId, orderStatus)), MediaType.APPLICATION_JSON));
+                                            .name("Order Processing Status")
+                                            .data(objectMapper.writeValueAsString(new EmitterData(orderEventId, orderProcessingStatus)), MediaType.APPLICATION_JSON));
                 sseEmitter.complete();
             } catch (IOException e) {
                 log.error(e.getMessage());
@@ -76,11 +76,11 @@ public class SseEventNotificationService {
     private static class EmitterData {
         @JsonProperty("Order-Event-Id")
         String orderEventId;
-        @JsonProperty("Order-Status")
-        String orderStatus;
-        EmitterData(String orderEventId, OrderStatus orderStatus) {
+        @JsonProperty("Order-Processing-Status")
+        String orderProcessingStatus;
+        EmitterData(String orderEventId, OrderProcessingStatus orderProcessingStatus) {
             this.orderEventId = orderEventId;
-            this.orderStatus = String.valueOf(orderStatus);
+            this.orderProcessingStatus = String.valueOf(orderProcessingStatus);
         }
     }
 }

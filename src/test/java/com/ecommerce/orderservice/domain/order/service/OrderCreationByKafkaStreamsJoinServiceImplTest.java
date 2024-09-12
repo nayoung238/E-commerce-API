@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.domain.order.service;
 
 import com.ecommerce.orderservice.IntegrationTestSupport;
-import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
@@ -40,7 +40,7 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends IntegrationTestSupp
         orderRepository.deleteAll();
     }
 
-    @DisplayName("KStream-KTable Join된 이벤트의 최종 상태(SUCCEEDED or FAILED) 설정 후 DB Insert")
+    @DisplayName("KStream-KTable Join된 이벤트의 최종 상태(SUCCESSFUL or FAILED) 설정 후 DB Insert")
     @Test
     void 최종_주문_생성_테스트 () throws InterruptedException {
         // given
@@ -52,8 +52,8 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends IntegrationTestSupp
         Thread.sleep(2000);
 
         // when
-        final OrderStatus finalOrderStatus = OrderStatus.SUCCEEDED;
-        sendOrderProcessingResultKafkaEvent(requestedOrder, finalOrderStatus);
+        final OrderProcessingStatus finalOrderProcessingStatus = OrderProcessingStatus.SUCCESSFUL;
+        sendOrderProcessingResultKafkaEvent(requestedOrder, finalOrderProcessingStatus);
 
         Thread.sleep(2000);
 
@@ -62,12 +62,12 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends IntegrationTestSupp
         assertThat(finalOrder).isNotNull();
         assertThat(finalOrder.getOrderEventId()).isEqualTo(requestedOrder.getOrderEventId());
 
-        assertThat(finalOrder.getOrderStatus()).isEqualTo(finalOrderStatus);
+        assertThat(finalOrder.getOrderProcessingStatus()).isEqualTo(finalOrderProcessingStatus);
         assertThat(finalOrder.getOrderItemDtos())
-                .allMatch(orderItemDto -> orderItemDto.getStatus().equals(finalOrderStatus));
+                .allMatch(orderItemDto -> orderItemDto.getOrderProcessingStatus().equals(finalOrderProcessingStatus));
     }
 
-    @DisplayName("결과 이벤트의 상태가 SUCCEEDED or FAILED 인 경우에만 스트림즈 조인")
+    @DisplayName("결과 이벤트의 상태가 SUCCESSFUL or FAILED 인 경우에만 스트림즈 조인")
     @Test
     void 스트림즈_조인_필터_테스트 () throws InterruptedException {
         // given
@@ -79,8 +79,8 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends IntegrationTestSupp
         Thread.sleep(2000);
 
         // when
-        final OrderStatus finalOrderStatus = OrderStatus.SERVER_ERROR;
-        sendOrderProcessingResultKafkaEvent(requestedOrder, finalOrderStatus);
+        final OrderProcessingStatus finalOrderProcessingStatus = OrderProcessingStatus.SERVER_ERROR;
+        sendOrderProcessingResultKafkaEvent(requestedOrder, finalOrderProcessingStatus);
 
         Thread.sleep(2000);
 
@@ -92,8 +92,8 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends IntegrationTestSupp
     /*
         주문에 대한 부수 작업 처리 결과를 이벤트로 발행
      */
-    private void sendOrderProcessingResultKafkaEvent(OrderDto orderDto, OrderStatus orderStatus) {
-        OrderKafkaEvent event = getOrderKafkaEvent(orderDto, orderStatus);
+    private void sendOrderProcessingResultKafkaEvent(OrderDto orderDto, OrderProcessingStatus orderProcessingStatus) {
+        OrderKafkaEvent event = getOrderKafkaEvent(orderDto, orderProcessingStatus);
         kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, orderDto.getOrderEventId(), event);
     }
 }

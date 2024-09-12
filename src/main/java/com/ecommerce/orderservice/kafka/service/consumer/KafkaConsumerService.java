@@ -23,7 +23,7 @@ public class KafkaConsumerService {
         log.info("Consuming message success -> Topic: {}, OrderEventId: {}, OrderStatus: {}",
                 record.topic(),
                 record.value().getOrderEventId(),
-                record.value().getOrderStatus());
+                record.value().getOrderProcessingStatus());
 
         orderCreationByDBService.updateOrderStatus(record.value());
     }
@@ -33,7 +33,7 @@ public class KafkaConsumerService {
         log.info("Consuming message success -> Topic: {}, OrderEventId(Key of KStream-KTable Join): {}, OrderStatus: {}",
                 record.topic(),
                 record.value().getOrderEventId(),
-                record.value().getOrderStatus());
+                record.value().getOrderProcessingStatus());
 
         orderCreationByKafkaStreamsJoinService.insertFinalOrder(record.value());
     }

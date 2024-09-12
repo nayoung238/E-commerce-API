@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.kafka.config.streams;
 
-import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderEventSerde;
@@ -81,13 +81,13 @@ public class KStreamKTableJoinConfig {
                                                         KStream<String, OrderKafkaEvent> orderProcessingResult) {
         return orderProcessingResult
                 .filter((key, value) -> {
-                    if(!value.getOrderStatus().equals(OrderStatus.SUCCEEDED)
-                            && !value.getOrderStatus().equals(OrderStatus.FAILED)) {
-                        log.warn("Order status of {} -> {}", key, value.getOrderStatus());
+                    if(!value.getOrderProcessingStatus().equals(OrderProcessingStatus.SUCCESSFUL)
+                            && !value.getOrderProcessingStatus().equals(OrderProcessingStatus.FAILED)) {
+                        log.warn("Order status of {} -> {}", key, value.getOrderProcessingStatus());
                         kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, key);
                     }
-                    return value.getOrderStatus().equals(OrderStatus.SUCCEEDED)
-                            || value.getOrderStatus().equals(OrderStatus.FAILED);
+                    return value.getOrderProcessingStatus().equals(OrderProcessingStatus.SUCCESSFUL)
+                            || value.getOrderProcessingStatus().equals(OrderProcessingStatus.FAILED);
                 })
                 .join(requestedOrder, (result, order) -> setOrderStatus(order, result));
     }

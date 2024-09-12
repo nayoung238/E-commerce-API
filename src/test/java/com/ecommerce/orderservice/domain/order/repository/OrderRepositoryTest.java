@@ -3,11 +3,12 @@ package com.ecommerce.orderservice.domain.order.repository;
 import com.ecommerce.orderservice.IntegrationTestSupport;
 import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.OrderItem;
-import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 
+@SpringBootTest
 class OrderRepositoryTest extends IntegrationTestSupport {
 
     @Autowired
@@ -31,8 +33,8 @@ class OrderRepositoryTest extends IntegrationTestSupport {
         // given
         final long accountId = 2L;
         final List<Long> orderItemIds = List.of(2L, 3L, 7L);
-        final OrderStatus orderStatus = OrderStatus.SUCCEEDED;
-        Order order = getOrder(accountId, orderItemIds, orderStatus);
+        final OrderProcessingStatus orderProcessingStatus = OrderProcessingStatus.SUCCESSFUL;
+        Order order = getOrder(accountId, orderItemIds, orderProcessingStatus);
 
         // when
         orderRepository.save(order);
@@ -43,11 +45,11 @@ class OrderRepositoryTest extends IntegrationTestSupport {
 
         Order savedOrder = orders.get(0);
         assertThat(savedOrder.getAccountId()).isEqualTo(accountId);
-        assertThat(savedOrder.getOrderStatus()).isEqualTo(orderStatus);
+        assertThat(savedOrder.getOrderProcessingStatus()).isEqualTo(orderProcessingStatus);
 
         assertThat(savedOrder.getOrderItems())
                 .hasSize(orderItemIds.size())
-                .allMatch(orderItem -> orderItem.getStatus().equals(orderStatus))
+                .allMatch(orderItem -> orderItem.getOrderProcessingStatus().equals(orderProcessingStatus))
                 .extracting(OrderItem::getItemId)
                 .containsExactlyInAnyOrderElementsOf(orderItemIds);
     }
@@ -59,12 +61,12 @@ class OrderRepositoryTest extends IntegrationTestSupport {
         final long accountId = 2L;
         List<Order> orders = new ArrayList<>();
         final List<Long> orderItemIds1 = List.of(2L, 3L, 7L);
-        final OrderStatus orderStatus1 = OrderStatus.FAILED;
-        orders.add(getOrder(accountId, orderItemIds1, orderStatus1));
+        final OrderProcessingStatus orderProcessingStatus1 = OrderProcessingStatus.FAILED;
+        orders.add(getOrder(accountId, orderItemIds1, orderProcessingStatus1));
 
         final List<Long> orderItemIds2 = List.of(5L);
-        final OrderStatus orderStatus2 = OrderStatus.SUCCEEDED;
-        orders.add(getOrder(accountId, orderItemIds2, orderStatus2));
+        final OrderProcessingStatus orderProcessingStatus2 = OrderProcessingStatus.SUCCESSFUL;
+        orders.add(getOrder(accountId, orderItemIds2, orderProcessingStatus2));
 
         // when
         orderRepository.saveAll(orders);
@@ -74,20 +76,20 @@ class OrderRepositoryTest extends IntegrationTestSupport {
         assertThat(savedOrders)
                 .hasSize(2)
                 .allMatch(order -> order.getAccountId().equals(accountId))
-                .extracting(Order::getOrderStatus)
-                .containsExactlyInAnyOrder(orderStatus1, orderStatus2);
+                .extracting(Order::getOrderProcessingStatus)
+                .containsExactlyInAnyOrder(orderProcessingStatus1, orderProcessingStatus2);
 
         Order savedOrder1 = orders.get(0);
         assertThat(savedOrder1.getOrderItems())
                 .hasSize(orderItemIds1.size())
-                .allMatch(orderItem -> orderItem.getStatus().equals(orderStatus1))
+                .allMatch(orderItem -> orderItem.getOrderProcessingStatus().equals(orderProcessingStatus1))
                 .extracting(OrderItem::getItemId)
                 .containsExactlyInAnyOrderElementsOf(orderItemIds1);
 
         Order savedOrder2 = orders.get(1);
         assertThat(savedOrder2.getOrderItems())
                 .hasSize(orderItemIds2.size())
-                .allMatch(orderItem -> orderItem.getStatus().equals(orderStatus2))
+                .allMatch(orderItem -> orderItem.getOrderProcessingStatus().equals(orderProcessingStatus2))
                 .extracting(OrderItem::getItemId)
                 .containsExactlyInAnyOrderElementsOf(orderItemIds2);
     }
@@ -99,15 +101,15 @@ class OrderRepositoryTest extends IntegrationTestSupport {
         final long accountId = 2L;
 
         final List<Long> orderItemIds1 = List.of(2L, 3L, 7L);
-        final OrderStatus orderStatus1 = OrderStatus.FAILED;
-        Order request1 = getOrder(accountId, orderItemIds1, orderStatus1);
+        final OrderProcessingStatus orderProcessingStatus1 = OrderProcessingStatus.FAILED;
+        Order request1 = getOrder(accountId, orderItemIds1, orderProcessingStatus1);
         orderRepository.save(request1);
 
         Thread.sleep(2000);
 
         final List<Long> orderItemIds2 = List.of(5L);
-        final OrderStatus orderStatus2 = OrderStatus.SUCCEEDED;
-        Order request2 = getOrder(accountId, orderItemIds2, orderStatus2);
+        final OrderProcessingStatus orderProcessingStatus2 = OrderProcessingStatus.SUCCESSFUL;
+        Order request2 = getOrder(accountId, orderItemIds2, orderProcessingStatus2);
         orderRepository.save(request2);
 
         // then
@@ -116,7 +118,7 @@ class OrderRepositoryTest extends IntegrationTestSupport {
 
         Order savedOrder = optionalOrder.get();
         assertThat(savedOrder.getAccountId()).isEqualTo(accountId);
-        assertThat(savedOrder.getOrderStatus()).isEqualTo(orderStatus2);
+        assertThat(savedOrder.getOrderProcessingStatus()).isEqualTo(orderProcessingStatus2);
 
         assertThat(savedOrder.getOrderItems())
                 .hasSize(orderItemIds2.size())
@@ -124,22 +126,16 @@ class OrderRepositoryTest extends IntegrationTestSupport {
                 .containsExactlyInAnyOrderElementsOf(orderItemIds2);
     }
 
-    private Order getOrder(long accountId, List<Long> orderItemIds, OrderStatus orderStatus) {
+    private Order getOrder(long accountId, List<Long> orderItemIds, OrderProcessingStatus orderProcessingStatus) {
         List<OrderItem> orderItems = orderItemIds.stream()
-                .map(i -> OrderItem.builder()
-                        .itemId(i)
-                        .quantity(3L)
-                        .status(orderStatus)
-                        .build())
+                .map(i -> OrderItem.of(i, 3L, orderProcessingStatus))
                 .toList();
 
-        Order order =  Order.builder()
-                .orderEventId(null)  // KStream-KTable Join 방식에서 사용하는 필드 & Private 메서드
-                .accountId(accountId)
-                .orderItems(orderItems)
-                .orderStatus(orderStatus)
-                .requestedAt(null)  // KStream-KTable Join 방식에서 사용하는 필드
-                .build();
+        Order order =  Order.of(
+                null, // OrderEventId 필드는 KStream-KTable Join 방식에서 사용
+                accountId,
+                orderItems, orderProcessingStatus,
+                null, null);  // requestedAt 필드는 KStream-KTable Join 방식에서 사용하는 필드
 
         orderItems.forEach(orderItem -> orderItem.initializeOrder(order));
         return order;
