@@ -4,9 +4,9 @@ import com.ecommerce.itemservice.IntegrationTestSupport;
 import com.ecommerce.itemservice.domain.item.Item;
 import com.ecommerce.itemservice.domain.item.repository.ItemRedisRepository;
 import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
-import com.ecommerce.itemservice.domain.item.service.stockupdate.ItemUpdateStatus;
+import com.ecommerce.itemservice.domain.item.ItemProcessingStatus;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
-import com.ecommerce.itemservice.kafka.dto.OrderStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
 import com.ecommerce.itemservice.kafka.service.producer.KafkaProducerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,10 +54,10 @@ class StockUpdateByKafkaStreamsServiceImplTest extends IntegrationTestSupport {
                 .sendMessage(anyString(), anyString(), anyLong());
 
         final long REQUESTED_QUANTITY = 10L;
-        OrderItemKafkaEvent orderItemKafkaEvent = getOrderItemKafkaEvent(item.getId(), REQUESTED_QUANTITY, OrderStatus.WAITING);
+        OrderItemKafkaEvent orderItemKafkaEvent = getOrderItemKafkaEvent(item.getId(), REQUESTED_QUANTITY, OrderProcessingStatus.PROCESSING);
 
         // exercise
-        stockUpdateByKafkaStreamsService.updateStock(orderItemKafkaEvent, ItemUpdateStatus.STOCK_CONSUMPTION);
+        stockUpdateByKafkaStreamsService.updateStock(orderItemKafkaEvent, ItemProcessingStatus.STOCK_CONSUMPTION);
 
         // verify
         // Redis에서 실시간으로 재고 변경 작업이 반영되어야 함
@@ -80,7 +80,7 @@ class StockUpdateByKafkaStreamsServiceImplTest extends IntegrationTestSupport {
 
         final long REQUESTED_QUANTITY = 10L;
         List<OrderItemKafkaEvent> orderItemKafkaEvents = items.stream()
-                .map(i -> getOrderItemKafkaEvent(i.getId(), REQUESTED_QUANTITY, OrderStatus.WAITING))
+                .map(i -> getOrderItemKafkaEvent(i.getId(), REQUESTED_QUANTITY, OrderProcessingStatus.PROCESSING))
                 .toList();
 
         // setup(expectations)
@@ -90,7 +90,7 @@ class StockUpdateByKafkaStreamsServiceImplTest extends IntegrationTestSupport {
 
         // exercise
         orderItemKafkaEvents
-                        .forEach(event -> stockUpdateByKafkaStreamsService.updateStock(event, ItemUpdateStatus.STOCK_CONSUMPTION));
+                        .forEach(event -> stockUpdateByKafkaStreamsService.updateStock(event, ItemProcessingStatus.STOCK_CONSUMPTION));
 
         // verify
         verify(kafkaProducerService, times(NUMBER_OF_ITEMS))

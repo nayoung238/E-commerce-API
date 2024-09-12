@@ -4,7 +4,7 @@ import com.ecommerce.itemservice.UnitTestSupport;
 import com.ecommerce.itemservice.domain.item.repository.OrderRedisRepository;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
-import com.ecommerce.itemservice.kafka.dto.OrderStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
 import com.ecommerce.itemservice.kafka.service.producer.KafkaProducerService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,14 +38,14 @@ class ItemStockServiceBehaviorVerificationTest extends UnitTestSupport {
     void 최초_이벤트_행동_검증 () {
         // setup (data)
         final List<Long> itemIds = List.of(1L, 3L);
-        OrderKafkaEvent event = getOrderKafkaEvent(2L, itemIds, 12L, OrderStatus.WAITING);
+        OrderKafkaEvent event = getOrderKafkaEvent(2L, itemIds, 12L, OrderProcessingStatus.PROCESSING);
 
         // setup(expectations)
         Mockito.when(orderRedisRepository.addEventId(anyString(), anyString()))
                 .thenReturn(1L); // Redis 캐싱 성공
 
         Mockito.when(stockUpdateService.updateStock(any(), any()))
-                .thenReturn(getOrderItemKafkaEvent(1L, 1L, OrderStatus.SUCCEEDED));
+                .thenReturn(getOrderItemKafkaEvent(1L, 1L, OrderProcessingStatus.SUCCESSFUL));
 
         // exercise
         itemStockService.updateStock(event, false);
@@ -61,7 +61,7 @@ class ItemStockServiceBehaviorVerificationTest extends UnitTestSupport {
 
         // Redis에 이벤트 처리 결과 캐싱
         verify(orderRedisRepository, times(1))
-                .setOrderStatus(anyString(), any());
+                .setOrderProcessingStatus(anyString(), any());
 
         // 요청에 대한 결과 이벤트 발행
         verify(kafkaProducerService,times(1))
@@ -73,7 +73,7 @@ class ItemStockServiceBehaviorVerificationTest extends UnitTestSupport {
     void 재요청_행동_검증 () {
         // setup (data)
         final List<Long> itemIds = List.of(1L, 3L);
-        OrderKafkaEvent event = getOrderKafkaEvent(2L, itemIds, 12L, OrderStatus.WAITING);
+        OrderKafkaEvent event = getOrderKafkaEvent(2L, itemIds, 12L, OrderProcessingStatus.PROCESSING);
 
         // setup(expectations)
         Mockito.when(orderRedisRepository.addEventId(anyString(), anyString()))
@@ -88,6 +88,6 @@ class ItemStockServiceBehaviorVerificationTest extends UnitTestSupport {
 
         // Redis에서 이벤트 처리 결과 조회
         verify(orderRedisRepository, times(1))
-                .getOrderStatus(anyString());
+                .getOrderProcessingStatus(anyString());
     }
 }

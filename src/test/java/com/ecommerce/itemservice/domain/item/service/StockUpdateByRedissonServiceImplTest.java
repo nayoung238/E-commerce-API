@@ -3,9 +3,9 @@ package com.ecommerce.itemservice.domain.item.service;
 import com.ecommerce.itemservice.IntegrationTestSupport;
 import com.ecommerce.itemservice.domain.item.Item;
 import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
-import com.ecommerce.itemservice.domain.item.service.stockupdate.ItemUpdateStatus;
+import com.ecommerce.itemservice.domain.item.ItemProcessingStatus;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
-import com.ecommerce.itemservice.kafka.dto.OrderStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,12 +54,12 @@ class StockUpdateByRedissonServiceImplTest extends IntegrationTestSupport {
         final long REQUESTED_QUANTITY = INITIAL_STOCK / 2;
         List<OrderItemKafkaEvent> requestedEvents = new ArrayList<>();
         itemIds.forEach(id -> {
-            requestedEvents.add(getOrderItemKafkaEvent(id, REQUESTED_QUANTITY, OrderStatus.WAITING));
+            requestedEvents.add(getOrderItemKafkaEvent(id, REQUESTED_QUANTITY, OrderProcessingStatus.PROCESSING));
         });
 
         // when
         List<OrderItemKafkaEvent> responseEvents = requestedEvents.stream()
-                .map(event -> stockUpdateByRedissonServiceImpl.updateStock(event, ItemUpdateStatus.STOCK_CONSUMPTION))
+                .map(event -> stockUpdateByRedissonServiceImpl.updateStock(event, ItemProcessingStatus.STOCK_CONSUMPTION))
                 .toList();
 
         // then
@@ -74,7 +74,7 @@ class StockUpdateByRedissonServiceImplTest extends IntegrationTestSupport {
                     return item.get().getStock().equals(INITIAL_STOCK - REQUESTED_QUANTITY);
                 }
         );
-        assertThat(responseEvents).allMatch(responseEvent -> responseEvent.getOrderStatus().equals(OrderStatus.SUCCEEDED));
+        assertThat(responseEvents).allMatch(responseEvent -> responseEvent.getOrderProcessingStatus().equals(OrderProcessingStatus.SUCCESSFUL));
     }
 
     @DisplayName("아이템 재고보다 많은 수량으로 차감하면 DB에 반영되면 안 됨")
@@ -83,10 +83,10 @@ class StockUpdateByRedissonServiceImplTest extends IntegrationTestSupport {
         // given
         final long REQUESTED_QUANTITY = INITIAL_STOCK + 100L;
         final long targetItemId = itemIds.get(0);
-        OrderItemKafkaEvent request = getOrderItemKafkaEvent(targetItemId, REQUESTED_QUANTITY, OrderStatus.WAITING);
+        OrderItemKafkaEvent request = getOrderItemKafkaEvent(targetItemId, REQUESTED_QUANTITY, OrderProcessingStatus.PROCESSING);
 
         // when
-        OrderItemKafkaEvent response = stockUpdateByRedissonServiceImpl.updateStock(request, ItemUpdateStatus.STOCK_CONSUMPTION);
+        OrderItemKafkaEvent response = stockUpdateByRedissonServiceImpl.updateStock(request, ItemProcessingStatus.STOCK_CONSUMPTION);
 
         // then
         assertThat(response.getItemId()).isEqualTo(targetItemId);
@@ -94,6 +94,6 @@ class StockUpdateByRedissonServiceImplTest extends IntegrationTestSupport {
                 .orElseThrow(() -> new EntityNotFoundException("{} 아이템 존재하지 않음" + targetItemId));
 
         assertThat(item.getStock()).isEqualTo(INITIAL_STOCK);
-        assertThat(response.getOrderStatus()).isEqualTo(OrderStatus.OUT_OF_STOCK);
+        assertThat(response.getOrderProcessingStatus()).isEqualTo(OrderProcessingStatus.OUT_OF_STOCK);
     }
 }

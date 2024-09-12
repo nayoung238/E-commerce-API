@@ -1,13 +1,12 @@
 package com.ecommerce.itemservice.domain.item.service;
 
-import com.ecommerce.itemservice.domain.item.service.stockupdate.ItemUpdateStatus;
+import com.ecommerce.itemservice.domain.item.ItemProcessingStatus;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
-import com.ecommerce.itemservice.kafka.dto.OrderStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  * Optimistic Lock을 사용해 DB 반영 시 충돌 감지해 동시성 문제 해결
  * -> 분산락 lease time 보다 transaction 처리가 더 길면 동시성 문제 발생 (여러 요청이 Distributed Lock 주인으로 착각하고 쿼리 날리는 경우)
  */
-@Service @Primary
+@Service //@Primary
 @RequiredArgsConstructor
 @Slf4j
 public class StockUpdateByRedissonServiceImpl implements StockUpdateService {
@@ -37,22 +36,22 @@ public class StockUpdateByRedissonServiceImpl implements StockUpdateService {
 
     @Override
     @Transactional
-    public OrderItemKafkaEvent updateStock(OrderItemKafkaEvent orderItemKafkaEvent, ItemUpdateStatus itemUpdateStatus) {
+    public OrderItemKafkaEvent updateStock(OrderItemKafkaEvent orderItemKafkaEvent, ItemProcessingStatus itemProcessingStatus) {
         RLock lock = redissonClient.getLock(generateKey(orderItemKafkaEvent.getItemId()));
         try {
             boolean available = lock.tryLock(RLOCK_WAIT_TIME, RLOCK_LEASE_TIME, TimeUnit.MILLISECONDS);
             if(available) {
                 log.info("Acquired the RLock -> Redisson Lock: {}", lock.getName());
                 // Transaction Propagation.REQUIRES_NEW
-                return itemService.updateStockByOptimisticLock(orderItemKafkaEvent, itemUpdateStatus);
+                return itemService.updateStockByOptimisticLock(orderItemKafkaEvent, itemProcessingStatus);
             }
             else {
-                orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
+                orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.FAILED);
                 return orderItemKafkaEvent;
             }
         } catch (InterruptedException e) {
             log.error(e.getMessage());
-            orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
+            orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.FAILED);
         } finally {
             if(lock.isHeldByCurrentThread()) {
                 log.info("Unlock -> Redisson Lock: {}", lock.getName());

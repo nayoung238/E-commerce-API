@@ -1,7 +1,7 @@
 package com.ecommerce.itemservice.api.order;
 
 import com.ecommerce.itemservice.domain.item.service.ItemService;
-import com.ecommerce.itemservice.kafka.dto.OrderStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -28,15 +28,15 @@ public class OrderController {
 
     @Operation(summary = "주문에 대한 상품 변경 성공 여부 제공", description = "주문에 대한 상품 변경 작업 결과를 반환합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "주문에 대한 상품 변경 성공 여부", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
+            @ApiResponse(responseCode = "200", description = "주문에 대한 상품 변경 작업 결과 응답", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
             @ApiResponse(responseCode = "400", description = "조건을 위반한 데이터 입력 시 주문 실패", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
             @ApiResponse(responseCode = "404", description = "주문에 대한 상품 변경 작업이 없는 경우", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
             @ApiResponse(responseCode = "500", description = "서버 오류 발생", content = @Content(schema = @Schema(implementation = Exception.class)))
     })
     @GetMapping("/processing-result/{orderEventKey}")
     public ResponseEntity<?> findOrderProcessingResult(@PathVariable String orderEventKey) {
-        OrderStatus orderItemStatus = itemService.findOrderProcessingStatus(orderEventKey);
-        return ResponseEntity.status(HttpStatus.OK).body(orderItemStatus);
+        OrderProcessingStatus orderProcessingStatus = itemService.findOrderProcessingStatus(orderEventKey);
+        return ResponseEntity.status(HttpStatus.OK).body(orderProcessingStatus);
     }
 
     @Operation(summary = "상태 검사")

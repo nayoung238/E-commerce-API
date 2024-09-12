@@ -1,11 +1,11 @@
 package com.ecommerce.itemservice.domain.item.service;
 
-import com.ecommerce.itemservice.domain.item.service.stockupdate.ItemUpdateStatus;
+import com.ecommerce.itemservice.domain.item.ItemProcessingStatus;
 import com.ecommerce.itemservice.exception.ExceptionCode;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
-import com.ecommerce.itemservice.kafka.dto.OrderStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
 import com.ecommerce.itemservice.kafka.service.producer.KafkaProducerService;
 import com.ecommerce.itemservice.domain.item.Item;
 import com.ecommerce.itemservice.domain.item.repository.ItemRepository;
@@ -32,11 +32,11 @@ public class ItemStockService {
     @Transactional
     public void updateStock(OrderKafkaEvent orderKafkaEvent, boolean isStreamsOnly) {
         if (isFirstEvent(orderKafkaEvent)) {  // 최초 요청만 재고 변경 진행
-            if(orderKafkaEvent.getOrderStatus() == OrderStatus.WAITING) {
-                processFirstEvent(orderKafkaEvent, ItemUpdateStatus.STOCK_CONSUMPTION);
+            if(orderKafkaEvent.getOrderProcessingStatus() == OrderProcessingStatus.PROCESSING) {
+                processFirstEvent(orderKafkaEvent, ItemProcessingStatus.STOCK_CONSUMPTION);
             }
-            else if(orderKafkaEvent.getOrderStatus() == OrderStatus.CANCELED) {
-                processFirstEvent(orderKafkaEvent, ItemUpdateStatus.STOCK_PRODUCTION);
+            else if(orderKafkaEvent.getOrderProcessingStatus() == OrderProcessingStatus.CANCELED) {
+                processFirstEvent(orderKafkaEvent, ItemProcessingStatus.STOCK_PRODUCTION);
             }
         }
         else {  // 최초 요청이 아니면 결과만 반환
@@ -57,67 +57,67 @@ public class ItemStockService {
         return orderKafkaEvent.getRequestedAt().format(formatter);
     }
 
-    private void processFirstEvent(OrderKafkaEvent orderKafkaEvent, ItemUpdateStatus itemUpdateStatus) {
+    private void processFirstEvent(OrderKafkaEvent orderKafkaEvent, ItemProcessingStatus itemProcessingStatus) {
         List<OrderItemKafkaEvent> result = orderKafkaEvent.getOrderItemKafkaEvents()
                 .stream()
-                .map(o -> stockUpdateService.updateStock(o, itemUpdateStatus))
+                .map(o -> stockUpdateService.updateStock(o, itemProcessingStatus))
                 .toList();
 
         if (isAllSucceeded(result)) {
-            orderKafkaEvent.updateOrderStatus(OrderStatus.SUCCEEDED);
+            orderKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.SUCCESSFUL);
         } else {
-            if(itemUpdateStatus == ItemUpdateStatus.STOCK_CONSUMPTION) {
-                handleFailedUpdate(orderKafkaEvent, result, ItemUpdateStatus.STOCK_PRODUCTION);
+            if(itemProcessingStatus == ItemProcessingStatus.STOCK_CONSUMPTION) {
+                handleFailedUpdate(orderKafkaEvent, result, ItemProcessingStatus.STOCK_PRODUCTION);
             }
-            else if(itemUpdateStatus == ItemUpdateStatus.STOCK_PRODUCTION) {
-                handleFailedUpdate(orderKafkaEvent, result, ItemUpdateStatus.STOCK_CONSUMPTION);
+            else if(itemProcessingStatus == ItemProcessingStatus.STOCK_PRODUCTION) {
+                handleFailedUpdate(orderKafkaEvent, result, ItemProcessingStatus.STOCK_CONSUMPTION);
             }
         }
-        orderRedisRepository.setOrderStatus(orderKafkaEvent.getOrderEventId(), orderKafkaEvent.getOrderStatus());
+        orderRedisRepository.setOrderProcessingStatus(orderKafkaEvent.getOrderEventId(), orderKafkaEvent.getOrderProcessingStatus());
     }
 
     private boolean isAllSucceeded(List<OrderItemKafkaEvent> orderItemKafkaEvents) {
         return orderItemKafkaEvents.stream()
-                .allMatch(o -> Objects.equals(OrderStatus.SUCCEEDED, o.getOrderStatus()));
+                .allMatch(o -> Objects.equals(OrderProcessingStatus.SUCCESSFUL, o.getOrderProcessingStatus()));
     }
 
-    private void handleFailedUpdate(OrderKafkaEvent orderKafkaEvent, List<OrderItemKafkaEvent> orderItemKafkaEvents, ItemUpdateStatus itemUpdateStatus) {
-        undo(orderItemKafkaEvents, itemUpdateStatus);
-        orderKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
+    private void handleFailedUpdate(OrderKafkaEvent orderKafkaEvent, List<OrderItemKafkaEvent> orderItemKafkaEvents, ItemProcessingStatus itemProcessingStatus) {
+        undo(orderItemKafkaEvents, itemProcessingStatus);
+        orderKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.FAILED);
         orderKafkaEvent.updateOrderItemDtos(orderItemKafkaEvents);
     }
 
     private void updateOrderStatus(OrderKafkaEvent orderKafkaEvent) {
-        String orderProcessingResult = orderRedisRepository.getOrderStatus(orderKafkaEvent.getOrderEventId());
+        String orderProcessingResult = orderRedisRepository.getOrderProcessingStatus(orderKafkaEvent.getOrderEventId());
 
-        OrderStatus orderStatus;
-        if(orderProcessingResult == null) orderStatus = OrderStatus.NOT_EXIST;
-        else orderStatus = OrderStatus.getStatus(orderProcessingResult);
+        OrderProcessingStatus orderProcessingStatus;
+        if(orderProcessingResult == null) orderProcessingStatus = OrderProcessingStatus.NOT_EXIST;
+        else orderProcessingStatus = OrderProcessingStatus.getStatus(orderProcessingResult);
 
-        orderKafkaEvent.updateOrderStatus(orderStatus);
+        orderKafkaEvent.updateOrderProcessingStatus(orderProcessingStatus);
         orderKafkaEvent.getOrderItemKafkaEvents()
-                .forEach(orderItemDto -> orderItemDto.updateOrderStatus(orderStatus));
+                .forEach(o -> o.updateOrderProcessingStatus(orderProcessingStatus));
     }
 
-    private void undo(List<OrderItemKafkaEvent> orderItemKafkaEvents, ItemUpdateStatus itemUpdateStatus) {
+    private void undo(List<OrderItemKafkaEvent> orderItemKafkaEvents, ItemProcessingStatus itemProcessingStatus) {
         orderItemKafkaEvents.stream()
-                .filter(o -> Objects.equals(OrderStatus.SUCCEEDED, o.getOrderStatus()))
+                .filter(o -> Objects.equals(OrderProcessingStatus.SUCCESSFUL, o.getOrderProcessingStatus()))
                 .forEach(o -> {
-                    stockUpdateService.updateStock(o, itemUpdateStatus);
-                    o.updateOrderStatus(OrderStatus.CANCELED);
+                    stockUpdateService.updateStock(o, itemProcessingStatus);
+                    o.updateOrderProcessingStatus(OrderProcessingStatus.CANCELED);
                 });
     }
 
     @Transactional
-    public void updateStockWithPessimisticLock(Long itemId, Long quantity, ItemUpdateStatus itemUpdateStatus) {
+    public void updateStockWithPessimisticLock(Long itemId, Long quantity, ItemProcessingStatus itemProcessingStatus) {
         Item item = itemRepository.findByIdWithPessimisticLock(itemId)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ITEM.getMessage()));
 
         if(quantity < 0) quantity *= -1;
-        if(itemUpdateStatus == ItemUpdateStatus.STOCK_CONSUMPTION) {
+        if(itemProcessingStatus == ItemProcessingStatus.STOCK_CONSUMPTION) {
             item.decreaseStock(quantity);
         }
-        else if(itemUpdateStatus == ItemUpdateStatus.STOCK_PRODUCTION) {
+        else if(itemProcessingStatus == ItemProcessingStatus.STOCK_PRODUCTION) {
             item.increaseStock(quantity);
         }
     }
