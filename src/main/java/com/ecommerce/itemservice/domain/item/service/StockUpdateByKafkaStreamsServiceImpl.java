@@ -27,7 +27,7 @@ import java.util.Optional;
  * -> 정확한 집계 불가능 (더 이상 해당 방식을 사용하지 않음)
  */
 
-@Service @Primary
+@Service //@Primary
 @RequiredArgsConstructor
 @Slf4j
 public class StockUpdateByKafkaStreamsServiceImpl implements StockUpdateService {

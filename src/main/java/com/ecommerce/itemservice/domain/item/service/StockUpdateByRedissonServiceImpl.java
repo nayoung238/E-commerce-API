@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  * Optimistic Lock을 사용해 DB 반영 시 충돌 감지해 동시성 문제 해결
  * -> 분산락 lease time 보다 transaction 처리가 더 길면 동시성 문제 발생 (여러 요청이 Distributed Lock 주인으로 착각하고 쿼리 날리는 경우)
  */
-@Service //@Primary
+@Service @Primary
 @RequiredArgsConstructor
 @Slf4j
 public class StockUpdateByRedissonServiceImpl implements StockUpdateService {
