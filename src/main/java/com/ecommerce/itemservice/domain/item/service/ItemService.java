@@ -51,7 +51,7 @@ public class ItemService {
             itemRepository.save(item);
         } catch (EntityNotFoundException e) {
             log.error(e.getMessage());
-            orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.FAILED);
+            orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.ITEM_NOT_FOUND);
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage());
             orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.OUT_OF_STOCK);
