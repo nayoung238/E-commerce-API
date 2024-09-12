@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.domain.order.dto;
 
 import com.ecommerce.orderservice.domain.order.Order;
-import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import lombok.*;
 
@@ -10,23 +10,28 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-@Builder
 public class OrderDto {
 
-    private Long id;
+    private final Long id;
+    private final String orderEventId;
+    private final Long accountId;
+    private OrderProcessingStatus orderProcessingStatus;
+    private final List<OrderItemDto> orderItemDtos;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime requestedAt;  // item-service에서 주문 이벤트 중복 처리를 판별하기 위한 redis key
 
-    private String orderEventId;
-
-    @Setter
-    private OrderStatus orderStatus;
-
-    private List<OrderItemDto> orderItemDtos;
-
-    private Long accountId;
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime requestedAt;  // item-service에서 주문 이벤트 중복 처리를 판별하기 위한 redis key
+    @Builder(access = AccessLevel.PRIVATE)
+    private OrderDto(Long id, String orderEventId, Long accountId,
+                     OrderProcessingStatus orderProcessingStatus, List<OrderItemDto> orderItemDtos,
+                     LocalDateTime createdAt, LocalDateTime requestedAt) {
+        this.id = id;
+        this.orderEventId = orderEventId;
+        this.accountId = accountId;
+        this.orderProcessingStatus = orderProcessingStatus;
+        this.orderItemDtos = orderItemDtos;
+        this.createdAt = createdAt;
+        this.requestedAt = requestedAt;
+    }
 
     public static OrderDto of(Order order) {
         List<OrderItemDto> orderItemDtos = order.getOrderItems()
@@ -37,9 +42,9 @@ public class OrderDto {
         return OrderDto.builder()
                 .id(order.getId())
                 .orderEventId(order.getOrderEventId())
-                .orderStatus((order.getOrderStatus() == null) ? OrderStatus.WAITING : order.getOrderStatus())
-                .orderItemDtos(orderItemDtos)
                 .accountId(order.getAccountId())
+                .orderProcessingStatus((order.getOrderProcessingStatus() == null) ? OrderProcessingStatus.PROCESSING : order.getOrderProcessingStatus())
+                .orderItemDtos(orderItemDtos)
                 .createdAt(order.getCreatedAt())
                 .requestedAt(order.getRequestedAt())
                 .build();
@@ -60,11 +65,15 @@ public class OrderDto {
         return OrderDto.builder()
                 .id(null)
                 .orderEventId(orderKafkaEvent.getOrderEventId())
-                .orderStatus(orderKafkaEvent.getOrderStatus())
-                .orderItemDtos(orderItemDtos)
                 .accountId(orderKafkaEvent.getAccountId())
+                .orderProcessingStatus(orderKafkaEvent.getOrderProcessingStatus())
+                .orderItemDtos(orderItemDtos)
                 .createdAt(null)
                 .requestedAt(orderKafkaEvent.getRequestedAt())
                 .build();
+    }
+
+    public void updateOrderStatus(OrderProcessingStatus orderProcessingStatus) {
+        this.orderProcessingStatus = orderProcessingStatus;
     }
 }

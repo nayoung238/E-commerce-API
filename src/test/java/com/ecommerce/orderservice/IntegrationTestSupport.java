@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice;
 
-import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderItemRequestDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
@@ -21,22 +21,16 @@ public class IntegrationTestSupport {
 
     protected OrderRequestDto getOrderRequestDto(long accountId, List<Long> orderItemIds) {
         List<OrderItemRequestDto> orderItemRequestDtos = orderItemIds.stream()
-                .map(i -> OrderItemRequestDto.builder()
-                        .itemId(i)
-                        .quantity(3L)
-                        .build())
+                .map(i -> OrderItemRequestDto.of(i, 3L))
                 .toList();
 
-        return OrderRequestDto.builder()
-                .accountId(accountId)
-                .orderItemRequestDtos(orderItemRequestDtos)
-                .build();
+        return OrderRequestDto.of(accountId, orderItemRequestDtos);
     }
 
-    protected OrderKafkaEvent getOrderKafkaEvent(OrderDto orderDto, OrderStatus finalOrderStatus) {
-        orderDto.updateOrderStatus(finalOrderStatus);
+    protected OrderKafkaEvent getOrderKafkaEvent(OrderDto orderDto, OrderProcessingStatus finalOrderProcessingStatus) {
+        orderDto.updateOrderStatus(finalOrderProcessingStatus);
         orderDto.getOrderItemDtos()
-                .forEach(o -> o.updateStatus(finalOrderStatus));
+                .forEach(o -> o.updateStatus(finalOrderProcessingStatus));
         return OrderKafkaEvent.of(orderDto);
     }
 }

@@ -7,8 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Getter @Builder
-@AllArgsConstructor
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderItem {
 
@@ -21,18 +20,27 @@ public class OrderItem {
     private Long quantity;
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus orderStatus;
+    private OrderProcessingStatus orderProcessingStatus;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
+    @Builder(access = AccessLevel.PRIVATE)
+    private OrderItem(Long id, Long itemId, Long quantity, OrderProcessingStatus orderProcessingStatus, Order order) {
+        this.id = id;
+        this.itemId = itemId;
+        this.quantity = quantity;
+        this.orderProcessingStatus = orderProcessingStatus;
+        this.order = order;
+    }
+
     public static OrderItem of(OrderItemRequestDto orderItemRequestDto) {
         return OrderItem.builder()
                 .itemId(orderItemRequestDto.getItemId())
                 .quantity(orderItemRequestDto.getQuantity())
-                .orderStatus(OrderStatus.WAITING)
+                .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .build();
     }
 
@@ -40,7 +48,16 @@ public class OrderItem {
         return OrderItem.builder()
                 .itemId(orderItemEvent.getItemId())
                 .quantity(orderItemEvent.getQuantity())
-                .orderStatus(orderItemEvent.getOrderStatus())
+                .orderProcessingStatus(orderItemEvent.getOrderProcessingStatus())
+                .build();
+    }
+
+    // Test 코드에서 사용
+    public static OrderItem of(long itemId, long quantity, OrderProcessingStatus orderProcessingStatus) {
+        return OrderItem.builder()
+                .itemId(itemId)
+                .quantity(3L)
+                .orderProcessingStatus(orderProcessingStatus)
                 .build();
     }
 
@@ -48,7 +65,7 @@ public class OrderItem {
         this.order = order;
     }
 
-    public void updateOrderStatus(OrderStatus orderStatus) {
-        this.orderStatus = orderStatus;
+    public void updateOrderStatus(OrderProcessingStatus orderProcessingStatus) {
+        this.orderProcessingStatus = orderProcessingStatus;
     }
 }

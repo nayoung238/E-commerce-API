@@ -1,29 +1,36 @@
 package com.ecommerce.orderservice.domain.order.dto;
 
 import com.ecommerce.orderservice.domain.order.OrderItem;
-import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import com.ecommerce.orderservice.kafka.dto.OrderItemKafkaEvent;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@Builder
 public class OrderItemDto {
 
-    private Long id;
+    private final Long id;
+    private final Long itemId;
+    private final Long quantity;
+    private OrderProcessingStatus orderProcessingStatus;
 
-    private Long itemId;
-
-    private Long quantity;
-
-    private OrderStatus orderStatus;
+    @Builder(access = AccessLevel.PRIVATE)
+    private OrderItemDto(Long id, Long itemId, Long quantity, OrderProcessingStatus orderProcessingStatus) {
+        this.id = id;
+        this.itemId = itemId;
+        this.quantity = quantity;
+        this.orderProcessingStatus = orderProcessingStatus;
+    }
 
     public static OrderItemDto of(OrderItem orderItem) {
         return OrderItemDto.builder()
                 .id(orderItem.getId())
                 .itemId(orderItem.getItemId())
                 .quantity(orderItem.getQuantity())
-                .orderStatus((orderItem.getOrderStatus() == null) ? OrderStatus.WAITING : orderItem.getOrderStatus())
+                .orderProcessingStatus((orderItem.getOrderProcessingStatus() == null) ?
+                        OrderProcessingStatus.PROCESSING
+                        : orderItem.getOrderProcessingStatus())
                 .build();
     }
 
@@ -37,7 +44,11 @@ public class OrderItemDto {
                 .id(null)
                 .itemId(orderItemKafkaEvent.getItemId())
                 .quantity(orderItemKafkaEvent.getQuantity())
-                .orderStatus(orderItemKafkaEvent.getOrderStatus())
+                .orderProcessingStatus(orderItemKafkaEvent.getOrderProcessingStatus())
                 .build();
+    }
+
+    public void updateStatus(OrderProcessingStatus orderProcessingStatus) {
+        this.orderProcessingStatus = orderProcessingStatus;
     }
 }

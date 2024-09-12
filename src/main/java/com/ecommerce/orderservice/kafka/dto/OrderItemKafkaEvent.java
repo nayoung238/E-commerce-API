@@ -1,29 +1,31 @@
 package com.ecommerce.orderservice.kafka.dto;
 
 import com.ecommerce.orderservice.domain.order.OrderItem;
-import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import com.ecommerce.orderservice.domain.order.dto.OrderItemDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderItemRequestDto;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class OrderItemKafkaEvent {
 
     private Long itemId;
     private Long quantity;
-    private OrderStatus orderStatus;
+    private OrderProcessingStatus orderProcessingStatus;
+
+    @Builder(access = AccessLevel.PRIVATE)
+    private OrderItemKafkaEvent(long itemId, long quantity, OrderProcessingStatus orderProcessingStatus) {
+        this.itemId = itemId;
+        this.quantity = quantity;;
+        this.orderProcessingStatus = orderProcessingStatus;
+    }
 
     public static OrderItemKafkaEvent of(OrderItem orderItem) {
         return OrderItemKafkaEvent.builder()
                 .itemId(orderItem.getItemId())
                 .quantity(orderItem.getQuantity())
-                .orderStatus(orderItem.getOrderStatus() != null ? orderItem.getOrderStatus() : null)
+                .orderProcessingStatus(orderItem.getOrderProcessingStatus() != null ? orderItem.getOrderProcessingStatus() : null)
                 .build();
     }
 
@@ -31,7 +33,7 @@ public class OrderItemKafkaEvent {
         return OrderItemKafkaEvent.builder()
                 .itemId(orderItemDto.getItemId())
                 .quantity(orderItemDto.getQuantity())
-                .orderStatus(orderItemDto.getOrderStatus() != null ? orderItemDto.getOrderStatus() : null)
+                .orderProcessingStatus(orderItemDto.getOrderProcessingStatus() != null ? orderItemDto.getOrderProcessingStatus() : null)
                 .build();
     }
 
@@ -39,11 +41,11 @@ public class OrderItemKafkaEvent {
         return OrderItemKafkaEvent.builder()
                 .itemId(orderItemRequestDto.getItemId())
                 .quantity(orderItemRequestDto.getQuantity())
-                .orderStatus(OrderStatus.WAITING)
+                .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .build();
     }
 
-    public void updateOrderStatus(OrderStatus orderStatus) {
-        this.orderStatus = orderStatus;
+    public void updateOrderStatus(OrderProcessingStatus orderProcessingStatus) {
+        this.orderProcessingStatus = orderProcessingStatus;
     }
 }

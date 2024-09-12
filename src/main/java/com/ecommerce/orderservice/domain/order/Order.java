@@ -5,10 +5,7 @@ import com.ecommerce.orderservice.internalevent.ordercreation.OrderCreationInter
 import com.ecommerce.orderservice.internalevent.InternalEventStatus;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -18,9 +15,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity
-@Getter @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "orders", indexes = @Index(name = "idx_order_event_id", columnList = "orderEventId"))
 @EntityListeners(AuditingEntityListener.class)
 public class Order {
@@ -41,7 +37,7 @@ public class Order {
     private List<OrderItem> orderItems;
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus orderStatus;
+    private OrderProcessingStatus orderProcessingStatus;
 
     @CreatedDate
     @Column(updatable = false)
@@ -55,6 +51,19 @@ public class Order {
      */
     private LocalDateTime requestedAt;
 
+    @Builder(access = AccessLevel.PRIVATE)
+    private Order(Long id, String orderEventId, Long accountId,
+                  List<OrderItem> orderItems, OrderProcessingStatus orderProcessingStatus,
+                  LocalDateTime createdAt,LocalDateTime requestedAt) {
+        this.id = id;
+        this.orderEventId = orderEventId;
+        this.accountId = accountId;
+        this.orderItems = orderItems;
+        this.orderProcessingStatus = orderProcessingStatus;
+        this.createdAt = createdAt;
+        this.requestedAt = requestedAt;
+    }
+
     public static Order of(OrderRequestDto orderRequestDto) {
         List<OrderItem> orderItems = orderRequestDto.getOrderItemRequestDtos().stream()
                 .map(OrderItem::of)
@@ -63,7 +72,7 @@ public class Order {
         return Order.builder()
                 .accountId(orderRequestDto.getAccountId())
                 .orderItems(orderItems)
-                .orderStatus(OrderStatus.WAITING)
+                .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .requestedAt(LocalDateTime.now())
                 .build();
     }
@@ -77,7 +86,7 @@ public class Order {
                 .orderEventId(orderKafkaEvent.getOrderEventId())
                 .accountId(orderKafkaEvent.getAccountId())
                 .orderItems(orderItems)
-                .orderStatus(orderKafkaEvent.getOrderStatus())
+                .orderProcessingStatus(orderKafkaEvent.getOrderProcessingStatus())
                 .createdAt(orderKafkaEvent.getCreatedAt())
                 .requestedAt(orderKafkaEvent.getRequestedAt())
                 .build();
@@ -87,22 +96,37 @@ public class Order {
         return order;
     }
 
+    // Test 코드에서 사용
+    public static Order of(String orderEventId, long accountId,
+                           List<OrderItem> orderItems,
+                           OrderProcessingStatus orderProcessingStatus,
+                           LocalDateTime createdAt, LocalDateTime requestedAt) {
+        return Order.builder()
+                .orderEventId(orderEventId)
+                .accountId(accountId)
+                .orderItems(orderItems)
+                .orderProcessingStatus(orderProcessingStatus)
+                .createdAt(createdAt)
+                .requestedAt(requestedAt)
+                .build();
+    }
+
     public void initializeOrderEventId(String orderEventId) {
         this.orderEventId = orderEventId;
     }
 
-    public void updateOrderStatus(OrderStatus status) {
-        this.orderStatus = status;
+    public void updateOrderStatus(OrderProcessingStatus status) {
+        this.orderProcessingStatus = status;
         this.orderItems
                 .forEach(orderItem -> orderItem.updateOrderStatus(status));
     }
 
     public void updateOrderStatus(OrderKafkaEvent orderKafkaEvent) {
-        this.orderStatus = orderKafkaEvent.getOrderStatus();
+        this.orderProcessingStatus = orderKafkaEvent.getOrderProcessingStatus();
 
-        HashMap<Long, OrderStatus> orderStatusHashMap = new HashMap<>();
+        HashMap<Long, OrderProcessingStatus> orderStatusHashMap = new HashMap<>();
         orderKafkaEvent.getOrderItemKafkaEvents()
-                .forEach(o -> orderStatusHashMap.put(o.getItemId(), o.getOrderStatus()));
+                .forEach(o -> orderStatusHashMap.put(o.getItemId(), o.getOrderProcessingStatus()));
 
         this.orderItems
                 .forEach(o -> o.updateOrderStatus(orderStatusHashMap.get(o.getItemId())));

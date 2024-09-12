@@ -2,7 +2,6 @@ package com.ecommerce.orderservice.domain.order.service;
 
 import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.dto.OrderListDto;
-import com.ecommerce.orderservice.domain.order.dto.OrderSimpleDto;
 import com.ecommerce.orderservice.domain.order.repository.OrderRepository;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.exception.ExceptionCode;
@@ -42,11 +41,6 @@ public class OrderInquiryService {
         else
             orders = orderRepository.findByAccountIdOrderByOrderIdDesc(accountId, pageRequest);
 
-        List<OrderSimpleDto> orderSimpleDtoList =  orders.stream()
-                .sorted(Comparator.comparing(Order::getId).reversed())
-                .map(OrderSimpleDto::of)
-                .toList();
-
-        return new OrderListDto(orderSimpleDtoList);
+        return OrderListDto.of(accountId, orders);
     }
 }
