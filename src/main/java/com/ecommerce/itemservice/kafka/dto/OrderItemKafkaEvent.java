@@ -4,8 +4,7 @@ import com.ecommerce.itemservice.domain.item.ItemProcessingStatus;
 import lombok.*;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class OrderItemKafkaEvent {
 
     private Long itemId;
