@@ -1,11 +1,12 @@
 package com.ecommerce.accountservice.domain;
 
-import com.ecommerce.accountservice.exception.AccountException;
-import com.ecommerce.accountservice.exception.ExceptionCode;
-import com.ecommerce.accountservice.api.dto.AccountDto;
+import com.ecommerce.accountservice.api.dto.DetailedAccountDto;
+import com.ecommerce.accountservice.api.dto.SimpleAccountDto;
 import com.ecommerce.accountservice.api.dto.SignUpRequestDto;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -13,15 +14,24 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
 
-    public AccountDto createAccount(SignUpRequestDto signUpRequestDto) {
+    @Transactional
+    public SimpleAccountDto createAccount(SignUpRequestDto signUpRequestDto) {
         Account account = Account.of(signUpRequestDto);
-        account = accountRepository.save(account);
-        return AccountDto.of(account);
+        accountRepository.save(account);
+        return SimpleAccountDto.of(account);
     }
 
-    public AccountDto getAccountById(Long userId) {
-        Account account = accountRepository.findById(userId)
-                .orElseThrow(() -> new AccountException(ExceptionCode.NOT_FOUND_ACCOUNT));
-        return AccountDto.of(account);
+    public SimpleAccountDto findSimpleAccountInfoById(Long accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new EntityNotFoundException("Account not found"));
+
+        return SimpleAccountDto.of(account);
+    }
+
+    public DetailedAccountDto findDetailedAccountInfoById(Long accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new EntityNotFoundException("Account not found"));
+
+        return DetailedAccountDto.of(account);
     }
 }
