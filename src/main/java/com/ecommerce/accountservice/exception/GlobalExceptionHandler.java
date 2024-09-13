@@ -14,11 +14,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(e.getExceptionCode());
     }
 
-    @ExceptionHandler(CustomFeignException.class)
-    public ResponseEntity<?> handleFeignServerException(CustomFeignException e) {
-        return handleExceptionInternal(e.getExceptionCode());
-    }
-
     private ResponseEntity<Object> handleExceptionInternal(ExceptionCode exceptionCode) {
         return ResponseEntity.status(exceptionCode.getHttpStatus())
                 .body(createExceptionResponse(exceptionCode));
