@@ -3,7 +3,7 @@ spring:
     hibernate:
       ddl-auto: create
   datasource:
-    url: jdbc:mysql://localhost:3306/test_account_service
+    url: jdbc:mysql://localhost:3306/local_account_db
   cloud:
     discovery:
       client:
