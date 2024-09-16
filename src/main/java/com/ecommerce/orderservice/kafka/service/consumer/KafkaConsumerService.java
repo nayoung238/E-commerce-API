@@ -20,7 +20,7 @@ public class KafkaConsumerService {
 
     @KafkaListener(topics = TopicConfig.ORDER_PROCESSING_RESULT_TOPIC)
     private void listenOrderProcessingResultTopic(ConsumerRecord<String, OrderKafkaEvent> record) {
-        log.info("Consuming message success -> Topic: {}, OrderEventId: {}, OrderStatus: {}",
+        log.info("Event consumed successfully -> Topic: {}, OrderEventId: {}, OrderStatus: {}",
                 record.topic(),
                 record.value().getOrderEventId(),
                 record.value().getOrderProcessingStatus());
@@ -30,7 +30,7 @@ public class KafkaConsumerService {
 
     @KafkaListener(topics = TopicConfig.FINAL_ORDER_STREAMS_ONLY_TOPIC)
     public void listenFinalOrderStreamsOnlyTopic(ConsumerRecord<String, OrderKafkaEvent> record) {
-        log.info("Consuming message success -> Topic: {}, OrderEventId(Key of KStream-KTable Join): {}, OrderStatus: {}",
+        log.info("Event consumed successfully -> Topic: {}, OrderEventId(Key of KStream-KTable Join): {}, OrderStatus: {}",
                 record.topic(),
                 record.value().getOrderEventId(),
                 record.value().getOrderProcessingStatus());
@@ -44,7 +44,7 @@ public class KafkaConsumerService {
     })
     public void listenRequestedOrderTopic(ConsumerRecord<String, OrderKafkaEvent> record) {
         if(record.value() != null) {
-            log.info("Consuming message success -> Topic: {}, OrderEventId(Key of KStream-KTable Join): {}",
+            log.info("Event consumed successfully -> Topic: {}, OrderEventId(Key of KStream-KTable Join): {}",
                     record.topic(),
                     record.key());
 
@@ -60,7 +60,7 @@ public class KafkaConsumerService {
             TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_STREAMS_ONLY_TOPIC
     })
     public void listenOrderProcessingResultRequestTopic(ConsumerRecord<String, OrderKafkaEvent> record) {
-        log.info("Consuming message success -> Topic: {}, OrderEventId(Key of KStream-KTable Join): {}",
+        log.info("Event consumed successfully -> Topic: {}, OrderEventId(Key of KStream-KTable Join): {}",
                 record.topic(),
                 record.value().getOrderEventId());
 

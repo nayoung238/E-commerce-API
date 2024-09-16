@@ -30,7 +30,7 @@ public class KafkaProducerService {
                         RecordMetadata metadata = stringOrderEventSendResult.getRecordMetadata();
                         if(stringOrderEventSendResult.getProducerRecord().value() != null) {
                             internalEventService.updatePublicationStatus(value.getOrderEventId(), InternalEventStatus.send_success);
-                            log.info("Producing message Success -> topic: {}, partition: {}, offset: {}, orderEventKey: {}",
+                            log.info("Kafka event published successfully -> topic: {}, partition: {}, offset: {}, orderEventKey: {}",
                                     metadata.topic(),
                                     metadata.partition(),
                                     metadata.offset(),
@@ -43,7 +43,7 @@ public class KafkaProducerService {
                         }
                     } else {
                         internalEventService.updatePublicationStatus(value.getOrderEventId(), InternalEventStatus.send_fail);
-                        log.error("Producing message Failure -> " + throwable.getMessage());
+                        log.error("Failed to publish Kafka event: " + throwable.getMessage());
                     }
                 });
     }
