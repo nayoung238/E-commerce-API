@@ -94,7 +94,7 @@ public class StockUpdateByKafkaStreamsServiceImpl implements StockUpdateService 
     private void sendMessageToKafka(Long itemId, Long quantity, ItemProcessingStatus itemProcessingStatus) {
         try {
             if(itemProcessingStatus == ItemProcessingStatus.STOCK_CONSUMPTION) {
-                quantity += -1;
+                quantity *= -1;
             }
             kafkaProducerService.sendMessage(TopicConfig.ITEM_UPDATE_LOG_TOPIC, String.valueOf(itemId), quantity);
         } catch(KafkaProducerException e) {
