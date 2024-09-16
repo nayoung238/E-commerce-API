@@ -9,17 +9,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.common.errors.TopicExistsException;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Produced;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
+import org.springframework.kafka.support.serializer.JsonSerde;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -27,6 +30,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @EnableKafkaStreams
 @Configuration
@@ -57,39 +63,73 @@ public class KStreamKTableJoinConfig {
     }
 
     @Bean
-    public KTable<String, OrderKafkaEvent> requestedOrder(KafkaStreamsConfiguration kafkaStreamsConfiguration,
-                                                          StreamsBuilder streamsBuilder) {
-        AdminClient adminClient = AdminClient.create(kafkaStreamsConfiguration.asProperties());
-        adminClient.createTopics(Collections.singleton(
-                new NewTopic(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, 1, (short) 1)));
+    public AdminClient kafkaStreamsAdminClient(KafkaStreamsConfiguration kafkaStreamsConfiguration) {
+        return AdminClient.create(kafkaStreamsConfiguration.asProperties());
+    }
 
+    @Bean
+    public KTable<String, OrderKafkaEvent> pendingOrders(AdminClient kafkaStreamsAdminClient, StreamsBuilder streamsBuilder) {
+        createTopic(kafkaStreamsAdminClient, TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC);
         return streamsBuilder.table(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC);
     }
 
     @Bean
-    public KStream<String, OrderKafkaEvent> orderProcessingResult(KafkaStreamsConfiguration kafkaStreamsConfiguration,
-                                                                  StreamsBuilder streamsBuilder) {
-        AdminClient adminClient = AdminClient.create(kafkaStreamsConfiguration.asProperties());
-        adminClient.createTopics(Collections.singleton(
-                new NewTopic(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, 1, (short) 1)));
-
+    public KStream<String, OrderKafkaEvent> orderProcessingResults(AdminClient kafkaStreamsAdminClient, StreamsBuilder streamsBuilder) {
+        createTopic(kafkaStreamsAdminClient, TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
         return streamsBuilder.stream(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
     }
 
     @Bean
-    public KStream<String, OrderKafkaEvent> createOrder(KTable<String, OrderKafkaEvent> requestedOrder,
-                                                        KStream<String, OrderKafkaEvent> orderProcessingResult) {
-        return orderProcessingResult
-                .filter((key, value) -> {
-                    if(!value.getOrderProcessingStatus().equals(OrderProcessingStatus.SUCCESSFUL)
-                            && !value.getOrderProcessingStatus().equals(OrderProcessingStatus.FAILED)) {
-                        log.warn("Order status of {} -> {}", key, value.getOrderProcessingStatus());
-                        kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, key);
-                    }
-                    return value.getOrderProcessingStatus().equals(OrderProcessingStatus.SUCCESSFUL)
-                            || value.getOrderProcessingStatus().equals(OrderProcessingStatus.FAILED);
-                })
-                .join(requestedOrder, (result, order) -> setOrderStatus(order, result));
+    public KStream<String, OrderKafkaEvent> createFinalOrders(KTable<String, OrderKafkaEvent> pendingOrders,
+                                                                KStream<String, OrderKafkaEvent> orderProcessingResults) {
+        KStream<String, OrderKafkaEvent> finalOrders = orderProcessingResults
+                .filter((key, value) -> isValidProcessingStatus(key, value.getOrderProcessingStatus()))
+                .join(pendingOrders, (result, pendingOrder) -> setOrderStatus(pendingOrder, result))
+                .peek((key, finalOrder) ->
+                        log.info("Successfully joined order processing result with pending order: orderEventId={}, finalStatus={}",
+                                key,
+                                finalOrder.getOrderProcessingStatus())
+                );
+
+        finalOrders.to(TopicConfig.FINAL_ORDER_STREAMS_ONLY_TOPIC,
+                Produced.with(Serdes.String(), new JsonSerde<>(OrderKafkaEvent.class)));
+
+        return finalOrders;
+    }
+
+    private void createTopic(AdminClient adminClient, String topic) {
+        try {
+            adminClient
+                    .createTopics(Collections.singleton(new NewTopic(topic, 1, (short) 1)))
+                    .all()
+                    .get(10, TimeUnit.SECONDS);
+            log.info("Topic {} created successfully", topic);
+        } catch (ExecutionException e) {
+            if(e.getCause() instanceof TopicExistsException) {
+                log.warn("Topic {} already exists", topic);
+            }
+            else {
+                log.error("Topic {} could not be created", topic, e);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Interrupted while creating '{}' topic", topic, e);
+            throw new RuntimeException("Topic creation interrupted", e);
+        } catch (TimeoutException e) {
+            log.error("Timeout while creating '{}' topic", topic, e);
+            throw new RuntimeException("Topic creation timed out", e);
+        }
+    }
+
+    private boolean isValidProcessingStatus(String orderEventId, OrderProcessingStatus orderProcessingStatus) {
+        boolean isValidStatus = orderProcessingStatus.equals(OrderProcessingStatus.SUCCESSFUL)
+                || orderProcessingStatus.equals(OrderProcessingStatus.FAILED);
+
+        if(!isValidStatus) {
+            log.warn("Invalid order processing status: OrderEventId={}, ProcessingStatus={}", orderEventId, orderProcessingStatus);
+            kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderEventId);
+        }
+        return isValidStatus;
     }
 
     private OrderKafkaEvent setOrderStatus(OrderKafkaEvent orderEvent, OrderKafkaEvent result) {
