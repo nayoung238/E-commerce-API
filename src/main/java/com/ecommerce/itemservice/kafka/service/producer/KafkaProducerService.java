@@ -19,12 +19,12 @@ public class KafkaProducerService {
                 .whenComplete((stringLongSendResult, throwable) -> {
                     if(throwable == null) {
                         RecordMetadata metadata = stringLongSendResult.getRecordMetadata();
-                        log.info("Producing message Success -> topic: {}, partition: {}, offset: {}",
+                        log.info("Kafka event published successfully -> topic: {}, partition: {}, offset: {}",
                                 metadata.topic(),
                                 metadata.partition(),
                                 metadata.offset());
                     } else {
-                        log.error("Producing message Failure " + throwable.getMessage());
+                        log.error("Failed to publish Kafka event: " + throwable.getMessage());
                     }
                 });
     }
@@ -34,13 +34,13 @@ public class KafkaProducerService {
                 .whenComplete((stringOrderDtoSendResult, throwable) -> {
                     if(throwable == null) {
                         RecordMetadata metadata = stringOrderDtoSendResult.getRecordMetadata();
-                        log.info("Producing message Success -> topic: {}, partition: {}, offset: {}, OrderEventKey: {}",
+                        log.info("Kafka event published successfully -> topic: {}, partition: {}, offset: {}, OrderEventKey: {}",
                                 metadata.topic(),
                                 metadata.partition(),
                                 metadata.offset(),
                                 value.getOrderEventId());
                     } else {
-                        log.error("Producing message Failure " + throwable.getMessage());
+                        log.error("Failed to publish Kafka event: " + throwable.getMessage());
                     }
                 });
     }

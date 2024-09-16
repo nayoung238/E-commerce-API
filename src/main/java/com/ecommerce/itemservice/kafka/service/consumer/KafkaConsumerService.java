@@ -24,7 +24,7 @@ public class KafkaConsumerService {
             TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC})
     public void updateStock(ConsumerRecord<String, OrderKafkaEvent> record) {
         if(record.value() != null) {
-            log.info("Consuming message Success -> Topic: {}, OrderEventKey: {}",
+            log.info("Event consumed successfully -> Topic: {}, OrderEventKey: {}",
                     record.topic(),
                     record.value().getOrderEventId());
 
@@ -36,7 +36,7 @@ public class KafkaConsumerService {
     @KafkaListener(topics = TopicConfig.ITEM_STOCK_AGGREGATION_RESULTS_TOPIC,
                     containerFactory = "kafkaStreamsListenerContainerFactory")
     public void updateStockAggregationResults(ConsumerRecord<String, Long> record) {
-        log.error("Consuming message Success -> Topic: {}, ItemId: {}, Quantity: {}",
+        log.info("Event consumed successfully -> Topic: {}, ItemId: {}, Quantity: {}",
                 record.topic(),
                 record.key(),
                 record.value());
