@@ -7,6 +7,7 @@ import org.springframework.kafka.core.KafkaAdmin;
 public class TopicConfig {
 
     public static final String ITEM_UPDATE_LOG_TOPIC = "e-commerce.item.item-update-log";
+    public static final String ITEM_STOCK_AGGREGATION_RESULTS_TOPIC = "e-commerce.item.item-stock-aggregation-results";
     public static final String ITEM_UPDATE_RESULT_TOPIC = "e-commerce.item.item-update-result";
     public static final String ITEM_UPDATE_RESULT_STREAMS_ONLY_TOPIC = "e-commerce.item.item-update-result-streams-only";
 

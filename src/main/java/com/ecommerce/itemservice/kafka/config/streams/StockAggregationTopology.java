@@ -1,7 +1,6 @@
 package com.ecommerce.itemservice.kafka.config.streams;
 
 import com.ecommerce.itemservice.domain.item.service.ItemStockService;
-import com.ecommerce.itemservice.domain.item.service.stockupdate.ItemUpdateStatus;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +8,7 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.state.WindowStore;
@@ -25,19 +25,28 @@ import java.util.Collections;
 public class StockAggregationTopology {
 
     private final ItemStockService itemStockService;
+    private final long windowSize = 2;
+    private final long gracePeriod = 5;
 
     @Bean
-    public KStream<Windowed<String>, Long> calculateTotalQuantity(KafkaStreamsConfiguration kafkaStreamsConfiguration,
-                                                                  StreamsBuilder streamsBuilder) {
+    public KStream<String, Long> itemStockChangesStream(KafkaStreamsConfiguration kafkaStreamsConfiguration,
+                                                 StreamsBuilder streamsBuilder) {
         AdminClient adminClient = AdminClient.create(kafkaStreamsConfiguration.asProperties());
         adminClient.createTopics(Collections.singleton(
                 new NewTopic(TopicConfig.ITEM_UPDATE_LOG_TOPIC, 1, (short) 1)));
 
-        KStream<String, Long> stream = streamsBuilder.stream(TopicConfig.ITEM_UPDATE_LOG_TOPIC);
+        return streamsBuilder.stream(
+                TopicConfig.ITEM_UPDATE_LOG_TOPIC,
+                Consumed.with(Serdes.String(), Serdes.Long()));
+    }
 
-        return stream
+    @Bean
+    public KStream<String, Long> aggregateStockChanges(KStream<String, Long> itemStockChangeStream) {
+        KStream<String, Long> aggregatedStockChange = itemStockChangeStream
                 .groupByKey()
-                .windowedBy(TimeWindows.ofSizeAndGrace(Duration.ofSeconds(5), Duration.ofSeconds(5)))
+                .windowedBy(TimeWindows.ofSizeAndGrace(
+                        Duration.ofSeconds(windowSize),
+                        Duration.ofSeconds(gracePeriod)))
                 .reduce(Long::sum,
                         Materialized
                                 .<String, Long, WindowStore<Bytes, byte[]>>as("total-quantity")
@@ -46,23 +55,28 @@ public class StockAggregationTopology {
                                 .withRetention(Duration.ofMinutes(1))
                         //.withLoggingEnabled(Collections.singletonMap("min.insync.replicas", "1"))
                 )
-                .suppress(Suppressed.untilWindowCloses(Suppressed.BufferConfig.unbounded().shutDownWhenFull()))
+                .suppress(Suppressed.untilWindowCloses(
+                        Suppressed.BufferConfig
+                                .unbounded()
+                                .shutDownWhenFull()))
                 .toStream()
+                .peek((windowedKey, value) -> {
+                    log.info("Aggregation results for Item Id {}: quantity {} in windows [{} - {}]",
+                            windowedKey.key(),
+                            value,
+                            windowedKey.window().startTime(),
+                            windowedKey.window().endTime());
+                })
+                .map((windowedKey, value) -> KeyValue.pair(windowedKey.key(), value));
+
+        aggregatedStockChange
+                .filter((key, value) -> value != null && value != 0)
                 .peek((key, value) -> {
-                    if (value != 0) {
-                        Long itemId = Long.valueOf(key.key());
+                    log.info("Windowed aggregation result: Item Id = {}, aggregatedQuantity = {}", key, value);
+                })
+                .to(TopicConfig.ITEM_STOCK_AGGREGATION_RESULTS_TOPIC,
+                        Produced.with(Serdes.String(), Serdes.Long()));
 
-                        ItemUpdateStatus itemUpdateStatus = (value > 0) ?
-                                ItemUpdateStatus.STOCK_PRODUCTION : ItemUpdateStatus.STOCK_CONSUMPTION;
-
-                        itemStockService.updateStockWithPessimisticLock(itemId, value, itemUpdateStatus);
-                        log.info("Aggregation results [ {} - {} ], {} -> itemId={}, quantity={}",
-                                key.window().startTime(),
-                                key.window().endTime(),
-                                itemUpdateStatus,
-                                itemId,
-                                value);
-                    }
-                });
+        return aggregatedStockChange;
     }
 }
