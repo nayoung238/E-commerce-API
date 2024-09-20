@@ -3,9 +3,10 @@ package com.ecommerce.apigatewayservice.service.mypage.dto;
 import lombok.Getter;
 
 @Getter
-public class AccountDto {
+public class SimpleAccountDto {
 
-    private Long accountId;
+    private long accountId;
     private String email;
     private String name;
+    private long numberOfCoupons;
 }
