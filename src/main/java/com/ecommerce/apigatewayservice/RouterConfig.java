@@ -1,7 +1,7 @@
 
 package com.ecommerce.apigatewayservice;
 
-import com.ecommerce.apigatewayservice.service.mypage.MyPageHandler;
+import com.ecommerce.apigatewayservice.service.mypage.MyPageCompositionService;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -30,12 +30,15 @@ public class RouterConfig {
                 .build();
     }
 
-//    @Bean
-//    public RouterFunction<ServerResponse> myPageRoutes(MyPageHandler myPageHandler) {
-//        return RouterFunctions.route()
-//                .GET("/my-page-details/{userId}/{cursorOrderId}",
-//                        RequestPredicates.accept(MediaType.APPLICATION_JSON),
-//                        myPageHandler::getMyPageDetails)
-//                .build();
-//    }
+    @Bean
+    public RouterFunction<ServerResponse> myPageRoutes(MyPageCompositionService myPageCompositionService) {
+        return RouterFunctions.route()
+                .GET("/my-page-details/{accountId}",
+                        RequestPredicates.accept(MediaType.APPLICATION_JSON),
+                        myPageCompositionService::getMyPageDetails)
+                .GET("/my-page-details/{accountId}/{cursorOrderId}",
+                        RequestPredicates.accept(MediaType.APPLICATION_JSON),
+                        myPageCompositionService::getMyPageDetails)
+                .build();
+    }
 }
