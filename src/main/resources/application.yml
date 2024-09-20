@@ -12,20 +12,6 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-  cloud:
-    discovery:
-      client:
-        simple:
-          local:
-            port: 8089
-            service-id: order-service
-    openfeign:
-      client:
-        config:
-          default:
-            connect-timeout: 5000
-            read-timeout: 5000
-            logger-level: basic
 
 eureka:
   instance:
@@ -34,12 +20,6 @@ eureka:
     eureka-server-port: 8761
     register-with-eureka: true
     fetch-registry: true
-
-resilience4j:
-  retry:
-    retry-aspect-order: 2
-  circuitbreaker:
-    circuit-breaker-aspect-order: 1
 
 logging:
   level:
