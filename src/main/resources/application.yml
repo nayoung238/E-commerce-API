@@ -14,6 +14,10 @@ eureka:
 spring:
   application:
     name: api-gateway-service
+  data:
+    mongodb:
+      uri: mongodb+srv://...@cluster0.k6glgwz.mongodb.net/api-gateway?retryWrites=true&w=majority
+
 #  config:
 #    import: "optional:configserver:"
 #  cloud:

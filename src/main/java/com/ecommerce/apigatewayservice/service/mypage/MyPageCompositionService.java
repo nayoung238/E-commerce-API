@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
@@ -25,7 +24,7 @@ public class MyPageCompositionService {
     private final ReactiveLoadBalancerService reactiveLoadBalancerService;
     private final WebClient.Builder webClientBuilder;
 
-    public Mono<ServerResponse> getMyPageDetails(ServerRequest serverRequest) {
+    public Mono<MyPageDto> getMyPageDetails(ServerRequest serverRequest) {
         Mono<SimpleAccountDto> account = getAccount(serverRequest)
                 .doOnError(throwable -> log.error("Exception thrown by getAccount method: {}", throwable.getMessage()))
                 .onErrorResume(throwable -> Mono.empty())
@@ -36,10 +35,7 @@ public class MyPageCompositionService {
                 .onErrorResume(throwable -> Mono.just(OrderListDto.emptyInstance()));
 
         return Mono.zip(account, orderList)
-                .map(tuple -> MyPageDto.of(tuple.getT1(), tuple.getT2()))
-                .flatMap(myPageDto -> ServerResponse.ok()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(myPageDto));
+                .map(tuple -> MyPageDto.of(tuple.getT1(), tuple.getT2()));
     }
 
     private Mono<SimpleAccountDto> getAccount(ServerRequest serverRequest) {

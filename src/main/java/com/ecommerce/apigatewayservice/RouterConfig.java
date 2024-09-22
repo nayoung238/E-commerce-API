@@ -1,7 +1,7 @@
 
 package com.ecommerce.apigatewayservice;
 
-import com.ecommerce.apigatewayservice.service.mypage.MyPageCompositionService;
+import com.ecommerce.apigatewayservice.service.mypage.MyPageCQRSService;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -31,14 +31,14 @@ public class RouterConfig {
     }
 
     @Bean
-    public RouterFunction<ServerResponse> myPageRoutes(MyPageCompositionService myPageCompositionService) {
+    public RouterFunction<ServerResponse> myPageRoutes(MyPageCQRSService myPageCQRSService) {
         return RouterFunctions.route()
                 .GET("/my-page-details/{accountId}",
                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
-                        myPageCompositionService::getMyPageDetails)
+                        myPageCQRSService::getMyPageDetails)
                 .GET("/my-page-details/{accountId}/{cursorOrderId}",
                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
-                        myPageCompositionService::getMyPageDetails)
+                        myPageCQRSService::getMyPageDetails)
                 .build();
     }
 }
