@@ -32,6 +32,6 @@ public class InternalEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void createKafkaEvent(OrderCreationInternalEvent event) {
         OrderDto orderDto = orderInquiryService.findOrderByOrderEventId(event.getOrderEventId());
-        kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, null, OrderKafkaEvent.of(orderDto));
+        kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, orderDto.getOrderEventId(), OrderKafkaEvent.of(orderDto));
     }
 }

@@ -1,6 +1,5 @@
 package com.ecommerce.orderservice.domain.order.service;
 
-import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.domain.order.dto.OrderDto;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
@@ -19,7 +18,7 @@ public interface OrderCreationService {
     void requestOrderProcessingResult(OrderKafkaEvent orderKafkaEvent);
     void resendKafkaMessage(OrderKafkaEvent orderKafkaEvent);
     boolean isFirstEvent(String redisKey, String orderEventId);
-    void updateOrderStatus(String orderEventId, OrderProcessingStatus orderProcessingStatus);
+    void handleOrderFailure(String orderEventId);
 
     default String getOrderEventId(@NotNull(message = "사용자 아이디는 필수입니다.")
                                    @Positive(message = "사용자 아이디는 1 이상이어야 합니다.") long accountId) {

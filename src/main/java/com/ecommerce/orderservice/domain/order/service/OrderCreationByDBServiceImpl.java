@@ -69,11 +69,23 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     }
 
     @Override
+    @Transactional
     public void requestOrderProcessingResult(OrderKafkaEvent orderKafkaEvent) {
-//        OrderStatus orderStatus = itemServiceClient.findOrderProcessingResult(orderKafkaEvent.getOrderEventId());
-//        if(orderStatus.equals(OrderStatus.SUCCEEDED) || orderStatus.equals(OrderStatus.FAILED))
-//            updateOrderStatus(orderKafkaEvent.getOrderEventId(), orderStatus);
+//        OrderProcessingStatus status = itemServiceClient.findOrderProcessingResult(orderKafkaEvent.getOrderEventId());
+//        if(status.equals(OrderProcessingStatus.SUCCESSFUL)) {
+//            handleOrderSuccess(orderKafkaEvent.getOrderEventId());
+//        }
+//        else if (status.equals(OrderProcessingStatus.FAILED)) {
+//            handleOrderFailure(orderKafkaEvent.getOrderEventId());
+//        }
 //        else resendKafkaMessage(orderKafkaEvent);
+    }
+
+    private void handleOrderSuccess(String orderEventId) {
+        Order order = orderRepository.findByOrderEventId(orderEventId)
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ORDER.getMessage()));
+
+        order.updateOrderStatus(OrderProcessingStatus.SUCCESSFUL);
     }
 
     @Override
@@ -81,10 +93,9 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     public void resendKafkaMessage(OrderKafkaEvent orderKafkaEvent) {
         String redisKey = getRedisKey(orderKafkaEvent.getRequestedAt());
         if(isFirstEvent(redisKey, orderKafkaEvent.getOrderEventId()))
-            kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, null, orderKafkaEvent);
+            kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
         else {
-            updateOrderStatus(orderKafkaEvent.getOrderEventId(), OrderProcessingStatus.FAILED);
-            // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요
+            handleOrderFailure(orderKafkaEvent.getOrderEventId());
         }
     }
 
@@ -94,11 +105,12 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     }
 
     @Override
-    public void updateOrderStatus(String orderEventId, OrderProcessingStatus orderProcessingStatus) {
+    @Transactional
+    public void handleOrderFailure(String orderEventId) {
         Order order = orderRepository.findByOrderEventId(orderEventId)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ORDER.getMessage()));
 
-        order.updateOrderStatus(orderProcessingStatus);
-        orderRepository.save(order);
+        order.updateOrderStatus(OrderProcessingStatus.CANCELED);
+        internalEventService.publishInternalEvent(order.getOrderCreationInternalEvent());
     }
 }

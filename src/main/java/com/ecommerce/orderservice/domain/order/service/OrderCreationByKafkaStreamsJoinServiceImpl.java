@@ -61,13 +61,13 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     public void requestOrderProcessingResult(OrderKafkaEvent orderKafkaEvent) {
 //        assert orderKafkaEvent.getOrderEventId() != null;
 //
-//        OrderStatus orderStatus = itemServiceClient.findOrderProcessingResult(orderKafkaEvent.getOrderEventId());
-//        if (orderStatus.equals(OrderStatus.SUCCEEDED) || orderStatus.equals(OrderStatus.FAILED)) {
+//        OrderProcessingStatus orderStatus = itemServiceClient.findOrderProcessingResult(orderKafkaEvent.getOrderEventId());
+//        if (orderStatus.equals(OrderProcessingStatus.SUCCESSFUL) || orderStatus.equals(OrderProcessingStatus.FAILED)) {
 //            if(!isExistOrderByOrderEventId(orderKafkaEvent.getOrderEventId())) {
 //                OrderKafkaEvent orderEvent = OrderKafkaEvent.of(orderKafkaEvent.getOrderEventId(), orderStatus);
 //                kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, orderKafkaEvent.getOrderEventId(), orderEvent);
 //            }
-//        } else if (orderStatus.equals(OrderStatus.SERVER_ERROR)) {
+//        } else if (orderStatus.equals(OrderProcessingStatus.SERVER_ERROR)) {
 //            kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderKafkaEvent.getOrderEventId());
 //        } else {
 //            resendKafkaMessage(orderKafkaEvent);
@@ -80,8 +80,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
         if(isFirstEvent(redisKey, orderKafkaEvent.getOrderEventId()))
             kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
         else {
-            updateOrderStatus(orderKafkaEvent.getOrderEventId(), OrderProcessingStatus.FAILED);
-            // TODO: 주문 실패 처리했지만, item-service에서 재고 변경한 경우 -> undo 작업 필요
+            handleOrderFailure(orderKafkaEvent.getOrderEventId());
         }
     }
 
@@ -91,9 +90,9 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     }
 
     @Override
-    public void updateOrderStatus(String orderEventId, OrderProcessingStatus orderProcessingStatus) {
+    public void handleOrderFailure(String orderEventId) {
         if(!isExistOrderByOrderEventId(orderEventId)) {
-            OrderKafkaEvent orderEvent = OrderKafkaEvent.of(orderEventId, orderProcessingStatus);
+            OrderKafkaEvent orderEvent = OrderKafkaEvent.of(orderEventId, OrderProcessingStatus.CANCELED);
             kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, orderEventId, orderEvent);
         }
     }
