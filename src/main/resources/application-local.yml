@@ -1,11 +1,24 @@
 spring:
   jpa:
+    show-sql: true
     hibernate:
       ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
   datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/local_account_db
+    username: root
 
 eureka:
+  instance:
+    instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}
   client:
+    eureka-server-port: 8761
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
       defaultZone: http://localhost:${eureka.client.eureka-server-port}/eureka
+    healthcheck:
+      enabled: true

@@ -4,24 +4,6 @@ server:
 spring:
   application:
     name: account-service
-  jpa:
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-
-eureka:
-  instance:
-    instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}
-  client:
-    eureka-server-port: 8761
-    register-with-eureka: true
-    fetch-registry: true
-    healthcheck:
-      enabled: true
 
 logging:
   level:
