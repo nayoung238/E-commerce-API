@@ -28,7 +28,7 @@ public class Account {
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "user_coupon", joinColumns = @JoinColumn(name = "account_id"))
-    @Column(name = "coupon_value")
+    @Column(name = "coupon_name")
     private Map<Long, String> coupons;
 
     @Builder(access = AccessLevel.PRIVATE)
@@ -46,5 +46,9 @@ public class Account {
                 .name(signUpRequest.getName())
                 .coupons(new HashMap<>())
                 .build();
+    }
+
+    public void addCoupon(Long couponId, String couponName) {
+        this.coupons.put(couponId, couponName);
     }
 }
