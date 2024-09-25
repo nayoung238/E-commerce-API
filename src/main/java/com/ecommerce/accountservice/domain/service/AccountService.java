@@ -1,8 +1,10 @@
-package com.ecommerce.accountservice.domain;
+package com.ecommerce.accountservice.domain.service;
 
 import com.ecommerce.accountservice.api.dto.DetailedAccountDto;
 import com.ecommerce.accountservice.api.dto.SimpleAccountDto;
 import com.ecommerce.accountservice.api.dto.SignUpRequestDto;
+import com.ecommerce.accountservice.domain.Account;
+import com.ecommerce.accountservice.domain.repo.AccountRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
