@@ -1,6 +1,7 @@
 package com.ecommerce.accountservice.exception;
 
 import com.ecommerce.accountservice.exception.response.ExceptionResponse;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -9,9 +10,14 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(AccountException.class)
-    public ResponseEntity<?> handleAccountException(AccountException e) {
-        return handleExceptionInternal(e.getExceptionCode());
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException e) {
+        ExceptionResponse exceptionResponse = ExceptionResponse.builder()
+                .code(String.valueOf(ExceptionCode.NOT_FOUND))
+                .message(e.getMessage())
+                .build();
+
+        return new ResponseEntity<>(exceptionResponse, ExceptionCode.NOT_FOUND.getHttpStatus());
     }
 
     private ResponseEntity<Object> handleExceptionInternal(ExceptionCode exceptionCode) {
