@@ -4,12 +4,6 @@ spring:
       ddl-auto: create
   datasource:
     url: jdbc:mysql://localhost:3306/local_account_db
-  cloud:
-    discovery:
-      client:
-        simple:
-          local:
-            host: localhost
 
 eureka:
   client:
