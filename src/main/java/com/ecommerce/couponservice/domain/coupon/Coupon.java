@@ -1,12 +1,14 @@
 package com.ecommerce.couponservice.domain.coupon;
 
 import com.ecommerce.couponservice.domain.coupon.dto.CouponRegisterRequestDto;
+import com.ecommerce.couponservice.exception.ExceptionCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
 @Entity
@@ -52,5 +54,12 @@ public class Coupon {
                 .discountRate(registerRequestDto.getDiscountRate())
                 .quantity(registerRequestDto.getQuantity())
                 .build();
+    }
+
+    public void decrementQuantity() {
+        if(quantity <= 0) {
+            throw new IllegalArgumentException(ExceptionCode.COUPON_OUT_OF_STOCK.getMessage());
+        }
+        this.quantity--;
     }
 }

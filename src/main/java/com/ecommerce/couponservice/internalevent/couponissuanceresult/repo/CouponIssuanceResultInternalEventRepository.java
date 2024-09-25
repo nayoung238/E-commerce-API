@@ -1,0 +1,8 @@
+package com.ecommerce.couponservice.internalevent.couponissuanceresult.repo;
+
+import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultId;
+import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultInternalEvent;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CouponIssuanceResultInternalEventRepository extends JpaRepository<CouponIssuanceResultInternalEvent, CouponIssuanceResultId> {
+}
