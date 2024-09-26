@@ -21,10 +21,17 @@ public class CouponIssuanceController {
 
     private final CouponIssuanceService couponIssuanceService;
 
-    @PostMapping("/{couponId}/{accountId}")
+    @PostMapping("/v1/{couponId}/{accountId}")
     public ResponseEntity<?> issueCoupon(@PathVariable @Valid @Positive(message = "쿠폰 아이디는 1 이상이어야 합니다.") Long couponId,
                                          @PathVariable @Valid @Positive(message = "사용자 계정 아이디는 1 이상이어야 합니다.") Long accountId) {
         String response = couponIssuanceService.issueCoupon(couponId, accountId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/v2/{couponId}/{accountId}")
+    public ResponseEntity<?> issueCouponFromWaitQueue(@PathVariable @Valid @Positive(message = "쿠폰 아이디는 1 이상이어야 합니다.") Long couponId,
+                                                      @PathVariable @Valid @Positive(message = "사용자 계정 아이디는 1 이상이어야 합니다.") Long accountId) {
+        String response = couponIssuanceService.addToCouponWaitQueue(couponId, accountId);
         return ResponseEntity.ok(response);
     }
 }
