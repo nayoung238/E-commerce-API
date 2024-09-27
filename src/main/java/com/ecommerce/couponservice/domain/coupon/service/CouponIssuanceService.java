@@ -1,7 +1,9 @@
 package com.ecommerce.couponservice.domain.coupon.service;
 
 import com.ecommerce.couponservice.domain.coupon.Coupon;
+import com.ecommerce.couponservice.domain.coupon.dto.WaitQueuePositionResponseDto;
 import com.ecommerce.couponservice.domain.coupon.repo.CouponRepository;
+import com.ecommerce.couponservice.exception.CustomRedisException;
 import com.ecommerce.couponservice.exception.ExceptionCode;
 import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultInternalEvent;
 import com.ecommerce.couponservice.internalevent.service.InternalEventService;
@@ -38,14 +40,30 @@ public class CouponIssuanceService {
         }
     }
 
-    @Transactional
-    public String addToCouponWaitQueue(Long couponId, Long accountId) {
+    public WaitQueuePositionResponseDto addToCouponWaitQueue(Long couponId, Long accountId) {
         boolean exists = couponRepository.existsById(couponId);
         if(!exists) {
             throw new EntityNotFoundException(ExceptionCode.NOT_FOUND_COUPON.getMessage());
         }
-
         couponRedisRepository.addCouponWaitQueue(couponId, accountId);
-        return "Coupon issuance is in progress !!";
+        return getPositionInWaitQueue(couponId, accountId);
+    }
+
+    public WaitQueuePositionResponseDto getPositionInWaitQueue(Long couponId, Long accountId) {
+        try {
+            Long rank = couponRedisRepository.getWaitQueueRank(couponId, accountId);
+            if(rank == null) {
+                return WaitQueuePositionResponseDto.accountIdNotInWaitQueue(couponId, accountId);
+            }
+            Long position = rank + 1;
+            return WaitQueuePositionResponseDto.accountIdInWaitQueue(couponId, accountId, position);
+        } catch (CustomRedisException e) {
+            if (e.getExceptionCode() == ExceptionCode.WAIT_QUEUE_NOT_FOUND) {
+                return WaitQueuePositionResponseDto.waitQueueNotFound(couponId);
+            }
+            return WaitQueuePositionResponseDto.unexpectedError();
+        } catch (Exception e) {
+            return WaitQueuePositionResponseDto.unexpectedError();
+        }
     }
 }
