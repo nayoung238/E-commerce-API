@@ -43,7 +43,7 @@ public class CouponIssuanceService {
     public WaitQueuePositionResponseDto addToCouponWaitQueue(Long couponId, Long accountId) {
         boolean exists = couponRepository.existsById(couponId);
         if(!exists) {
-            throw new EntityNotFoundException(ExceptionCode.NOT_FOUND_COUPON.getMessage());
+            return WaitQueuePositionResponseDto.waitQueueNotFound(couponId);
         }
         couponRedisRepository.addCouponWaitQueue(couponId, accountId);
         return getPositionInWaitQueue(couponId, accountId);
