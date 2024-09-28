@@ -20,8 +20,8 @@ public class CouponRedisRepository {
     private final RedisTemplate<String, String> redisTemplate;
     public static final String WAIT_KEY_PREFIX = "coupon:wait:";
     public static final String ENTER_KEY_PREFIX = "coupon:enter:";
-    private final long WAIT_QUEUE_START_INDEX = 0L;
-    private final long WAIT_QUEUE_BATCH_SIZE = 10L;
+    private final long START_INDEX = 0L;
+    public static final long BATCH_SIZE = 10L;
 
     public void addCouponWaitQueue(Long couponId, Long accountId) {
         String waitKey = getWaitQueueKey(couponId);
@@ -49,10 +49,7 @@ public class CouponRedisRepository {
 
         Set<ZSetOperations.TypedTuple<String>> topWaitingAccountIds = redisTemplate
                 .opsForZSet()
-                .rangeWithScores(waitQueueKey,
-                        WAIT_QUEUE_START_INDEX,
-                        WAIT_QUEUE_BATCH_SIZE - 1
-                );
+                .rangeWithScores(waitQueueKey, START_INDEX, BATCH_SIZE - 1);
 
         if (topWaitingAccountIds!= null && !topWaitingAccountIds.isEmpty()) {
             List txResults = redisTemplate.execute(new SessionCallback<>() {
@@ -70,7 +67,7 @@ public class CouponRedisRepository {
 
             if (txResults != null && !txResults.isEmpty()) {
                 movedCount.set(topWaitingAccountIds.size());
-                log.info("Moved {} items from wait queue to enter queue", movedCount.get());
+                log.info("Moved {} accounts from wait queue to enter queue", movedCount.get());
             } else {
                 log.warn("Transaction failed or no items were moved");
             }
@@ -102,7 +99,7 @@ public class CouponRedisRepository {
         String enterQueueKey = getEnterQueueKey(couponId);
         return redisTemplate
                 .opsForZSet()
-                .rangeWithScores(enterQueueKey, 0, -1);
+                .rangeWithScores(enterQueueKey, START_INDEX, BATCH_SIZE - 1);
     }
 
     public void removeEnterQueueValue(Long couponId, Long accountId) {
