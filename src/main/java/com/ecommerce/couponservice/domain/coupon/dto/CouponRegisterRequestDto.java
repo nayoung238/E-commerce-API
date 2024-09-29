@@ -1,6 +1,8 @@
 package com.ecommerce.couponservice.domain.coupon.dto;
 
 import jakarta.validation.constraints.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
@@ -25,4 +27,22 @@ public class CouponRegisterRequestDto {
     @NotNull(message = "쿠폰 수량은 필수입니다.")
     @Min(value = 0, message = "쿠폰 수량은 0 이상이어야 합니다.")
     private Long quantity;
+
+    @Builder(access = AccessLevel.PRIVATE)
+    private CouponRegisterRequestDto(String name, String description, Long itemId, BigDecimal discountRate, Long quantity) {
+        this.name = name;
+        this.description = description;
+        this.itemId = itemId;
+        this.discountRate = discountRate;
+        this.quantity = quantity;
+    }
+
+    public static CouponRegisterRequestDto forTest(String name, Long itemId, BigDecimal discountRate, Long quantity) {
+        return CouponRegisterRequestDto.builder()
+                .name(name)
+                .itemId(itemId)
+                .discountRate(discountRate)
+                .quantity(quantity)
+                .build();
+    }
 }
