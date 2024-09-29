@@ -4,3 +4,10 @@ server:
 spring:
   application:
     name: coupon-service
+  kafka:
+    producer:
+      acks: 1
+  data:
+    redis:
+      host: localhost
+      port: 6379
