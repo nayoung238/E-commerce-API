@@ -1,6 +1,5 @@
 package com.ecommerce.itemservice.kafka.config.streams;
 
-import com.ecommerce.itemservice.domain.item.service.ItemStockService;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,9 +23,8 @@ import java.util.Collections;
 @Slf4j
 public class StockAggregationTopology {
 
-    private final ItemStockService itemStockService;
-    private final long windowSize = 2;
-    private final long gracePeriod = 5;
+    private final long WINDOW_SIZE = 2;
+    private final long GRACE_PERIOD = 5;
 
     @Bean
     public KStream<String, Long> itemStockChangesStream(KafkaStreamsConfiguration kafkaStreamsConfiguration,
@@ -45,8 +43,8 @@ public class StockAggregationTopology {
         KStream<String, Long> aggregatedStockChange = itemStockChangeStream
                 .groupByKey()
                 .windowedBy(TimeWindows.ofSizeAndGrace(
-                        Duration.ofSeconds(windowSize),
-                        Duration.ofSeconds(gracePeriod)))
+                        Duration.ofSeconds(WINDOW_SIZE),
+                        Duration.ofSeconds(GRACE_PERIOD)))
                 .reduce(Long::sum,
                         Materialized
                                 .<String, Long, WindowStore<Bytes, byte[]>>as("total-quantity")
