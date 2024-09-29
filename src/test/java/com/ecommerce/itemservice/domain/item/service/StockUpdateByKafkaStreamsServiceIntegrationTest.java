@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-class StockUpdateByKafkaStreamsServiceImplTest extends IntegrationTestSupport {
+class StockUpdateByKafkaStreamsServiceIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private StockUpdateByKafkaStreamsServiceImpl stockUpdateByKafkaStreamsService;

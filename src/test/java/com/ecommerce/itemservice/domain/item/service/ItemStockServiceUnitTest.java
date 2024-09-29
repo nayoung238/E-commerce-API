@@ -19,7 +19,7 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ItemStockServiceBehaviorVerificationTest extends UnitTestSupport {
+class ItemStockServiceUnitTest extends UnitTestSupport {
 
     @InjectMocks
     ItemStockService itemStockService;

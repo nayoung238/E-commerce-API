@@ -19,7 +19,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-class StockUpdateByRedissonServiceImplTest extends IntegrationTestSupport {
+class StockUpdateByRedissonServiceIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private StockUpdateByRedissonServiceImpl stockUpdateByRedissonServiceImpl;

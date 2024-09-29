@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-class ItemRepositoryTest extends IntegrationTestSupport {
+class ItemRepositoryIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private ItemRepository itemRepository;
