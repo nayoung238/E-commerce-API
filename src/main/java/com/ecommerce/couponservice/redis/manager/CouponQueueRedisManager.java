@@ -15,11 +15,9 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class CouponQueueRedisManager {
+public class CouponQueueRedisManager extends BaseRedisManager {
 
     private final RedisTemplate<String, String> redisTemplate;
-    public static final String WAIT_KEY_PREFIX = "coupon:wait-queue:";
-    public static final String ENTER_KEY_PREFIX = "coupon:enter-queue:";
     private final long START_INDEX = 0L;
     public static final long BATCH_SIZE = 10L;
 
@@ -111,13 +109,5 @@ public class CouponQueueRedisManager {
         redisTemplate
                 .opsForZSet()
                 .remove(key, value);
-    }
-
-    private String getWaitQueueKey(Long couponId) {
-        return WAIT_KEY_PREFIX + couponId;
-    }
-
-    private String getEnterQueueKey(Long couponId) {
-        return ENTER_KEY_PREFIX + couponId;
     }
 }
