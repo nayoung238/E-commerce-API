@@ -16,7 +16,7 @@ public class MoveFromWaitToEnterQueueScheduler extends BaseCouponScheduler {
     private final CouponQueueRedisManager couponQueueRedisManager;
 
     @Scheduled(fixedDelay = 5_000, initialDelay = 10_000)
-    private void processScheduledWaitQueueTasks() {
+    public void processScheduledWaitQueueTasks() {
         Set<String> waitKeys = couponQueueRedisManager.getWaitQueueKeys();
         if(waitKeys.isEmpty()) {
             log.debug("No wait queues found to process.");
