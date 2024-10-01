@@ -1,18 +1,18 @@
 package com.ecommerce.couponservice.domain.coupon.service;
 
-import com.ecommerce.couponservice.domain.coupon.Coupon;
+import com.ecommerce.couponservice.domain.coupon.dto.CouponIssuanceResultDto;
 import com.ecommerce.couponservice.domain.coupon.dto.WaitQueuePositionResponseDto;
 import com.ecommerce.couponservice.domain.coupon.repo.CouponRepository;
 import com.ecommerce.couponservice.exception.CustomRedisException;
 import com.ecommerce.couponservice.exception.ExceptionCode;
 import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultInternalEvent;
 import com.ecommerce.couponservice.internalevent.service.InternalEventService;
+import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus;
 import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager;
-import jakarta.persistence.EntityNotFoundException;
+import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -24,20 +24,17 @@ public class CouponIssuanceService {
     private final CouponRepository couponRepository;
     private final InternalEventService internalEventService;
     private final CouponQueueRedisManager couponQueueRedisManager;
+    private final CouponStockRedisManager couponStockRedisManager;
 
-    @Transactional
-    public String issueCoupon(Long couponId, Long accountId) {
-        try {
-            Optional<Coupon> coupon = couponRepository.findByIdWithPessimisticLock(couponId);
-            if (coupon.isEmpty()) {
-                throw new EntityNotFoundException(ExceptionCode.NOT_FOUND_COUPON.getMessage());
-            }
-            coupon.get().decrementQuantity();
+    public CouponIssuanceResultDto issueCoupon(Long couponId, Long accountId) {
+        CouponIssuanceStatus status = couponStockRedisManager.decrementStock(couponId, accountId);
+        if (status == CouponIssuanceStatus.SUCCESS) {
             internalEventService.publishInternalEvent(CouponIssuanceResultInternalEvent.init(couponId, accountId));
-            return "Coupon issued successfully !!";
-        } catch (EntityNotFoundException | IllegalArgumentException e) {
-            throw e;
         }
+        else {
+            couponStockRedisManager.revertDecrementOperation(couponId);
+        }
+        return CouponIssuanceResultDto.of(couponId, accountId, status);
     }
 
     public WaitQueuePositionResponseDto addToCouponWaitQueue(Long couponId, Long accountId) {
