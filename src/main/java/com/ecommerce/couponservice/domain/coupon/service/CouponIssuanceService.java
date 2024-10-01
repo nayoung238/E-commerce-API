@@ -7,7 +7,7 @@ import com.ecommerce.couponservice.exception.CustomRedisException;
 import com.ecommerce.couponservice.exception.ExceptionCode;
 import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultInternalEvent;
 import com.ecommerce.couponservice.internalevent.service.InternalEventService;
-import com.ecommerce.couponservice.domain.coupon.repo.CouponRedisRepository;
+import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ public class CouponIssuanceService {
 
     private final CouponRepository couponRepository;
     private final InternalEventService internalEventService;
-    private final CouponRedisRepository couponRedisRepository;
+    private final CouponQueueRedisManager couponQueueRedisManager;
 
     @Transactional
     public String issueCoupon(Long couponId, Long accountId) {
@@ -45,13 +45,13 @@ public class CouponIssuanceService {
         if(!exists) {
             return WaitQueuePositionResponseDto.waitQueueNotFound(couponId);
         }
-        couponRedisRepository.addCouponWaitQueue(couponId, accountId);
+        couponQueueRedisManager.addCouponWaitQueue(couponId, accountId);
         return getPositionInWaitQueue(couponId, accountId);
     }
 
     public WaitQueuePositionResponseDto getPositionInWaitQueue(Long couponId, Long accountId) {
         try {
-            Long rank = couponRedisRepository.getWaitQueueRank(couponId, accountId);
+            Long rank = couponQueueRedisManager.getWaitQueueRank(couponId, accountId);
             if(rank == null) {
                 return WaitQueuePositionResponseDto.accountIdNotInWaitQueue(couponId, accountId);
             }

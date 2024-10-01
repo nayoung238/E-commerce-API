@@ -1,4 +1,4 @@
-package com.ecommerce.couponservice.domain.coupon.repo;
+package com.ecommerce.couponservice.redis.manager;
 
 import com.ecommerce.couponservice.exception.CustomRedisException;
 import com.ecommerce.couponservice.exception.ExceptionCode;
@@ -7,19 +7,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.*;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
-@Repository
+@Component
 @RequiredArgsConstructor
 @Slf4j
-public class CouponRedisRepository {
+public class CouponQueueRedisManager {
 
     private final RedisTemplate<String, String> redisTemplate;
-    public static final String WAIT_KEY_PREFIX = "coupon:wait:";
-    public static final String ENTER_KEY_PREFIX = "coupon:enter:";
+    public static final String WAIT_KEY_PREFIX = "coupon:wait-queue:";
+    public static final String ENTER_KEY_PREFIX = "coupon:enter-queue:";
     private final long START_INDEX = 0L;
     public static final long BATCH_SIZE = 10L;
 

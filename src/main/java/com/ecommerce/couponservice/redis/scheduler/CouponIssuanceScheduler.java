@@ -1,6 +1,6 @@
 package com.ecommerce.couponservice.redis.scheduler;
 
-import com.ecommerce.couponservice.domain.coupon.repo.CouponRedisRepository;
+import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager;
 import com.ecommerce.couponservice.domain.coupon.service.CouponIssuanceService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +18,12 @@ import java.util.Set;
 @Slf4j
 public class CouponIssuanceScheduler extends BaseCouponScheduler {
 
-    private final CouponRedisRepository couponRedisRepository;
+    private final CouponQueueRedisManager couponQueueRedisManager;
     private final CouponIssuanceService couponIssuanceService;
 
     @Scheduled(fixedDelay = 5_000, initialDelay = 13_000)
     private void processScheduleEnterQueueTasks() {
-        Set<String> enterKeys = couponRedisRepository.getEnterQueueKeys();
+        Set<String> enterKeys = couponQueueRedisManager.getEnterQueueKeys();
         if(enterKeys.isEmpty()) {
             log.debug("No enter queues found to process.");
             return;
@@ -36,7 +36,7 @@ public class CouponIssuanceScheduler extends BaseCouponScheduler {
 
     private void processEnterQueue(String enterKey) {
         try {
-            Long couponId = extractCouponId(CouponRedisRepository.ENTER_KEY_PREFIX, enterKey);
+            Long couponId = extractCouponId(CouponQueueRedisManager.ENTER_KEY_PREFIX, enterKey);
             if(couponId == null) {
                 log.warn("Invalid enter queue key format: {}", enterKey);
                 return;
@@ -57,7 +57,7 @@ public class CouponIssuanceScheduler extends BaseCouponScheduler {
     }
 
     List<Long> getAccountIdsFromEnterQueue(Long couponId) {
-        return couponRedisRepository.getEnterQueueValueAndScore(couponId)
+        return couponQueueRedisManager.getEnterQueueValueAndScore(couponId)
                 .stream()
                 .map(ZSetOperations.TypedTuple::getValue)
                 .filter(Objects::nonNull)
@@ -73,7 +73,7 @@ public class CouponIssuanceScheduler extends BaseCouponScheduler {
         } catch (IllegalArgumentException e) {
             log.error("All coupons({}) have been redeemed.", couponId, e);
         } finally {
-            couponRedisRepository.removeEnterQueueValue(couponId, accountId);
+            couponQueueRedisManager.removeEnterQueueValue(couponId, accountId);
         }
     }
 }

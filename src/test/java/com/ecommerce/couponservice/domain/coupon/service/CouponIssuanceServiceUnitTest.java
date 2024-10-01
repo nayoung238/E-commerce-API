@@ -3,7 +3,7 @@ package com.ecommerce.couponservice.domain.coupon.service;
 import com.ecommerce.couponservice.domain.coupon.Coupon;
 import com.ecommerce.couponservice.domain.coupon.dto.CouponRegisterRequestDto;
 import com.ecommerce.couponservice.domain.coupon.dto.WaitQueuePositionResponseDto;
-import com.ecommerce.couponservice.domain.coupon.repo.CouponRedisRepository;
+import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager;
 import com.ecommerce.couponservice.domain.coupon.repo.CouponRepository;
 import com.ecommerce.couponservice.internalevent.service.InternalEventService;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +35,7 @@ class CouponIssuanceServiceUnitTest {
     private InternalEventService internalEventService;
 
     @Mock
-    private CouponRedisRepository couponRedisRepository;
+    private CouponQueueRedisManager couponQueueRedisManager;
 
     @DisplayName("쿠폰 발급에 성공하면 결과 이벤트를 생성한다.")
     @Test
@@ -67,17 +67,17 @@ class CouponIssuanceServiceUnitTest {
 
         // setup(expectations)
         when(couponRepository.existsById(anyLong())).thenReturn(true);
-        doNothing().when(couponRedisRepository).addCouponWaitQueue(anyLong(), anyLong());
-        when(couponRedisRepository.getWaitQueueRank(anyLong(), anyLong())).thenReturn(1L);
+        doNothing().when(couponQueueRedisManager).addCouponWaitQueue(anyLong(), anyLong());
+        when(couponQueueRedisManager.getWaitQueueRank(anyLong(), anyLong())).thenReturn(1L);
 
         // exercise
         couponIssuanceService.addToCouponWaitQueue(couponId, accountId);
 
         // verify
-        verify(couponRedisRepository, times(1))
+        verify(couponQueueRedisManager, times(1))
                 .addCouponWaitQueue(anyLong(), anyLong());
 
-        verify(couponRedisRepository, times(1))
+        verify(couponQueueRedisManager, times(1))
                 .getWaitQueueRank(anyLong(), anyLong());
     }
 
@@ -92,8 +92,8 @@ class CouponIssuanceServiceUnitTest {
 
         // setup(expectations)
         when(couponRepository.existsById(anyLong())).thenReturn(true);
-        doNothing().when(couponRedisRepository).addCouponWaitQueue(anyLong(), anyLong());
-        when(couponRedisRepository.getWaitQueueRank(anyLong(), anyLong())).thenReturn(rank);
+        doNothing().when(couponQueueRedisManager).addCouponWaitQueue(anyLong(), anyLong());
+        when(couponQueueRedisManager.getWaitQueueRank(anyLong(), anyLong())).thenReturn(rank);
 
         // exercise
         WaitQueuePositionResponseDto response = couponIssuanceService.addToCouponWaitQueue(couponId, accountId);
@@ -139,8 +139,8 @@ class CouponIssuanceServiceUnitTest {
 
         // setup(expectations)
         when(couponRepository.existsById(anyLong())).thenReturn(true);
-        doNothing().when(couponRedisRepository).addCouponWaitQueue(anyLong(), anyLong());
-        when(couponRedisRepository.getWaitQueueRank(anyLong(), anyLong())).thenReturn(rank);
+        doNothing().when(couponQueueRedisManager).addCouponWaitQueue(anyLong(), anyLong());
+        when(couponQueueRedisManager.getWaitQueueRank(anyLong(), anyLong())).thenReturn(rank);
 
         // exercise
         WaitQueuePositionResponseDto response = couponIssuanceService.addToCouponWaitQueue(couponId, accountId);
