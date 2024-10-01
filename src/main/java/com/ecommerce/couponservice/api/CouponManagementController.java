@@ -24,6 +24,12 @@ public class CouponManagementController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/load-stock-to-redis/{couponId}")
+    public ResponseEntity<?> loadCouponStockToRedis(@PathVariable Long couponId) {
+        couponManagementService.loadCouponStockToRedis(couponId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<CouponDto> findCouponById(@PathVariable @Valid @Positive(message = "쿠폰 아이디는 1 이상이어야 합니다.") Long id) {
         CouponDto response = couponManagementService.findCouponById(id);
