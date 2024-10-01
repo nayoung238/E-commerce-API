@@ -1,5 +1,6 @@
 package com.ecommerce.couponservice.api;
 
+import com.ecommerce.couponservice.domain.coupon.dto.CouponIssuanceResultDto;
 import com.ecommerce.couponservice.domain.coupon.dto.WaitQueuePositionResponseDto;
 import com.ecommerce.couponservice.domain.coupon.service.CouponIssuanceService;
 import jakarta.validation.Valid;
@@ -22,7 +23,7 @@ public class CouponIssuanceController {
     @PostMapping("/v1/{couponId}/{accountId}")
     public ResponseEntity<?> issueCoupon(@PathVariable @Valid @Positive(message = "쿠폰 아이디는 1 이상이어야 합니다.") Long couponId,
                                          @PathVariable @Valid @Positive(message = "사용자 계정 아이디는 1 이상이어야 합니다.") Long accountId) {
-        String response = couponIssuanceService.issueCoupon(couponId, accountId);
+        CouponIssuanceResultDto response = couponIssuanceService.issueCoupon(couponId, accountId);
         return ResponseEntity.ok(response);
     }
 
