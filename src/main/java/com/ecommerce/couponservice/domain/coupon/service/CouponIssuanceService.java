@@ -2,7 +2,6 @@ package com.ecommerce.couponservice.domain.coupon.service;
 
 import com.ecommerce.couponservice.domain.coupon.dto.CouponIssuanceResultDto;
 import com.ecommerce.couponservice.domain.coupon.dto.WaitQueuePositionResponseDto;
-import com.ecommerce.couponservice.domain.coupon.repo.CouponRepository;
 import com.ecommerce.couponservice.exception.CustomRedisException;
 import com.ecommerce.couponservice.exception.ExceptionCode;
 import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultInternalEvent;
@@ -21,7 +20,6 @@ import java.util.Optional;
 @Slf4j
 public class CouponIssuanceService {
 
-    private final CouponRepository couponRepository;
     private final InternalEventService internalEventService;
     private final CouponQueueRedisManager couponQueueRedisManager;
     private final CouponStockRedisManager couponStockRedisManager;
@@ -38,8 +36,8 @@ public class CouponIssuanceService {
     }
 
     public WaitQueuePositionResponseDto addToCouponWaitQueue(Long couponId, Long accountId) {
-        boolean exists = couponRepository.existsById(couponId);
-        if(!exists) {
+        Optional<Long> stock = couponStockRedisManager.getStock(couponId);    // Redis에 load된 쿠폰만 대기열 진행
+        if(stock.isEmpty()) {
             return WaitQueuePositionResponseDto.waitQueueNotFound(couponId);
         }
         couponQueueRedisManager.addCouponWaitQueue(couponId, accountId);

@@ -1,11 +1,10 @@
 package com.ecommerce.couponservice.domain.coupon.service;
 
-import com.ecommerce.couponservice.domain.coupon.Coupon;
-import com.ecommerce.couponservice.domain.coupon.dto.CouponRegisterRequestDto;
 import com.ecommerce.couponservice.domain.coupon.dto.WaitQueuePositionResponseDto;
+import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus;
 import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager;
-import com.ecommerce.couponservice.domain.coupon.repo.CouponRepository;
 import com.ecommerce.couponservice.internalevent.service.InternalEventService;
+import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,7 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,13 +27,13 @@ class CouponIssuanceServiceUnitTest {
     private CouponIssuanceService couponIssuanceService;
 
     @Mock
-    private CouponRepository couponRepository;
-
-    @Mock
     private InternalEventService internalEventService;
 
     @Mock
     private CouponQueueRedisManager couponQueueRedisManager;
+
+    @Mock
+    private CouponStockRedisManager couponStockRedisManager;
 
     @DisplayName("쿠폰 발급에 성공하면 결과 이벤트를 생성한다.")
     @Test
@@ -45,9 +43,7 @@ class CouponIssuanceServiceUnitTest {
         final Long accountId = 1L;
 
         // setup(expectations)
-        when(couponRepository.findByIdWithPessimisticLock(anyLong()))
-                .thenReturn(Optional.of(Coupon.of(CouponRegisterRequestDto.forTest("name", 1L, BigDecimal.valueOf(10.0), 10L))));
-
+        when(couponStockRedisManager.decrementStock(couponId, accountId)).thenReturn(CouponIssuanceStatus.SUCCESS);
         doNothing().when(internalEventService).publishInternalEvent(any());
 
         // exercise
@@ -66,7 +62,7 @@ class CouponIssuanceServiceUnitTest {
         final Long accountId = 1L;
 
         // setup(expectations)
-        when(couponRepository.existsById(anyLong())).thenReturn(true);
+        when(couponStockRedisManager.getStock(couponId)).thenReturn(Optional.of(2L));
         doNothing().when(couponQueueRedisManager).addCouponWaitQueue(anyLong(), anyLong());
         when(couponQueueRedisManager.getWaitQueueRank(anyLong(), anyLong())).thenReturn(1L);
 
@@ -91,7 +87,7 @@ class CouponIssuanceServiceUnitTest {
         final long expectedPosition = rank + 1;
 
         // setup(expectations)
-        when(couponRepository.existsById(anyLong())).thenReturn(true);
+        when(couponStockRedisManager.getStock(couponId)).thenReturn(Optional.of(2L));
         doNothing().when(couponQueueRedisManager).addCouponWaitQueue(anyLong(), anyLong());
         when(couponQueueRedisManager.getWaitQueueRank(anyLong(), anyLong())).thenReturn(rank);
 
@@ -115,7 +111,7 @@ class CouponIssuanceServiceUnitTest {
         final Long accountId = 1L;
 
         // setup(expectations)
-        when(couponRepository.existsById(anyLong())).thenReturn(false);
+        when(couponStockRedisManager.getStock(couponId)).thenReturn(Optional.empty());
 
         // exercise
         WaitQueuePositionResponseDto response = couponIssuanceService.addToCouponWaitQueue(couponId, accountId);
@@ -138,7 +134,7 @@ class CouponIssuanceServiceUnitTest {
         final Long rank = null;
 
         // setup(expectations)
-        when(couponRepository.existsById(anyLong())).thenReturn(true);
+        when(couponStockRedisManager.getStock(couponId)).thenReturn(Optional.of(2L));
         doNothing().when(couponQueueRedisManager).addCouponWaitQueue(anyLong(), anyLong());
         when(couponQueueRedisManager.getWaitQueueRank(anyLong(), anyLong())).thenReturn(rank);
 

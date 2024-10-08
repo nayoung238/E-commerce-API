@@ -36,13 +36,4 @@ public class CouponRegisterRequestDto {
         this.discountRate = discountRate;
         this.quantity = quantity;
     }
-
-    public static CouponRegisterRequestDto forTest(String name, Long itemId, BigDecimal discountRate, Long quantity) {
-        return CouponRegisterRequestDto.builder()
-                .name(name)
-                .itemId(itemId)
-                .discountRate(discountRate)
-                .quantity(quantity)
-                .build();
-    }
 }

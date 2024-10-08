@@ -24,11 +24,10 @@ public class CouponStockRedisManager extends BaseRedisManager {
                 .put(COUPON_STOCK_KEY, couponId.toString(), quantity.toString());
     }
 
-    public Long getStock(Long couponId) {
+    public Optional<Long> getStock(Long couponId) {
         Object value = redisTemplate.opsForHash().get(COUPON_STOCK_KEY, couponId.toString());
         return Optional.ofNullable(value)
-                .map(v -> Long.parseLong(v.toString()))
-                .orElse(0L);
+                .map(v -> Long.parseLong(v.toString()));
     }
 
     public CouponIssuanceStatus decrementStock(Long couponId, Long accountId) {

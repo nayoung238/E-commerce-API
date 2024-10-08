@@ -16,6 +16,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
@@ -60,7 +62,10 @@ class CouponIssuanceServiceIntegrationTest extends IntegrationTestSupport {
         // then
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(CouponIssuanceStatus.SUCCESS);
-        assertThat(couponStockRedisManager.getStock(couponId)).isEqualTo(quantity - 1);
+
+        Optional<Long> expectedQuantity = couponStockRedisManager.getStock(couponId);
+        assert expectedQuantity.isPresent();
+        assertThat(expectedQuantity.get()).isEqualTo(quantity - 1);
         assertThat(redisTemplate.opsForZSet().size(ENTER_QUEUE_KEY)).isZero();
     }
 
