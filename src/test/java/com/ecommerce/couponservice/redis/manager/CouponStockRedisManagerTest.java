@@ -1,11 +1,6 @@
-package com.ecommerce.couponservice.domain.coupon.service;
+package com.ecommerce.couponservice.redis.manager;
 
 import com.ecommerce.couponservice.IntegrationTestSupport;
-import com.ecommerce.couponservice.domain.coupon.dto.CouponIssuanceResultDto;
-import com.ecommerce.couponservice.redis.manager.BaseRedisManager;
-import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus;
-import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager;
-import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager;
 import com.ecommerce.couponservice.redis.scheduler.MoveFromWaitToEnterQueueScheduler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,10 +16,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-class CouponQueueServiceIntegrationTest extends IntegrationTestSupport {
-
-    @Autowired
-    private CouponQueueService couponQueueService;
+class CouponStockRedisManagerTest extends IntegrationTestSupport {
 
     @Autowired
     private CouponStockRedisManager couponStockRedisManager;
@@ -53,15 +45,15 @@ class CouponQueueServiceIntegrationTest extends IntegrationTestSupport {
         final long quantity = 10L;
         final Long accountId = 1L;
         final String ENTER_QUEUE_KEY = BaseRedisManager.getEnterQueueKey(couponId);
-        couponStockRedisManager.registerCouponStock(couponId, quantity);
+        couponStockRedisManager.registerCoupon(couponId,"coupon-name", quantity);
         redisTemplate.opsForZSet().add(ENTER_QUEUE_KEY, accountId.toString(), (double) System.currentTimeMillis()); // enter-queue 추가
 
         // when
-        CouponIssuanceResultDto response = couponQueueService.issueCoupon(couponId, accountId);
+        CouponIssuanceStatus response = couponStockRedisManager.decrementStock(couponId, accountId);
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(CouponIssuanceStatus.SUCCESS);
+        assertThat(response).isEqualTo(CouponIssuanceStatus.SUCCESS);
 
         Optional<Long> expectedQuantity = couponStockRedisManager.getStock(couponId);
         assert expectedQuantity.isPresent();
@@ -75,15 +67,15 @@ class CouponQueueServiceIntegrationTest extends IntegrationTestSupport {
         // given
         final Long couponId = 1L;
         final long accountId = 1L;
-        couponStockRedisManager.registerCouponStock(couponId, 0L);
+        couponStockRedisManager.registerCoupon(couponId, "coupon-name", 0L);
 
         // when
-        CouponIssuanceResultDto response = couponQueueService.issueCoupon(couponId, accountId);
+        CouponIssuanceStatus response = couponStockRedisManager.decrementStock(couponId, accountId);
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(CouponIssuanceStatus.OUT_OF_STOCK);
-        assertThat(redisTemplate.opsForHash().get(BaseRedisManager.COUPON_STOCK_KEY, couponId.toString())).isEqualTo("0");
+        assertThat(response).isEqualTo(CouponIssuanceStatus.OUT_OF_STOCK);
+        assertThat(redisTemplate.opsForHash().get(BaseRedisManager.getCouponKey(couponId), CouponHashName.STOCK.name())).isEqualTo("-1");
     }
 
     @DisplayName("레디스에 쿠폰 정보가 없으면 쿠폰을 발급하지 않는다.")
@@ -94,12 +86,12 @@ class CouponQueueServiceIntegrationTest extends IntegrationTestSupport {
         final long accountId = 1L;
 
         // when
-        CouponIssuanceResultDto response = couponQueueService.issueCoupon(couponId, accountId);
+        CouponIssuanceStatus response = couponStockRedisManager.decrementStock(couponId, accountId);
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(CouponIssuanceStatus.NOT_FOUND_COUPON);
-        assertThat(redisTemplate.opsForHash().get(BaseRedisManager.COUPON_STOCK_KEY, couponId.toString())).isEqualTo("0");
+        assertThat(response).isEqualTo(CouponIssuanceStatus.OUT_OF_STOCK);
+        assertThat(redisTemplate.opsForHash().get(BaseRedisManager.getCouponKey(couponId), CouponHashName.STOCK.name())).isEqualTo("-1");
     }
 
     @DisplayName("사용자가 wait-queue에 있다면 쿠폰을 발급하지 않는다.")
@@ -113,11 +105,11 @@ class CouponQueueServiceIntegrationTest extends IntegrationTestSupport {
 
         // when
         couponQueueRedisManager.addCouponWaitQueue(couponId, accountId);
-        CouponIssuanceResultDto response = couponQueueService.issueCoupon(couponId, accountId);
+        CouponIssuanceStatus response = couponStockRedisManager.decrementStock(couponId, accountId);
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(CouponIssuanceStatus.ALREADY_IN_WAIT_QUEUE);
-        assertThat(redisTemplate.opsForHash().get(BaseRedisManager.COUPON_STOCK_KEY, couponId.toString())).isEqualTo("0");
+        assertThat(response).isEqualTo(CouponIssuanceStatus.ALREADY_IN_WAIT_QUEUE);
+        assertThat(redisTemplate.opsForHash().get(BaseRedisManager.getCouponKey(couponId), CouponHashName.STOCK.name())).isEqualTo("-1");
     }
 }
