@@ -1,12 +1,8 @@
 package com.ecommerce.couponservice.domain.coupon.service;
 
-import com.ecommerce.couponservice.domain.coupon.dto.CouponIssuanceResultDto;
 import com.ecommerce.couponservice.domain.coupon.dto.WaitQueuePositionResponseDto;
 import com.ecommerce.couponservice.exception.CustomRedisException;
 import com.ecommerce.couponservice.exception.ExceptionCode;
-import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultInternalEvent;
-import com.ecommerce.couponservice.internalevent.service.InternalEventService;
-import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus;
 import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager;
 import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager;
 import lombok.RequiredArgsConstructor;
@@ -20,20 +16,8 @@ import java.util.Optional;
 @Slf4j
 public class CouponQueueService {
 
-    private final InternalEventService internalEventService;
     private final CouponQueueRedisManager couponQueueRedisManager;
     private final CouponStockRedisManager couponStockRedisManager;
-
-    public CouponIssuanceResultDto issueCoupon(Long couponId, Long accountId) {
-        CouponIssuanceStatus status = couponStockRedisManager.decrementStock(couponId, accountId);
-        if (status == CouponIssuanceStatus.SUCCESS) {
-            internalEventService.publishInternalEvent(CouponIssuanceResultInternalEvent.init(couponId, accountId));
-        }
-        else {
-            couponStockRedisManager.revertDecrementOperation(couponId);
-        }
-        return CouponIssuanceResultDto.of(couponId, accountId, status);
-    }
 
     public WaitQueuePositionResponseDto addToCouponWaitQueue(Long couponId, Long accountId) {
         Optional<Long> stock = couponStockRedisManager.getStock(couponId);    // Redis에 load된 쿠폰만 대기열 진행

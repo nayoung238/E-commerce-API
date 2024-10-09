@@ -2,9 +2,13 @@ package com.ecommerce.couponservice.domain.coupon.service;
 
 import com.ecommerce.couponservice.domain.coupon.Coupon;
 import com.ecommerce.couponservice.domain.coupon.dto.CouponDto;
+import com.ecommerce.couponservice.domain.coupon.dto.CouponIssuanceResultDto;
 import com.ecommerce.couponservice.domain.coupon.dto.CouponRegisterRequestDto;
 import com.ecommerce.couponservice.domain.coupon.repo.CouponRepository;
 import com.ecommerce.couponservice.exception.ExceptionCode;
+import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultInternalEvent;
+import com.ecommerce.couponservice.internalevent.service.InternalEventService;
+import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus;
 import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +21,7 @@ public class CouponManagementService {
 
     private final CouponRepository couponRepository;
     private final CouponStockRedisManager couponStockRedisManager;
+    private final InternalEventService internalEventService;
 
     @Transactional
     public CouponDto register(CouponRegisterRequestDto couponRegisterRequestDto) {
@@ -32,11 +37,24 @@ public class CouponManagementService {
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_COUPON.getMessage()));
 
-        couponStockRedisManager.registerCouponStock(coupon.getId(), coupon.getQuantity());
+        couponStockRedisManager.registerCoupon(coupon.getId(), coupon.getName(), coupon.getQuantity());
     }
 
     public CouponDto findCouponById(Long couponId) {
         return CouponDto.of(couponRepository.findById(couponId)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_COUPON.getMessage())));
+    }
+
+    @Transactional
+    public CouponIssuanceResultDto issueCouponInDatabase(Long couponId, Long accountId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_COUPON.getMessage()));
+
+        CouponIssuanceStatus status = coupon.decrementQuantity();
+        if(status == CouponIssuanceStatus.SUCCESS) {
+            CouponIssuanceResultInternalEvent internalEvent = CouponIssuanceResultInternalEvent.init(couponId, accountId);
+            internalEventService.publishInternalEvent(internalEvent);
+        }
+        return CouponIssuanceResultDto.of(couponId, accountId, status);
     }
 }

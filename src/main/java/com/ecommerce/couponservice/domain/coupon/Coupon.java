@@ -1,7 +1,7 @@
 package com.ecommerce.couponservice.domain.coupon;
 
 import com.ecommerce.couponservice.domain.coupon.dto.CouponRegisterRequestDto;
-import com.ecommerce.couponservice.exception.ExceptionCode;
+import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AccessLevel;
@@ -56,10 +56,11 @@ public class Coupon {
                 .build();
     }
 
-    public void decrementQuantity() {
-        if(quantity <= 0) {
-            throw new IllegalArgumentException(ExceptionCode.COUPON_OUT_OF_STOCK.getMessage());
+    public CouponIssuanceStatus decrementQuantity() {
+        if (quantity <= 0) {
+            return CouponIssuanceStatus.OUT_OF_STOCK;
         }
         this.quantity--;
+        return CouponIssuanceStatus.SUCCESS;
     }
 }

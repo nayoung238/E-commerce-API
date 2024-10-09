@@ -1,9 +1,7 @@
 package com.ecommerce.couponservice.domain.coupon.service;
 
 import com.ecommerce.couponservice.domain.coupon.dto.WaitQueuePositionResponseDto;
-import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus;
 import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager;
-import com.ecommerce.couponservice.internalevent.service.InternalEventService;
 import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,32 +25,10 @@ class CouponQueueServiceUnitTest {
     private CouponQueueService couponQueueService;
 
     @Mock
-    private InternalEventService internalEventService;
-
-    @Mock
     private CouponQueueRedisManager couponQueueRedisManager;
 
     @Mock
     private CouponStockRedisManager couponStockRedisManager;
-
-    @DisplayName("쿠폰 발급에 성공하면 결과 이벤트를 생성한다.")
-    @Test
-    void shouldPublishEventWhenCouponIssuedSuccessfully () {
-        // setup(data)
-        final Long couponId = 1L;
-        final Long accountId = 1L;
-
-        // setup(expectations)
-        when(couponStockRedisManager.decrementStock(couponId, accountId)).thenReturn(CouponIssuanceStatus.SUCCESS);
-        doNothing().when(internalEventService).publishInternalEvent(any());
-
-        // exercise
-        couponQueueService.issueCoupon(couponId, accountId);
-
-        // verify
-        verify(internalEventService, times(1))
-                .publishInternalEvent(any());
-    }
 
     @DisplayName("쿠폰 발급 요청 시 대기열에 진입해야 한다.")
     @Test
