@@ -1,7 +1,7 @@
 package com.ecommerce.couponservice.redis.scheduler;
 
 import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager;
-import com.ecommerce.couponservice.domain.coupon.service.CouponIssuanceService;
+import com.ecommerce.couponservice.domain.coupon.service.CouponQueueService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import java.util.Set;
 public class CouponIssuanceScheduler extends BaseCouponScheduler {
 
     private final CouponQueueRedisManager couponQueueRedisManager;
-    private final CouponIssuanceService couponIssuanceService;
+    private final CouponQueueService couponQueueService;
 
     @Scheduled(fixedDelay = 5_000, initialDelay = 13_000)
     private void processScheduleEnterQueueTasks() {
@@ -67,7 +67,7 @@ public class CouponIssuanceScheduler extends BaseCouponScheduler {
 
     private void issueCouponsInBatch(long couponId, long accountId) {
         try {
-            couponIssuanceService.issueCoupon(couponId, accountId);
+            couponQueueService.issueCoupon(couponId, accountId);
         } catch (EntityNotFoundException e) {
             log.error("Coupon not found: {}", couponId, e);
         } catch (IllegalArgumentException e) {

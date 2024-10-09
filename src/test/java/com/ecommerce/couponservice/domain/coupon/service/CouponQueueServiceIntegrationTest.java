@@ -21,10 +21,10 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-class CouponIssuanceServiceIntegrationTest extends IntegrationTestSupport {
+class CouponQueueServiceIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
-    private CouponIssuanceService couponIssuanceService;
+    private CouponQueueService couponQueueService;
 
     @Autowired
     private CouponStockRedisManager couponStockRedisManager;
@@ -57,7 +57,7 @@ class CouponIssuanceServiceIntegrationTest extends IntegrationTestSupport {
         redisTemplate.opsForZSet().add(ENTER_QUEUE_KEY, accountId.toString(), (double) System.currentTimeMillis()); // enter-queue 추가
 
         // when
-        CouponIssuanceResultDto response = couponIssuanceService.issueCoupon(couponId, accountId);
+        CouponIssuanceResultDto response = couponQueueService.issueCoupon(couponId, accountId);
 
         // then
         assertThat(response).isNotNull();
@@ -78,7 +78,7 @@ class CouponIssuanceServiceIntegrationTest extends IntegrationTestSupport {
         couponStockRedisManager.registerCouponStock(couponId, 0L);
 
         // when
-        CouponIssuanceResultDto response = couponIssuanceService.issueCoupon(couponId, accountId);
+        CouponIssuanceResultDto response = couponQueueService.issueCoupon(couponId, accountId);
 
         // then
         assertThat(response).isNotNull();
@@ -94,7 +94,7 @@ class CouponIssuanceServiceIntegrationTest extends IntegrationTestSupport {
         final long accountId = 1L;
 
         // when
-        CouponIssuanceResultDto response = couponIssuanceService.issueCoupon(couponId, accountId);
+        CouponIssuanceResultDto response = couponQueueService.issueCoupon(couponId, accountId);
 
         // then
         assertThat(response).isNotNull();
@@ -113,7 +113,7 @@ class CouponIssuanceServiceIntegrationTest extends IntegrationTestSupport {
 
         // when
         couponQueueRedisManager.addCouponWaitQueue(couponId, accountId);
-        CouponIssuanceResultDto response = couponIssuanceService.issueCoupon(couponId, accountId);
+        CouponIssuanceResultDto response = couponQueueService.issueCoupon(couponId, accountId);
 
         // then
         assertThat(response).isNotNull();

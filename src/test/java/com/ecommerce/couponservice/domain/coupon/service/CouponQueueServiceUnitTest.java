@@ -21,10 +21,10 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
-class CouponIssuanceServiceUnitTest {
+class CouponQueueServiceUnitTest {
 
     @InjectMocks
-    private CouponIssuanceService couponIssuanceService;
+    private CouponQueueService couponQueueService;
 
     @Mock
     private InternalEventService internalEventService;
@@ -47,7 +47,7 @@ class CouponIssuanceServiceUnitTest {
         doNothing().when(internalEventService).publishInternalEvent(any());
 
         // exercise
-        couponIssuanceService.issueCoupon(couponId, accountId);
+        couponQueueService.issueCoupon(couponId, accountId);
 
         // verify
         verify(internalEventService, times(1))
@@ -67,7 +67,7 @@ class CouponIssuanceServiceUnitTest {
         when(couponQueueRedisManager.getWaitQueueRank(anyLong(), anyLong())).thenReturn(1L);
 
         // exercise
-        couponIssuanceService.addToCouponWaitQueue(couponId, accountId);
+        couponQueueService.addToCouponWaitQueue(couponId, accountId);
 
         // verify
         verify(couponQueueRedisManager, times(1))
@@ -92,7 +92,7 @@ class CouponIssuanceServiceUnitTest {
         when(couponQueueRedisManager.getWaitQueueRank(anyLong(), anyLong())).thenReturn(rank);
 
         // exercise
-        WaitQueuePositionResponseDto response = couponIssuanceService.addToCouponWaitQueue(couponId, accountId);
+        WaitQueuePositionResponseDto response = couponQueueService.addToCouponWaitQueue(couponId, accountId);
 
         // verify
         assertThat(response).isNotNull();
@@ -114,7 +114,7 @@ class CouponIssuanceServiceUnitTest {
         when(couponStockRedisManager.getStock(couponId)).thenReturn(Optional.empty());
 
         // exercise
-        WaitQueuePositionResponseDto response = couponIssuanceService.addToCouponWaitQueue(couponId, accountId);
+        WaitQueuePositionResponseDto response = couponQueueService.addToCouponWaitQueue(couponId, accountId);
 
         // verify
         assertThat(response).isNotNull();
@@ -139,7 +139,7 @@ class CouponIssuanceServiceUnitTest {
         when(couponQueueRedisManager.getWaitQueueRank(anyLong(), anyLong())).thenReturn(rank);
 
         // exercise
-        WaitQueuePositionResponseDto response = couponIssuanceService.addToCouponWaitQueue(couponId, accountId);
+        WaitQueuePositionResponseDto response = couponQueueService.addToCouponWaitQueue(couponId, accountId);
 
         // verify
         assertThat(response).isNotNull();

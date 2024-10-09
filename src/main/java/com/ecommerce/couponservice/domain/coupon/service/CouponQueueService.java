@@ -18,7 +18,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CouponIssuanceService {
+public class CouponQueueService {
 
     private final InternalEventService internalEventService;
     private final CouponQueueRedisManager couponQueueRedisManager;
