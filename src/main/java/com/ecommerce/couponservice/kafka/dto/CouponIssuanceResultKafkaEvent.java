@@ -28,4 +28,12 @@ public class CouponIssuanceResultKafkaEvent {
                 .couponName(couponName)
                 .build();
     }
+
+    public static CouponIssuanceResultKafkaEvent of(Long couponId, Long accountId, String couponName) {
+        return CouponIssuanceResultKafkaEvent.builder()
+                .couponId(couponId)
+                .accountId(accountId)
+                .couponName(couponName)
+                .build();
+    }
 }
