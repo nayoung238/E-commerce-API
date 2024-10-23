@@ -17,19 +17,17 @@ public class OrderDto {
     private final Long accountId;
     private OrderProcessingStatus orderProcessingStatus;
     private final List<OrderItemDto> orderItemDtos;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime requestedAt;  // item-service에서 주문 이벤트 중복 처리를 판별하기 위한 redis key
+    private final LocalDateTime requestedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
     private OrderDto(Long id, String orderEventId, Long accountId,
                      OrderProcessingStatus orderProcessingStatus, List<OrderItemDto> orderItemDtos,
-                     LocalDateTime createdAt, LocalDateTime requestedAt) {
+                     LocalDateTime requestedAt) {
         this.id = id;
         this.orderEventId = orderEventId;
         this.accountId = accountId;
         this.orderProcessingStatus = orderProcessingStatus;
         this.orderItemDtos = orderItemDtos;
-        this.createdAt = createdAt;
         this.requestedAt = requestedAt;
     }
 
@@ -45,16 +43,10 @@ public class OrderDto {
                 .accountId(order.getAccountId())
                 .orderProcessingStatus((order.getOrderProcessingStatus() == null) ? OrderProcessingStatus.PROCESSING : order.getOrderProcessingStatus())
                 .orderItemDtos(orderItemDtos)
-                .createdAt(order.getCreatedAt())
                 .requestedAt(order.getRequestedAt())
                 .build();
     }
 
-    /**
-     * Stream-KTable Join으로 주문 생성하는 방식에서 사용
-     * @param orderKafkaEvent DB insert 전 (OrderDto.id, OrderDto.createdAt null로 설정)
-     * @return
-     */
     public static OrderDto of(OrderKafkaEvent orderKafkaEvent) {
         List<OrderItemDto> orderItemDtos = orderKafkaEvent
                 .getOrderItemKafkaEvents()
@@ -68,7 +60,6 @@ public class OrderDto {
                 .accountId(orderKafkaEvent.getAccountId())
                 .orderProcessingStatus(orderKafkaEvent.getOrderProcessingStatus())
                 .orderItemDtos(orderItemDtos)
-                .createdAt(null)
                 .requestedAt(orderKafkaEvent.getRequestedAt())
                 .build();
     }

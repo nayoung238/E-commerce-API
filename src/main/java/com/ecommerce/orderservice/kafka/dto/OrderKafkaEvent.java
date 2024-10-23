@@ -19,18 +19,16 @@ public class OrderKafkaEvent {
     private Long accountId;
     private OrderProcessingStatus orderProcessingStatus;
     private List<OrderItemKafkaEvent> orderItemKafkaEvents;
-    private LocalDateTime createdAt;
     private LocalDateTime requestedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
     private OrderKafkaEvent(String orderEventId, long accountId,
                             OrderProcessingStatus orderProcessingStatus, List<OrderItemKafkaEvent> orderItemKafkaEvents,
-                            LocalDateTime createdAt, LocalDateTime requestedAt) {
+                            LocalDateTime requestedAt) {
         this.orderEventId = orderEventId;
         this.accountId = accountId;
         this.orderProcessingStatus = orderProcessingStatus;
         this.orderItemKafkaEvents = orderItemKafkaEvents;
-        this.createdAt = createdAt;
         this.requestedAt = requestedAt;
     }
 
@@ -45,7 +43,6 @@ public class OrderKafkaEvent {
                 .accountId(order.getAccountId())
                 .orderProcessingStatus(order.getOrderProcessingStatus() != null ? order.getOrderProcessingStatus() : null)
                 .orderItemKafkaEvents(orderItemKafkaEvents)
-                .createdAt(order.getCreatedAt() != null ? order.getCreatedAt() : null)
                 .requestedAt(LocalDateTime.now())
                 .build();
     }
@@ -61,7 +58,6 @@ public class OrderKafkaEvent {
                 .accountId(orderDto.getAccountId())
                 .orderProcessingStatus(orderDto.getOrderProcessingStatus() != null ? orderDto.getOrderProcessingStatus() : null)
                 .orderItemKafkaEvents(orderItemKafkaEvents)
-                .createdAt(orderDto.getCreatedAt() != null ? orderDto.getCreatedAt() : null)
                 .requestedAt(LocalDateTime.now())
                 .build();
     }
@@ -78,7 +74,6 @@ public class OrderKafkaEvent {
                 .accountId(orderRequestDto.getAccountId())
                 .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .orderItemKafkaEvents(orderItemKafkaEvents)
-                .createdAt(null)
                 .requestedAt(LocalDateTime.now())
                 .build();
     }

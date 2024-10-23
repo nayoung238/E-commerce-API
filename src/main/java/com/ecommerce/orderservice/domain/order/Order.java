@@ -40,26 +40,17 @@ public class Order {
 
     @CreatedDate
     @Column(updatable = false)
-    private LocalDateTime createdAt;
-
-    /*
-        KStream-KTable Join 방식에서 사용
-        -> 클라이언트 요청 발생 즉시 DB insert하지 않고,
-           Kafka 내부에서 최종 결과가 만들어지면 DB에 접근하므로
-           지연 시간 체크를 위해 requestedAt 필드 추가
-     */
     private LocalDateTime requestedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
     private Order(Long id, String orderEventId, Long accountId,
                   List<OrderItem> orderItems, OrderProcessingStatus orderProcessingStatus,
-                  LocalDateTime createdAt,LocalDateTime requestedAt) {
+                  LocalDateTime requestedAt) {
         this.id = id;
         this.orderEventId = orderEventId;
         this.accountId = accountId;
         this.orderItems = orderItems;
         this.orderProcessingStatus = orderProcessingStatus;
-        this.createdAt = createdAt;
         this.requestedAt = requestedAt;
     }
 
@@ -86,7 +77,6 @@ public class Order {
                 .accountId(orderKafkaEvent.getAccountId())
                 .orderItems(orderItems)
                 .orderProcessingStatus(orderKafkaEvent.getOrderProcessingStatus())
-                .createdAt(orderKafkaEvent.getCreatedAt())
                 .requestedAt(orderKafkaEvent.getRequestedAt())
                 .build();
 
@@ -99,13 +89,12 @@ public class Order {
     public static Order of(String orderEventId, long accountId,
                            List<OrderItem> orderItems,
                            OrderProcessingStatus orderProcessingStatus,
-                           LocalDateTime createdAt, LocalDateTime requestedAt) {
+                           LocalDateTime requestedAt) {
         return Order.builder()
                 .orderEventId(orderEventId)
                 .accountId(accountId)
                 .orderItems(orderItems)
                 .orderProcessingStatus(orderProcessingStatus)
-                .createdAt(createdAt)
                 .requestedAt(requestedAt)
                 .build();
     }
