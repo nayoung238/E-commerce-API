@@ -22,7 +22,6 @@ public class UnitTestSupport {
                 accountId,
                 orderProcessingStatus,
                 orderItemKafkaEvents,
-                LocalDateTime.now(),
                 LocalDateTime.now());
     }
 
