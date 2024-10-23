@@ -2,16 +2,11 @@ package com.ecommerce.orderservice.internalevent.ordercreation;
 
 import com.ecommerce.orderservice.internalevent.InternalEventStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
-@Builder
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 public class OrderCreationInternalEvent {
 
     @Id
@@ -26,5 +21,18 @@ public class OrderCreationInternalEvent {
 
     public void updatePublicationStatus(InternalEventStatus status) {
         this.publicationStatus = status;
+    }
+
+    @Builder(access = AccessLevel.PRIVATE)
+    private OrderCreationInternalEvent(String orderEventId, InternalEventStatus publicationStatus) {
+        this.orderEventId = orderEventId;
+        this.publicationStatus = publicationStatus;
+    }
+
+    public static OrderCreationInternalEvent init(String orderEventId) {
+        return OrderCreationInternalEvent.builder()
+                .orderEventId(orderEventId)
+                .publicationStatus(InternalEventStatus.init)
+                .build();
     }
 }

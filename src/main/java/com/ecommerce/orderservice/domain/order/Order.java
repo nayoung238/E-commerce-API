@@ -2,7 +2,6 @@ package com.ecommerce.orderservice.domain.order;
 
 import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.internalevent.ordercreation.OrderCreationInternalEvent;
-import com.ecommerce.orderservice.internalevent.InternalEventStatus;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import jakarta.persistence.*;
 import lombok.*;
@@ -133,9 +132,6 @@ public class Order {
     }
 
     public OrderCreationInternalEvent getOrderCreationInternalEvent() {
-        return OrderCreationInternalEvent.builder()
-                .orderEventId(orderEventId)
-                .publicationStatus(InternalEventStatus.init)
-                .build();
+        return OrderCreationInternalEvent.init(orderEventId);
     }
 }
