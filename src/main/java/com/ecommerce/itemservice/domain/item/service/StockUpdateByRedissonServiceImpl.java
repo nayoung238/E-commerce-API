@@ -9,19 +9,9 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.transaction.CannotCreateTransactionException;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Redis Distributed Lock + Optimistic Lock 사용
- * Redis Distributed Lock을 획득한 요청만이 DB 접근 가능
- *
- * Distributed Lock에 lease time 설정
- * -> DB 락을 획득한 노드가 죽는 경우 발생할 수 있는 문제 해결 (활성 상태가 될 때까지 모든 요청 대기)
- * Optimistic Lock을 사용해 DB 반영 시 충돌 감지해 동시성 문제 해결
- * -> 분산락 lease time 보다 transaction 처리가 더 길면 동시성 문제 발생 (여러 요청이 Distributed Lock 주인으로 착각하고 쿼리 날리는 경우)
- */
 @Service @Primary
 @RequiredArgsConstructor
 @Slf4j
@@ -34,9 +24,7 @@ public class StockUpdateByRedissonServiceImpl implements StockUpdateService {
     private final Long RLOCK_LEASE_TIME = 3000L;
     private final String REDISSON_ITEM_LOCK_PREFIX = "ITEM:";
 
-
     @Override
-    @Transactional
     public OrderItemKafkaEvent updateStock(OrderItemKafkaEvent orderItemKafkaEvent, ItemProcessingStatus itemProcessingStatus) {
         RLock lock = redissonClient.getLock(generateKey(orderItemKafkaEvent.getItemId()));
         try {
@@ -51,7 +39,10 @@ public class StockUpdateByRedissonServiceImpl implements StockUpdateService {
                 return orderItemKafkaEvent;
             }
         } catch (InterruptedException e) {
-            log.error(e.getMessage());
+            log.error("Thread was interrupted while trying to acquire the Redisson lock for item ID {}: {}", orderItemKafkaEvent.getItemId(), e.getMessage());
+            orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.FAILED);
+        } catch (CannotCreateTransactionException e) {
+            log.error("Failed to create a new transaction (internal transaction) while updating stock for item ID {}: {}", orderItemKafkaEvent.getItemId(), e.getMessage());
             orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.FAILED);
         } finally {
             if(lock.isHeldByCurrentThread()) {
