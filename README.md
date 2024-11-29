@@ -1,15 +1,17 @@
 ## E-commerce side project: Order-service
 
-![](/_img/e_commerce_240825.png)
+![](/_img/e_commerce_241129.png)
 
 skills 
-- Spring Boot, Spring JPA
-- Kafka, OpenFeign
-- Resilience4J CircuitBreaker + Retry
+- Spring Boot, Spring Data JPA
+- Spring Cloud G/W, Eureka
+- Kafka
 - MySQL
+- OpenFeign
+- Resilience4J CircuitBreaker + Retry
 <br>
 
-## 📚 재미있었던 리팩토링 리스트
+## 📚 리팩토링 리스트
 
 ### Transactional Outbox Pattern으로 선형성 보장
 
