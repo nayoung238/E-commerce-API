@@ -1,5 +1,8 @@
 package com.ecommerce.couponservice.redis.manager;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -8,11 +11,10 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -20,6 +22,7 @@ import java.util.Set;
 public class CouponStockRedisManager extends BaseRedisManager {
 
     private final RedisTemplate<String, String> redisTemplate;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     public void registerCoupon(Long couponId, String name, Long quantity) {
         String couponKey = getCouponKey(couponId);
@@ -49,7 +52,7 @@ public class CouponStockRedisManager extends BaseRedisManager {
         return value != null ? value.toString() : null;
     }
 
-    public CouponIssuanceStatus decrementStock(Long couponId, Long accountId) {
+    public CouponIssuanceStatus issueCouponUsingSessionCallback(Long couponId, Long accountId) {
         return redisTemplate.execute(new SessionCallback<CouponIssuanceStatus>() {
             @Override
             public <K, V> CouponIssuanceStatus execute(RedisOperations<K, V> operations) throws DataAccessException {
@@ -87,6 +90,73 @@ public class CouponStockRedisManager extends BaseRedisManager {
                 return CouponIssuanceStatus.UNKNOWN_ERROR;
             }
         });
+    }
+
+    public Map<String, Object> issueCouponUsingLuaScript(Long couponId, Long accountId) {
+        String couponHashKey = getCouponKey(couponId);
+        String waitQueueKey = getWaitQueueKey(couponId);
+        String enterQueueKey = getEnterQueueKey(couponId);
+
+        String script = "local is_contains_wait_queue = redis.call('ZSCORE', KEYS[4], KEYS[3]) " +
+                        "if is_contains_wait_queue then " +
+                            "redis.call('ZREM', KEYS[5], KEYS[3])" +
+                            "return cjson.encode({status = 'ERROR', reason = 'Invalid queue state: User is in the wait queue.'}) " +
+                        "end " +
+
+                        "redis.call('ZREM', KEYS[5], KEYS[3]) " +
+                        "local new_stock = redis.call('HINCRBY', KEYS[2], 'STOCK', -1) " +
+                        "if new_stock >= 0 then " +
+                            "return cjson.encode({status = 'SUCCESS', couponId = KEYS[1], newStock = new_stock}) " +
+                        "else " +
+                            "new_stock = redis.call('HINCRBY', KEYS[2], 'STOCK', 1) " +
+                            "return cjson.encode({status = 'FAILED', reason = 'Out of stock: Insufficient coupon inventory'})" +
+                        "end";
+
+        RedisScript<String> redisScript = RedisScript.of(script, String.class);
+        List<String> keys = List.of(couponId.toString(), couponHashKey, accountId.toString(), waitQueueKey, enterQueueKey);
+        String result = redisTemplate.execute(redisScript, keys);
+        return convertMap(result);
+    }
+
+    public Map<String, Object> issueCouponAndPublishEvent(Long couponId, Long accountId) {
+        String couponHashKey = getCouponKey(couponId);
+        String waitQueueKey = getWaitQueueKey(couponId);
+        String enterQueueKey = getEnterQueueKey(couponId);
+        String streamsKey = "coupon_stock_streams_key";
+
+        String script = "local is_contains_wait_queue = redis.call('ZSCORE', KEYS[4], KEYS[3]) " +
+                        "if is_contains_wait_queue then " +
+                            "redis.call('ZREM', KEYS[5], KEYS[3])" +
+                            "return cjson.encode({status = 'ERROR', reason = 'Invalid queue state: User is in the wait queue.'}) " +
+                        "end " +
+
+                        "redis.call('ZREM', KEYS[5], KEYS[3]) " +
+                        "local new_stock = redis.call('HINCRBY', KEYS[2], 'STOCK', -1) " +
+                        "if new_stock >= 0 then " +
+                            "local stream_key = KEYS[6] " +
+                            "redis.call('XADD', stream_key, '*', 'couponId', KEYS[1], 'newStock', new_stock) " +
+                            "return cjson.encode({status = 'SUCCESS', couponId = KEYS[1], newStock = new_stock}) " +
+                        "else " +
+                            "new_stock = redis.call('HINCRBY', KEYS[2], 'STOCK', 1) " +
+                            "return cjson.encode({status = 'FAILED', reason = 'Out of stock: Insufficient coupon inventory'}) " +
+                        "end";
+
+        RedisScript<String> redisScript = RedisScript.of(script, String.class);
+        List<String> keys = List.of(couponId.toString(), couponHashKey, accountId.toString(), waitQueueKey, enterQueueKey, streamsKey);
+        String result = redisTemplate.execute(redisScript, keys);
+        return convertMap(result);
+    }
+
+    Map<String, Object> convertMap(String resultJson) {
+        if(resultJson == null || resultJson.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        try {
+            return objectMapper.readValue(resultJson, new TypeReference<Map<String, Object>>() {});
+        } catch(JsonProcessingException e) {
+            log.error("Error processing JSON: {}", resultJson, e);
+            return Collections.emptyMap();
+        }
     }
 
     public void revertDecrementOperation(Long couponId) {

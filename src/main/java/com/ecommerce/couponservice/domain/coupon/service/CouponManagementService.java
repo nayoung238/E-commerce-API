@@ -6,7 +6,6 @@ import com.ecommerce.couponservice.domain.coupon.dto.CouponIssuanceResultDto;
 import com.ecommerce.couponservice.domain.coupon.dto.CouponRegisterRequestDto;
 import com.ecommerce.couponservice.domain.coupon.repo.CouponRepository;
 import com.ecommerce.couponservice.exception.ExceptionCode;
-import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultInternalEvent;
 import com.ecommerce.couponservice.internalevent.service.InternalEventService;
 import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus;
 import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager;
@@ -46,15 +45,19 @@ public class CouponManagementService {
     }
 
     @Transactional
+    public CouponIssuanceStatus issueCouponInDatabase(Long couponId) {
+        Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId)
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_COUPON.getMessage()));
+
+        return coupon.decrementQuantity();
+    }
+
+    @Transactional
     public CouponIssuanceResultDto issueCouponInDatabase(Long couponId, Long accountId) {
-        Coupon coupon = couponRepository.findById(couponId)
+        Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_COUPON.getMessage()));
 
         CouponIssuanceStatus status = coupon.decrementQuantity();
-        if(status == CouponIssuanceStatus.SUCCESS) {
-            CouponIssuanceResultInternalEvent internalEvent = CouponIssuanceResultInternalEvent.init(couponId, accountId);
-            internalEventService.publishInternalEvent(internalEvent);
-        }
         return CouponIssuanceResultDto.of(couponId, accountId, status);
     }
 }

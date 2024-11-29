@@ -3,7 +3,6 @@ package com.ecommerce.couponservice.domain.coupon.service
 import com.ecommerce.couponservice.kafka.config.TopicConfig
 import com.ecommerce.couponservice.kafka.dto.CouponIssuanceResultKafkaEvent
 import com.ecommerce.couponservice.kafka.service.producer.KafkaProducerService
-import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus
 import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -22,16 +21,27 @@ class CouponIssuanceService(
         coroutineScope {
             accountIds.map { accountId ->
                 launch(Dispatchers.IO) {
-                    val status = couponStockRedisManager.decrementStock(couponId, accountId)
-                    when (status) {
-                        CouponIssuanceStatus.SUCCESS -> {
-                            log.info("쿠폰 발급 성공: couponId=$couponId, accountId=$accountId")
-                            sendKafkaMessage(couponId, accountId)
+                    try {
+                        val result: Map<String, Any> = couponStockRedisManager.issueCouponAndPublishEvent(couponId, accountId)
+                        when (result["status"].toString()) {
+                            "SUCCESS" -> {
+                                val newStock = (result["newStock"] as Number).toLong()
+                                sendKafkaMessage(couponId, accountId)
+                                log.info("Coupon issued successfully: Coupon Id = $couponId, New Stock = $newStock, Account Id = $accountId")
+                                // TODO: 쿠폰 발급 성공 알림
+                            }
+                            "FAILED" -> {
+                                val reason = result["reason"] as String
+                                log.warn("Coupon issuance failed: Coupon Id = $couponId, Reason = $reason")
+                                // TODO: 쿠폰 발급 실패 알림
+                            }
+                            "ERROR" -> {
+                                val reason = result["reason"] as String
+                                log.error("Error during coupon issuance: Coupon Id = $couponId, Account Id = $accountId, Reason = $reason")
+                            }
                         }
-                        else -> {
-                            couponStockRedisManager.revertDecrementOperation(couponId)
-                            log.info("쿠폰 발급 실패 및 수량 복구 완료: couponId=$couponId")
-                        }
+                    } catch (e: Exception) {
+                        log.error("Unexpected error during coupon issuance: Coupon Id = $couponId, Account Id = $accountId, error = ${e.message}")
                     }
                 }
             }

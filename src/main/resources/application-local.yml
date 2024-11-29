@@ -24,3 +24,10 @@ eureka:
       defaultZone: http://localhost:${eureka.client.eureka-server-port}/eureka
     healthcheck:
       enabled: true
+
+redis:
+  streams:
+    name: issued-coupons-stream
+    consumer:
+      group: coupon-service-consumer-group
+      name: coupon-service-consumer
