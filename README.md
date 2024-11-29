@@ -1,11 +1,15 @@
 ## E-commerce side project: Item-service
 
-![](/_img/e_commerce_240825.png)
-240825 기준
+![](/_img/e_commerce_241129.png)
 
-<br>
+- Spring Boot, Spring Data JPA
+- Spring Cloud G/W, Eureka
+- **Kafka (Streams)**
+- Redis (Redisson)
+- MySQL
+  <br>
 
-## 트러블슈팅 리스트
+## 📚 Refactoring Log
 
 ### Kafka Streams Window Aggregations 적용해 DB I/O 최소화
 ![](/_img/kafka-streams-window-aggregations.png)
@@ -23,5 +27,5 @@
 ![](/_img/redisson_optimistic_lock.png)
 
 - Redisson(Distributed Lock) 획득한 트랜잭션만 DB 접근
-- Transaction보다 Redisson Lease time이 먼저 종료되는 상황을 위해 Optimistic Lock 추가 사용 ([토스증권: 애플 한 주가 고객에게 전달되기 까지](https://www.youtube.com/watch?v=UOWy6zdsD-c) 영상 참고)
+- Transaction보다 Redisson Lease time이 먼저 종료되는 상황을 위해 Optimistic Lock 추가 사용
 - **Pessimistic Lock 사용하지 않아도 되는 이점**
