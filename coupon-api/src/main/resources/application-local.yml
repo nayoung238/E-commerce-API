@@ -1,0 +1,33 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/local_coupon_db
+    username: root
+  kafka:
+    bootstrap-servers: localhost:29092
+
+eureka:
+  instance:
+    instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    eureka-server-port: 8761
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:${eureka.client.eureka-server-port}/eureka
+    healthcheck:
+      enabled: true
+
+redis:
+  streams:
+    name: issued-coupons-stream
+    consumer:
+      group: coupon-service-consumer-group
+      name: coupon-service-consumer
