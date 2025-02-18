@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.openfeign;
 
-import com.ecommerce.orderservice.domain.order.OrderStatus;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import feign.FeignException;
 import feign.RetryableException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -28,25 +28,25 @@ public interface ItemServiceClient {
     @Retry(name = ORDER_PROCESSING_RESULT_RETRY)
     @CircuitBreaker(name = ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER, fallbackMethod = "fallback")
     @GetMapping(value = "/order-processing-result/{orderEventKey}", produces = MediaType.APPLICATION_JSON_VALUE)
-    OrderStatus findOrderProcessingResult(@PathVariable String orderEventKey);
+    OrderProcessingStatus findOrderProcessingResult(@PathVariable String orderEventKey);
 
-    default OrderStatus fallback(RetryableException e) {
+    default OrderProcessingStatus fallback(RetryableException e) {
         log.error("RetryableException: " + e.getMessage());
-        return OrderStatus.SERVER_ERROR;
+        return OrderProcessingStatus.SERVER_ERROR;
     }
 
-    default OrderStatus fallback(FeignException.FeignClientException e) {
+    default OrderProcessingStatus fallback(FeignException.FeignClientException e) {
         log.error("FeignClientException: " + e.getMessage());
-        return OrderStatus.NOT_EXIST;
+        return OrderProcessingStatus.NOT_EXIST;
     }
 
-    default OrderStatus fallback(FeignException.FeignServerException e) {
+    default OrderProcessingStatus fallback(FeignException.FeignServerException e) {
         log.error("FeignServerException: " + e.getMessage());
-        return OrderStatus.SERVER_ERROR;
+        return OrderProcessingStatus.SERVER_ERROR;
     }
 
-    default OrderStatus fallback(CallNotPermittedException e) {
+    default OrderProcessingStatus fallback(CallNotPermittedException e) {
         log.error("CallNotPermittedException: " + e.getMessage());
-        return OrderStatus.FAILED;
+        return OrderProcessingStatus.FAILED;
     }
 }
