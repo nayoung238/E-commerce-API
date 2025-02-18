@@ -1,0 +1,52 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: order-service
+  data:
+    redis:
+      port: 6379
+  kafka:
+    producer:
+      acks: all
+    consumer:
+      group-id: orderServiceGroup
+    streams:
+      application-id: order_application
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 5000
+            logger-level: basic
+    discovery:
+      client:
+        simple:
+          local:
+            port: 8089
+            service-id: item-service
+
+logging:
+  level:
+    com.ecommerce.orderservice: debug
+
+eureka:
+  instance:
+    instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    eureka-server-port: 8761
+    register-with-eureka: true
+    fetch-registry: true
+    healthcheck:
+      enabled: true
+
+resilience4j:
+  retry:
+    retry-aspect-order: 2
+  circuitbreaker:
+    circuit-breaker-aspect-order: 1

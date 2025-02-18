@@ -1,0 +1,107 @@
+package com.ecommerce.orderservice.kafka.dto;
+
+import com.ecommerce.orderservice.domain.order.Order;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
+import com.ecommerce.orderservice.domain.order.dto.OrderDto;
+import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
+import lombok.*;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Getter
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+public class OrderKafkaEvent {
+
+    private String orderEventId;
+    private Long accountId;
+    private OrderProcessingStatus orderProcessingStatus;
+    private List<OrderItemKafkaEvent> orderItemKafkaEvents;
+    private LocalDateTime requestedAt;
+
+    @Builder(access = AccessLevel.PRIVATE)
+    private OrderKafkaEvent(String orderEventId, long accountId,
+                            OrderProcessingStatus orderProcessingStatus, List<OrderItemKafkaEvent> orderItemKafkaEvents,
+                            LocalDateTime requestedAt) {
+        this.orderEventId = orderEventId;
+        this.accountId = accountId;
+        this.orderProcessingStatus = orderProcessingStatus;
+        this.orderItemKafkaEvents = orderItemKafkaEvents;
+        this.requestedAt = requestedAt;
+    }
+
+    public static OrderKafkaEvent of(Order order) {
+        List<OrderItemKafkaEvent> orderItemKafkaEvents = order
+                .getOrderItems()
+                .stream().map(OrderItemKafkaEvent::of)
+                .collect(Collectors.toList());
+
+        return OrderKafkaEvent.builder()
+                .orderEventId(order.getOrderEventId())
+                .accountId(order.getAccountId())
+                .orderProcessingStatus(order.getOrderProcessingStatus() != null ? order.getOrderProcessingStatus() : null)
+                .orderItemKafkaEvents(orderItemKafkaEvents)
+                .requestedAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static OrderKafkaEvent of(OrderDto orderDto) {
+        List<OrderItemKafkaEvent> orderItemKafkaEvents = orderDto
+                .getOrderItemDtos()
+                .stream().map(OrderItemKafkaEvent::of)
+                .collect(Collectors.toList());
+
+        return OrderKafkaEvent.builder()
+                .orderEventId(orderDto.getOrderEventId())
+                .accountId(orderDto.getAccountId())
+                .orderProcessingStatus(orderDto.getOrderProcessingStatus() != null ? orderDto.getOrderProcessingStatus() : null)
+                .orderItemKafkaEvents(orderItemKafkaEvents)
+                .requestedAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static OrderKafkaEvent of(OrderRequestDto orderRequestDto, String orderEventId) {
+        List<OrderItemKafkaEvent> orderItemKafkaEvents = orderRequestDto
+                .getOrderItemRequestDtos()
+                .stream()
+                .map(OrderItemKafkaEvent::of)
+                .toList();
+
+        return OrderKafkaEvent.builder()
+                .orderEventId(orderEventId)
+                .accountId(orderRequestDto.getAccountId())
+                .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
+                .orderItemKafkaEvents(orderItemKafkaEvents)
+                .requestedAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static OrderKafkaEvent of(String orderEventId, OrderProcessingStatus orderProcessingStatus) {
+        return OrderKafkaEvent.builder()
+                .orderEventId(orderEventId)
+                .orderProcessingStatus(orderProcessingStatus)
+                .build();
+    }
+
+    public void updateOrderStatus(OrderKafkaEvent orderEvent) {
+        if(orderEvent.getOrderItemKafkaEvents() != null) {
+            this.orderProcessingStatus = orderEvent.getOrderProcessingStatus();
+
+            HashMap<Long, OrderProcessingStatus> orderStatusHashMap = new HashMap<>();
+            orderEvent.getOrderItemKafkaEvents()
+                    .forEach(o -> orderStatusHashMap.put(o.getItemId(), o.getOrderProcessingStatus()));
+
+            this.orderItemKafkaEvents
+                    .forEach(o -> o.updateOrderStatus(orderStatusHashMap.get(o.getItemId())));
+        }
+        else updateOrderStatus(orderEvent.getOrderProcessingStatus());
+    }
+
+    public void updateOrderStatus(OrderProcessingStatus orderProcessingStatus) {
+        this.orderProcessingStatus = orderProcessingStatus;
+        this.orderItemKafkaEvents
+                .forEach(orderItem -> orderItem.updateOrderStatus(orderProcessingStatus));
+    }
+}
