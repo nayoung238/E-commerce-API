@@ -1,6 +1,6 @@
-package com.ecommerce.couponservice.exception;
+package com.ecommerce.couponservice.common.exception;
 
-import com.ecommerce.couponservice.exception.response.ExceptionResponse;
+import com.ecommerce.couponservice.common.exception.response.ExceptionResponse;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;

@@ -1,4 +1,4 @@
-package com.ecommerce.couponservice.exception;
+package com.ecommerce.couponservice.common.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

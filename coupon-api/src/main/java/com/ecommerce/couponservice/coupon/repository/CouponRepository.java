@@ -1,6 +1,6 @@
-package com.ecommerce.couponservice.domain.coupon.repo;
+package com.ecommerce.couponservice.coupon.repository;
 
-import com.ecommerce.couponservice.domain.coupon.Coupon;
+import com.ecommerce.couponservice.coupon.entity.Coupon;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

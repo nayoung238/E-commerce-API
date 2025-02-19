@@ -1,8 +1,8 @@
 package com.ecommerce.couponservice.internalevent;
 
-import com.ecommerce.couponservice.domain.coupon.Coupon;
-import com.ecommerce.couponservice.domain.coupon.repo.CouponRepository;
-import com.ecommerce.couponservice.exception.ExceptionCode;
+import com.ecommerce.couponservice.coupon.entity.Coupon;
+import com.ecommerce.couponservice.coupon.repository.CouponRepository;
+import com.ecommerce.couponservice.common.exception.ExceptionCode;
 import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultId;
 import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultInternalEvent;
 import com.ecommerce.couponservice.internalevent.service.InternalEventService;

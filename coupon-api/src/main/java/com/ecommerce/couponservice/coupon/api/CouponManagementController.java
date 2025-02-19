@@ -1,8 +1,8 @@
-package com.ecommerce.couponservice.api;
+package com.ecommerce.couponservice.coupon.api;
 
-import com.ecommerce.couponservice.domain.coupon.dto.CouponDto;
-import com.ecommerce.couponservice.domain.coupon.dto.CouponRegisterRequestDto;
-import com.ecommerce.couponservice.domain.coupon.service.CouponManagementService;
+import com.ecommerce.couponservice.coupon.dto.CouponDto;
+import com.ecommerce.couponservice.coupon.dto.CouponRegisterRequestDto;
+import com.ecommerce.couponservice.coupon.service.CouponManagementService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;

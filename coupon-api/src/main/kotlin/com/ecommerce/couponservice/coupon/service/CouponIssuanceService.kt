@@ -1,4 +1,4 @@
-package com.ecommerce.couponservice.domain.coupon.service
+package com.ecommerce.couponservice.coupon.service
 
 import com.ecommerce.couponservice.kafka.config.TopicConfig
 import com.ecommerce.couponservice.kafka.dto.CouponIssuanceResultKafkaEvent

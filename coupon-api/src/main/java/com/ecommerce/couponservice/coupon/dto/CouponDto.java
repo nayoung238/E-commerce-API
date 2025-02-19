@@ -1,6 +1,6 @@
-package com.ecommerce.couponservice.domain.coupon.dto;
+package com.ecommerce.couponservice.coupon.dto;
 
-import com.ecommerce.couponservice.domain.coupon.Coupon;
+import com.ecommerce.couponservice.coupon.entity.Coupon;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

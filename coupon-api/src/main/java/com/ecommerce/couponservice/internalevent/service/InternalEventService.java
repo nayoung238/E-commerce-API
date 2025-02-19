@@ -1,7 +1,7 @@
 package com.ecommerce.couponservice.internalevent.service;
 
-import com.ecommerce.couponservice.exception.ExceptionCode;
-import com.ecommerce.couponservice.exception.InternalEventException;
+import com.ecommerce.couponservice.common.exception.ExceptionCode;
+import com.ecommerce.couponservice.common.exception.InternalEventException;
 import com.ecommerce.couponservice.internalevent.InternalEventStatus;
 import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultId;
 import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultInternalEvent;

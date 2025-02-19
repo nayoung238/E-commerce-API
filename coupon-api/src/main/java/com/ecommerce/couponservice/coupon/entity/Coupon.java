@@ -1,6 +1,6 @@
-package com.ecommerce.couponservice.domain.coupon;
+package com.ecommerce.couponservice.coupon.entity;
 
-import com.ecommerce.couponservice.domain.coupon.dto.CouponRegisterRequestDto;
+import com.ecommerce.couponservice.coupon.dto.CouponRegisterRequestDto;
 import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;

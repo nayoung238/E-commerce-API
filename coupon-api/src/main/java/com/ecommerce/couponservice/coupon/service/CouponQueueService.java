@@ -1,8 +1,8 @@
-package com.ecommerce.couponservice.domain.coupon.service;
+package com.ecommerce.couponservice.coupon.service;
 
-import com.ecommerce.couponservice.domain.coupon.dto.WaitQueuePositionResponseDto;
-import com.ecommerce.couponservice.exception.CustomRedisException;
-import com.ecommerce.couponservice.exception.ExceptionCode;
+import com.ecommerce.couponservice.coupon.dto.WaitQueuePositionResponseDto;
+import com.ecommerce.couponservice.common.exception.CustomRedisException;
+import com.ecommerce.couponservice.common.exception.ExceptionCode;
 import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager;
 import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager;
 import lombok.RequiredArgsConstructor;

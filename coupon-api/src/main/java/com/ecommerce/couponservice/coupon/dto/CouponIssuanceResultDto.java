@@ -1,4 +1,4 @@
-package com.ecommerce.couponservice.domain.coupon.dto;
+package com.ecommerce.couponservice.coupon.dto;
 
 import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus;
 import lombok.AccessLevel;

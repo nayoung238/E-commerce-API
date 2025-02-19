@@ -1,9 +1,9 @@
-package com.ecommerce.couponservice.api;
+package com.ecommerce.couponservice.coupon.api;
 
-import com.ecommerce.couponservice.domain.coupon.dto.CouponIssuanceResultDto;
-import com.ecommerce.couponservice.domain.coupon.dto.WaitQueuePositionResponseDto;
-import com.ecommerce.couponservice.domain.coupon.service.CouponManagementService;
-import com.ecommerce.couponservice.domain.coupon.service.CouponQueueService;
+import com.ecommerce.couponservice.coupon.dto.CouponIssuanceResultDto;
+import com.ecommerce.couponservice.coupon.dto.WaitQueuePositionResponseDto;
+import com.ecommerce.couponservice.coupon.service.CouponManagementService;
+import com.ecommerce.couponservice.coupon.service.CouponQueueService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;

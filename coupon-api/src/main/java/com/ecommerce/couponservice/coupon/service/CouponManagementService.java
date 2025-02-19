@@ -1,11 +1,11 @@
-package com.ecommerce.couponservice.domain.coupon.service;
+package com.ecommerce.couponservice.coupon.service;
 
-import com.ecommerce.couponservice.domain.coupon.Coupon;
-import com.ecommerce.couponservice.domain.coupon.dto.CouponDto;
-import com.ecommerce.couponservice.domain.coupon.dto.CouponIssuanceResultDto;
-import com.ecommerce.couponservice.domain.coupon.dto.CouponRegisterRequestDto;
-import com.ecommerce.couponservice.domain.coupon.repo.CouponRepository;
-import com.ecommerce.couponservice.exception.ExceptionCode;
+import com.ecommerce.couponservice.coupon.entity.Coupon;
+import com.ecommerce.couponservice.coupon.dto.CouponDto;
+import com.ecommerce.couponservice.coupon.dto.CouponIssuanceResultDto;
+import com.ecommerce.couponservice.coupon.dto.CouponRegisterRequestDto;
+import com.ecommerce.couponservice.coupon.repository.CouponRepository;
+import com.ecommerce.couponservice.common.exception.ExceptionCode;
 import com.ecommerce.couponservice.internalevent.service.InternalEventService;
 import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus;
 import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager;

@@ -1,6 +1,7 @@
-package com.ecommerce.couponservice.domain.coupon.service;
+package com.ecommerce.couponservice.coupon.service;
 
-import com.ecommerce.couponservice.domain.coupon.dto.WaitQueuePositionResponseDto;
+import com.ecommerce.couponservice.coupon.dto.WaitQueuePositionResponseDto;
+import com.ecommerce.couponservice.coupon.service.CouponQueueService;
 import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager;
 import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager;
 import org.junit.jupiter.api.DisplayName;

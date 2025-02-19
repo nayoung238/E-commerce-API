@@ -1,7 +1,7 @@
 package com.ecommerce.couponservice.redis.manager;
 
-import com.ecommerce.couponservice.exception.CustomRedisException;
-import com.ecommerce.couponservice.exception.ExceptionCode;
+import com.ecommerce.couponservice.common.exception.CustomRedisException;
+import com.ecommerce.couponservice.common.exception.ExceptionCode;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

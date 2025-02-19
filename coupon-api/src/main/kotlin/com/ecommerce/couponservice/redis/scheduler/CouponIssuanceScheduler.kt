@@ -1,6 +1,6 @@
 package com.ecommerce.couponservice.redis.scheduler
 
-import com.ecommerce.couponservice.domain.coupon.service.CouponIssuanceService
+import com.ecommerce.couponservice.coupon.service.CouponIssuanceService
 import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component

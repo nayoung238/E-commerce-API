@@ -1,11 +1,12 @@
-package com.ecommerce.couponservice.exception;
+package com.ecommerce.couponservice.common.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class InternalEventException extends RuntimeException {
+public class CustomRedisException extends RuntimeException {
 
     private final ExceptionCode exceptionCode;
 }
+
