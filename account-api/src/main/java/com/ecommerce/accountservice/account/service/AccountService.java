@@ -23,17 +23,10 @@ public class AccountService {
         return AccountResponseDto.of(account);
     }
 
-    public AccountResponseDto findSimpleAccountInfoById(Long accountId) {
+    public AccountResponseDto findAccount(Long accountId) {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ACCOUNT.getMessage()));
 
         return AccountResponseDto.of(account);
-    }
-
-    public DetailedAccountDto findDetailedAccountInfoById(Long accountId) {
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ACCOUNT.getMessage()));
-
-        return DetailedAccountDto.of(account);
     }
 }
