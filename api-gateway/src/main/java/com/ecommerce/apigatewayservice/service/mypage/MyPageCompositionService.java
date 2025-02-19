@@ -1,7 +1,7 @@
 package com.ecommerce.apigatewayservice.service.mypage;
 
-import com.ecommerce.apigatewayservice.service.mypage.dto.SimpleAccountDto;
-import com.ecommerce.apigatewayservice.service.mypage.dto.MyPageDto;
+import com.ecommerce.apigatewayservice.service.mypage.dto.AccountResponseDto;
+import com.ecommerce.apigatewayservice.service.mypage.dto.MyPageResponseDto;
 import com.ecommerce.apigatewayservice.service.mypage.dto.OrderListDto;
 import com.ecommerce.apigatewayservice.service.reactiveloadbalancer.ReactiveLoadBalancerService;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +24,8 @@ public class MyPageCompositionService {
     private final ReactiveLoadBalancerService reactiveLoadBalancerService;
     private final WebClient.Builder webClientBuilder;
 
-    public Mono<MyPageDto> getMyPageDetails(ServerRequest serverRequest) {
-        Mono<SimpleAccountDto> account = getAccount(serverRequest)
+    public Mono<MyPageResponseDto> getMyPageDetails(ServerRequest serverRequest) {
+        Mono<AccountResponseDto> account = getAccount(serverRequest)
                 .doOnError(throwable -> log.error("Exception thrown by getAccount method: {}", throwable.getMessage()))
                 .onErrorResume(throwable -> Mono.empty())
                 .switchIfEmpty(Mono.error(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR)));
@@ -35,10 +35,10 @@ public class MyPageCompositionService {
                 .onErrorResume(throwable -> Mono.just(OrderListDto.emptyInstance()));
 
         return Mono.zip(account, orderList)
-                .map(tuple -> MyPageDto.of(tuple.getT1(), tuple.getT2()));
+                .map(tuple -> MyPageResponseDto.of(tuple.getT1(), tuple.getT2()));
     }
 
-    private Mono<SimpleAccountDto> getAccount(ServerRequest serverRequest) {
+    private Mono<AccountResponseDto> getAccount(ServerRequest serverRequest) {
         Long accountId = Long.valueOf(serverRequest.pathVariable("accountId"));
 
         return reactiveLoadBalancerService.chooseInstance("ACCOUNT-SERVICE")
@@ -46,10 +46,10 @@ public class MyPageCompositionService {
                     String url = String.format("http://%s:%d", i.getHost(), i.getPort());
                     return webClientBuilder.baseUrl(url).build()
                             .get()
-                            .uri("/accounts/simple/{accountId}", accountId)
+                            .uri("/accounts/{accountId}", accountId)
                             .accept(MediaType.APPLICATION_JSON)
                             .retrieve()
-                            .bodyToMono(SimpleAccountDto.class);
+                            .bodyToMono(AccountResponseDto.class);
                 });
     }
 
