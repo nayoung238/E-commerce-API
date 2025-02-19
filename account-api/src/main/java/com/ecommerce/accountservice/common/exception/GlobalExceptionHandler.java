@@ -1,6 +1,6 @@
-package com.ecommerce.accountservice.exception;
+package com.ecommerce.accountservice.common.exception;
 
-import com.ecommerce.accountservice.exception.response.ExceptionResponse;
+import com.ecommerce.accountservice.common.exception.response.ExceptionResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;

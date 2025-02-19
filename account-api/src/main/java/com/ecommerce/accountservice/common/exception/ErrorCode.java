@@ -1,4 +1,4 @@
-package com.ecommerce.accountservice.exception;
+package com.ecommerce.accountservice.common.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

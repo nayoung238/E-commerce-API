@@ -2,8 +2,8 @@ package com.ecommerce.accountservice.account.service;
 
 import com.ecommerce.accountservice.account.dto.SignUpRequestDto;
 import com.ecommerce.accountservice.account.repository.AccountRepository;
-import com.ecommerce.accountservice.exception.CustomException;
-import com.ecommerce.accountservice.exception.ErrorCode;
+import com.ecommerce.accountservice.common.exception.CustomException;
+import com.ecommerce.accountservice.common.exception.ErrorCode;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;

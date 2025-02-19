@@ -1,4 +1,4 @@
-package com.ecommerce.accountservice.exception.response;
+package com.ecommerce.accountservice.common.exception.response;
 
 import lombok.Builder;
 import lombok.Getter;
