@@ -2,7 +2,7 @@ package com.ecommerce.couponservice.coupon.service;
 
 import com.ecommerce.couponservice.coupon.dto.WaitQueuePositionResponseDto;
 import com.ecommerce.couponservice.common.exception.CustomRedisException;
-import com.ecommerce.couponservice.common.exception.ExceptionCode;
+import com.ecommerce.couponservice.common.exception.ErrorCode;
 import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager;
 import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +37,7 @@ public class CouponQueueService {
             Long position = rank + 1;
             return WaitQueuePositionResponseDto.accountIdInWaitQueue(couponId, accountId, position);
         } catch (CustomRedisException e) {
-            if (e.getExceptionCode() == ExceptionCode.WAIT_QUEUE_NOT_FOUND) {
+            if (e.getErrorCode() == ErrorCode.WAIT_QUEUE_NOT_FOUND) {
                 return WaitQueuePositionResponseDto.waitQueueNotFound(couponId);
             }
             return WaitQueuePositionResponseDto.unexpectedError();

@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum ExceptionCode {
+public enum ErrorCode {
 
     NOT_FOUND(HttpStatus.NOT_FOUND, "not found"),
     NOT_FOUND_COUPON(HttpStatus.NOT_FOUND, "Coupon could not be found"),

@@ -2,7 +2,7 @@ package com.ecommerce.couponservice.internalevent;
 
 import com.ecommerce.couponservice.coupon.entity.Coupon;
 import com.ecommerce.couponservice.coupon.repository.CouponRepository;
-import com.ecommerce.couponservice.common.exception.ExceptionCode;
+import com.ecommerce.couponservice.common.exception.ErrorCode;
 import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultId;
 import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultInternalEvent;
 import com.ecommerce.couponservice.internalevent.service.InternalEventService;
@@ -34,7 +34,7 @@ public class InternalEventListener {
     public void sendKafkaEvent(CouponIssuanceResultInternalEvent event) {
         CouponIssuanceResultId id = event.getId();
         Coupon coupon = couponRepository.findById(id.getCouponId()).
-                orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_COUPON.getMessage()));
+                orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_COUPON.getMessage()));
 
         CouponIssuanceResultKafkaEvent issuanceResult = CouponIssuanceResultKafkaEvent.of(id, coupon.getName());
         kafkaProducerService.send(TopicConfig.COUPON_ISSUANCE_RESULT_TOPIC, null, issuanceResult);

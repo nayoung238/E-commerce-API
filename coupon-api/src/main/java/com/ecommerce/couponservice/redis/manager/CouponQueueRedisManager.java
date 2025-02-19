@@ -1,7 +1,7 @@
 package com.ecommerce.couponservice.redis.manager;
 
 import com.ecommerce.couponservice.common.exception.CustomRedisException;
-import com.ecommerce.couponservice.common.exception.ExceptionCode;
+import com.ecommerce.couponservice.common.exception.ErrorCode;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ public class CouponQueueRedisManager extends BaseRedisManager {
     public Long getWaitQueueRank(Long couponId, Long accountId) {
         String waitKey = getWaitQueueKey(couponId);
         if(Objects.equals(Boolean.FALSE, redisTemplate.hasKey(waitKey))) {
-            throw new CustomRedisException(ExceptionCode.WAIT_QUEUE_NOT_FOUND);
+            throw new CustomRedisException(ErrorCode.WAIT_QUEUE_NOT_FOUND);
         }
         return redisTemplate.opsForZSet().rank(waitKey, accountId.toString());
     }

@@ -7,6 +7,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomRedisException extends RuntimeException {
 
-    private final ExceptionCode exceptionCode;
+    private final ErrorCode errorCode;
 }
 

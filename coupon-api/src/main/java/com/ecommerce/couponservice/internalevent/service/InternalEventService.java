@@ -1,6 +1,6 @@
 package com.ecommerce.couponservice.internalevent.service;
 
-import com.ecommerce.couponservice.common.exception.ExceptionCode;
+import com.ecommerce.couponservice.common.exception.ErrorCode;
 import com.ecommerce.couponservice.common.exception.InternalEventException;
 import com.ecommerce.couponservice.internalevent.InternalEventStatus;
 import com.ecommerce.couponservice.internalevent.couponissuanceresult.CouponIssuanceResultId;
@@ -32,7 +32,7 @@ public class InternalEventService {
     public void updatePublicationStatus(long couponId, long accountId, InternalEventStatus status) {
         CouponIssuanceResultId id = CouponIssuanceResultId.of(couponId, accountId);
         CouponIssuanceResultInternalEvent event = couponIssuanceResultInternalEventRepository.findById(id)
-                .orElseThrow(() -> new InternalEventException(ExceptionCode.NOT_FOUND_INTERNAL_EVENT));
+                .orElseThrow(() -> new InternalEventException(ErrorCode.NOT_FOUND_INTERNAL_EVENT));
         event.updatePublicationStatus(status);
     }
 }
