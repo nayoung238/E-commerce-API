@@ -17,6 +17,13 @@ import java.util.Objects;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<String> customException(CustomException ex){
+        return ResponseEntity
+            .status(ex.getErrorCode().getHttpStatus())
+            .body(ex.getErrorCode().getMessage());
+    }
+
     @ExceptionHandler(InternalEventException.class)
     public ResponseEntity<?> handleInternalEventException(InternalEventException e) {
         return handleExceptionInternal(e.getErrorCode());
