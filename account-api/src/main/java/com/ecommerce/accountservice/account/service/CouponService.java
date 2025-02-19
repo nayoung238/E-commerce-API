@@ -1,7 +1,7 @@
-package com.ecommerce.accountservice.domain.service;
+package com.ecommerce.accountservice.account.service;
 
-import com.ecommerce.accountservice.domain.Account;
-import com.ecommerce.accountservice.domain.repo.AccountRepository;
+import com.ecommerce.accountservice.account.entity.Account;
+import com.ecommerce.accountservice.account.repository.AccountRepository;
 import com.ecommerce.accountservice.exception.ExceptionCode;
 import com.ecommerce.accountservice.kafka.dto.CouponIssuanceResultKafkaEvent;
 import jakarta.persistence.EntityNotFoundException;

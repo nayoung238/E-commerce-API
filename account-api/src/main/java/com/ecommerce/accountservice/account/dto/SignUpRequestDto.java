@@ -1,4 +1,4 @@
-package com.ecommerce.accountservice.api.dto;
+package com.ecommerce.accountservice.account.dto;
 
 import lombok.Builder;
 import lombok.Getter;

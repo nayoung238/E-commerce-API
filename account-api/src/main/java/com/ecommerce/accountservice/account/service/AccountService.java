@@ -1,10 +1,9 @@
-package com.ecommerce.accountservice.domain.service;
+package com.ecommerce.accountservice.account.service;
 
-import com.ecommerce.accountservice.api.dto.DetailedAccountDto;
-import com.ecommerce.accountservice.api.dto.SimpleAccountDto;
-import com.ecommerce.accountservice.api.dto.SignUpRequestDto;
-import com.ecommerce.accountservice.domain.Account;
-import com.ecommerce.accountservice.domain.repo.AccountRepository;
+import com.ecommerce.accountservice.account.dto.AccountResponseDto;
+import com.ecommerce.accountservice.account.dto.SignUpRequestDto;
+import com.ecommerce.accountservice.account.entity.Account;
+import com.ecommerce.accountservice.account.repository.AccountRepository;
 import com.ecommerce.accountservice.exception.ExceptionCode;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,17 +17,17 @@ public class AccountService {
     private final AccountRepository accountRepository;
 
     @Transactional
-    public SimpleAccountDto createAccount(SignUpRequestDto signUpRequestDto) {
+    public AccountResponseDto createAccount(SignUpRequestDto signUpRequestDto) {
         Account account = Account.of(signUpRequestDto);
         accountRepository.save(account);
-        return SimpleAccountDto.of(account);
+        return AccountResponseDto.of(account);
     }
 
-    public SimpleAccountDto findSimpleAccountInfoById(Long accountId) {
+    public AccountResponseDto findSimpleAccountInfoById(Long accountId) {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ACCOUNT.getMessage()));
 
-        return SimpleAccountDto.of(account);
+        return AccountResponseDto.of(account);
     }
 
     public DetailedAccountDto findDetailedAccountInfoById(Long accountId) {

@@ -1,6 +1,6 @@
-package com.ecommerce.accountservice.domain;
+package com.ecommerce.accountservice.account.entity;
 
-import com.ecommerce.accountservice.api.dto.SignUpRequestDto;
+import com.ecommerce.accountservice.account.dto.SignUpRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 

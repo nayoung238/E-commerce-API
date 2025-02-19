@@ -1,10 +1,7 @@
-package com.nayoung.accountservice.domain;
+package com.ecommerce.accountservice.account.service;
 
-import com.ecommerce.accountservice.domain.AccountRepository;
-import com.ecommerce.accountservice.domain.AccountService;
-import com.ecommerce.accountservice.exception.AccountException;
-import com.ecommerce.accountservice.api.dto.AccountDto;
-import com.ecommerce.accountservice.api.dto.SignUpRequestDto;
+import com.ecommerce.accountservice.account.dto.SignUpRequestDto;
+import com.ecommerce.accountservice.account.repository.AccountRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -16,6 +13,7 @@ public class AccountServiceTest {
 
     @Autowired
     AccountService accountService;
+
     @Autowired
     AccountRepository accountRepository;
 

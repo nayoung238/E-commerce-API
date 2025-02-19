@@ -1,6 +1,6 @@
-package com.ecommerce.accountservice.api.dto;
+package com.ecommerce.accountservice.account.dto;
 
-import com.ecommerce.accountservice.domain.Account;
+import com.ecommerce.accountservice.account.entity.Account;
 import lombok.Builder;
 import lombok.Getter;
 
