@@ -2,11 +2,9 @@ package com.ecommerce.accountservice.account.dto;
 
 import com.ecommerce.accountservice.account.entity.Account;
 import lombok.Builder;
-import lombok.Getter;
 
-@Getter
 @Builder
-public record AccountResponseDto(
+public record AccountResponseDto (
 
     String loginId,
     String name
