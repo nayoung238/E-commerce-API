@@ -3,7 +3,7 @@ package com.ecommerce.accountservice.account.api;
 import com.ecommerce.accountservice.account.service.AccountService;
 import com.ecommerce.accountservice.account.dto.AccountResponseDto;
 import com.ecommerce.accountservice.account.dto.SignUpRequestDto;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,15 +19,14 @@ public class AccountController {
     private final AccountService accountService;
 
     @PostMapping("/sign-up")
-    public ResponseEntity<?> signup(@RequestBody SignUpRequestDto request) {
+    public ResponseEntity<?> signup(@RequestBody @Valid SignUpRequestDto request) {
         AccountResponseDto response = accountService.createAccount(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{accountId}")
-    public ResponseEntity<?> findSimpleAccountInfo(@PathVariable Long accountId, HttpServletRequest httpServletRequest) {
-        Long requesterId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
-        AccountResponseDto response = accountService.findSimpleAccountInfoById(accountId);
+    public ResponseEntity<?> findAccount(@PathVariable Long accountId) {
+        AccountResponseDto response = accountService.findAccount(accountId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
