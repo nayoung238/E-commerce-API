@@ -27,6 +27,9 @@ public class RouterConfig {
                 .route(r -> r.path("/account-api/**")
                         .filters(f -> f.rewritePath("/account-api/(?<segment>.*)", "/${segment}"))
                         .uri("lb://ACCOUNT-SERVICE"))
+                .route(r -> r.path("/coupon-api/**")
+                        .filters(f -> f.rewritePath("/coupon-api/(?<segment>.*)", "/${segment}"))
+                        .uri("lb://COUPON-SERVICE"))
                 .build();
     }
 
