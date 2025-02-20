@@ -1,23 +1,25 @@
 package com.ecommerce.couponservice.coupon.entity;
 
 import com.ecommerce.couponservice.coupon.dto.CouponRegisterRequestDto;
+import com.ecommerce.couponservice.couponlog.entity.CouponLog;
 import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Getter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class Coupon {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "coupon_id")
     private Long id;
 
     @Column(nullable = false, unique = true)
@@ -37,14 +39,8 @@ public class Coupon {
     @Column(nullable = false)
     private Long quantity;
 
-    @Builder(access = AccessLevel.PRIVATE)
-    private Coupon(String name, String description, Long itemId, BigDecimal discountRate, Long quantity) {
-        this.name = name;
-        this.description = description;
-        this.itemId = itemId;
-        this.discountRate = discountRate;
-        this.quantity = quantity;
-    }
+    @OneToMany(mappedBy = "coupon", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<CouponLog> couponLogs;
 
     public static Coupon of(CouponRegisterRequestDto registerRequestDto) {
         return Coupon.builder()

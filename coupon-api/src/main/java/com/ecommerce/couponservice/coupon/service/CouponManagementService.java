@@ -6,7 +6,7 @@ import com.ecommerce.couponservice.coupon.dto.CouponIssuanceResultDto;
 import com.ecommerce.couponservice.coupon.dto.CouponRegisterRequestDto;
 import com.ecommerce.couponservice.coupon.repository.CouponRepository;
 import com.ecommerce.couponservice.common.exception.ErrorCode;
-import com.ecommerce.couponservice.internalevent.service.InternalEventService;
+import com.ecommerce.couponservice.couponlog.service.CouponLogService;
 import com.ecommerce.couponservice.redis.manager.CouponIssuanceStatus;
 import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,7 +20,7 @@ public class CouponManagementService {
 
     private final CouponRepository couponRepository;
     private final CouponStockRedisManager couponStockRedisManager;
-    private final InternalEventService internalEventService;
+    private final CouponLogService couponLogService;
 
     @Transactional
     public CouponDto register(CouponRegisterRequestDto couponRegisterRequestDto) {
@@ -58,6 +58,7 @@ public class CouponManagementService {
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_COUPON.getMessage()));
 
         CouponIssuanceStatus status = coupon.decrementQuantity();
+        couponLogService.saveCouponLog(couponId, accountId);
         return CouponIssuanceResultDto.of(couponId, accountId, status);
     }
 }
