@@ -16,11 +16,14 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private Long itemId;
 
+    @Column(nullable = false)
     private Long quantity;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OrderProcessingStatus orderProcessingStatus;
 
     @JsonIgnore

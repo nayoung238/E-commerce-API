@@ -27,16 +27,17 @@ public class Order {
     private Long id;
 
     // Kafka KTable & KStream key
-    @Column(name = "order_event_id", unique = true)
+    @Column(name = "order_event_id", unique = true, nullable = false)
     private String orderEventId;
 
-    @Column(name = "account_id")
+    @Column(nullable = false)
     private Long accountId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<OrderItem> orderItems;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OrderProcessingStatus orderProcessingStatus;
 
     @CreatedDate
