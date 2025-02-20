@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.internalevent;
 
-import com.ecommerce.orderservice.domain.order.dto.OrderDto;
-import com.ecommerce.orderservice.domain.order.service.OrderInquiryService;
+import com.ecommerce.orderservice.order.dto.OrderDto;
+import com.ecommerce.orderservice.order.service.OrderInquiryService;
 import com.ecommerce.orderservice.internalevent.ordercreation.OrderCreationInternalEvent;
 import com.ecommerce.orderservice.internalevent.service.InternalEventService;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;

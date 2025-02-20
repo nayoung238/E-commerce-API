@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.kafka.dto;
 
-import com.ecommerce.itemservice.domain.item.ItemProcessingStatus;
+import com.ecommerce.itemservice.item.enums.ItemProcessingStatus;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Locale;

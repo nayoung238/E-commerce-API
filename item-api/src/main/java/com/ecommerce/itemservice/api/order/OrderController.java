@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.api.order;
 
-import com.ecommerce.itemservice.domain.item.service.ItemService;
+import com.ecommerce.itemservice.item.service.ItemService;
 import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

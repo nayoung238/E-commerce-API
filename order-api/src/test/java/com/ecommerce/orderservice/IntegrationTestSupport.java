@@ -1,9 +1,9 @@
 package com.ecommerce.orderservice;
 
-import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
-import com.ecommerce.orderservice.domain.order.dto.OrderDto;
-import com.ecommerce.orderservice.domain.order.dto.OrderItemRequestDto;
-import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
+import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.dto.OrderDto;
+import com.ecommerce.orderservice.order.dto.OrderItemRequestDto;
+import com.ecommerce.orderservice.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
@@ -21,7 +21,10 @@ public class IntegrationTestSupport {
 
     protected OrderRequestDto getOrderRequestDto(long accountId, List<Long> orderItemIds) {
         List<OrderItemRequestDto> orderItemRequestDtos = orderItemIds.stream()
-                .map(i -> OrderItemRequestDto.of(i, 3L))
+                .map(i -> OrderItemRequestDto.builder()
+                    .itemId(i)
+                    .quantity(3L)
+                    .build())
                 .toList();
 
         return OrderRequestDto.of(accountId, orderItemRequestDtos);

@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.kafka.config.streams;
 
-import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderEventSerde;

@@ -1,0 +1,18 @@
+package com.ecommerce.itemservice.item.enums;
+
+public enum ItemProcessingStatus {
+
+    ITEM_NOT_FOUND,
+
+    STOCK_PRODUCTION,
+    SUCCESSFUL_PRODUCTION,
+    FAILED_PRODUCTION,
+
+    STOCK_CONSUMPTION,
+    SUCCESSFUL_CONSUMPTION,
+    FAILED_CONSUMPTION,
+    OUT_OF_STOCK,
+
+    UPDATE_SUCCESSFUL,
+    UPDATE_FAILED;
+}

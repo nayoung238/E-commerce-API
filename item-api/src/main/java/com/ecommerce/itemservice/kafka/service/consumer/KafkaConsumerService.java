@@ -1,13 +1,12 @@
 package com.ecommerce.itemservice.kafka.service.consumer;
 
-import com.ecommerce.itemservice.domain.item.ItemProcessingStatus;
+import com.ecommerce.itemservice.item.enums.ItemProcessingStatus;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
-import com.ecommerce.itemservice.domain.item.service.ItemStockService;
+import com.ecommerce.itemservice.item.service.ItemStockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.streams.kstream.Windowed;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
