@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.openfeign;
 
-import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
 import feign.FeignException;
 import feign.RetryableException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -13,8 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import static com.ecommerce.orderservice.resilience4j.Resilience4jCircuitBreakerConfig.ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER;
-import static com.ecommerce.orderservice.resilience4j.Resilience4jRetryConfig.ORDER_PROCESSING_RESULT_RETRY;
+import static com.ecommerce.orderservice.common.config.Resilience4jCircuitBreakerConfig.ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER;
+import static com.ecommerce.orderservice.common.config.Resilience4jRetryConfig.ORDER_PROCESSING_RESULT_RETRY;
 
 @FeignClient(name = "item-service",
         url = "http://${spring.cloud.discovery.client.simple.local.host}"

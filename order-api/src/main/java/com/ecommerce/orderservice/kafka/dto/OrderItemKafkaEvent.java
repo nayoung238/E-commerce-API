@@ -1,9 +1,9 @@
 package com.ecommerce.orderservice.kafka.dto;
 
-import com.ecommerce.orderservice.domain.order.OrderItem;
-import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
-import com.ecommerce.orderservice.domain.order.dto.OrderItemDto;
-import com.ecommerce.orderservice.domain.order.dto.OrderItemRequestDto;
+import com.ecommerce.orderservice.order.entity.OrderItem;
+import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.dto.OrderItemDto;
+import com.ecommerce.orderservice.order.dto.OrderItemRequestDto;
 import lombok.*;
 
 @Getter

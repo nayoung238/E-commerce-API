@@ -1,9 +1,9 @@
 package com.ecommerce.orderservice.kafka.dto;
 
-import com.ecommerce.orderservice.domain.order.Order;
-import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
-import com.ecommerce.orderservice.domain.order.dto.OrderDto;
-import com.ecommerce.orderservice.domain.order.dto.OrderRequestDto;
+import com.ecommerce.orderservice.order.entity.Order;
+import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.dto.OrderDto;
+import com.ecommerce.orderservice.order.dto.OrderRequestDto;
 import lombok.*;
 
 import java.time.LocalDateTime;

@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.internalevent.service;
 
-import com.ecommerce.orderservice.exception.ExceptionCode;
-import com.ecommerce.orderservice.exception.InternalEventException;
+import com.ecommerce.orderservice.common.exception.ExceptionCode;
+import com.ecommerce.orderservice.common.exception.InternalEventException;
 import com.ecommerce.orderservice.internalevent.InternalEventStatus;
 import com.ecommerce.orderservice.internalevent.ordercreation.OrderCreationInternalEvent;
 import com.ecommerce.orderservice.internalevent.ordercreation.repository.OrderCreationInternalEventRepository;
@@ -9,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

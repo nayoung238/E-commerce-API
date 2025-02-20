@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.kafka.service.consumer;
 
-import com.ecommerce.orderservice.domain.order.service.OrderCreationByDBServiceImpl;
-import com.ecommerce.orderservice.domain.order.service.OrderCreationByKafkaStreamsJoinServiceImpl;
+import com.ecommerce.orderservice.order.service.OrderCreationByDBServiceImpl;
+import com.ecommerce.orderservice.order.service.OrderCreationByKafkaStreamsJoinServiceImpl;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import lombok.RequiredArgsConstructor;
