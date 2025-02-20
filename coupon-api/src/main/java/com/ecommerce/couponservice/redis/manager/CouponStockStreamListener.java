@@ -1,6 +1,6 @@
 package com.ecommerce.couponservice.redis.manager;
 
-import com.ecommerce.couponservice.domain.coupon.service.CouponManagementService;
+import com.ecommerce.couponservice.coupon.service.CouponManagementService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;

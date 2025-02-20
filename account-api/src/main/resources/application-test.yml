@@ -4,9 +4,10 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+
   jpa:
     hibernate:
-      ddl-auto: create-drop # 테스트 후 데이터 삭제
+      ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:
