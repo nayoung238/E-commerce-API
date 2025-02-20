@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * KStream(주문에 대한 재고 변경 결과) + KTable(waiting 상태의 주문) Join 한 결과(주문 상세)를 DB에 insert 하는 방식
+ * KStream(주문에 대한 재고 변경 결과) + KTable(waiting 상태의 주문) Join 한 결과(주문 상세)를 DB에 insert
  * 주문 생성을 위해 DB 한 번 접근 (insert)
  */
 @Service //@Primary
@@ -32,6 +32,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     @Override
     @Transactional
     public OrderDto create(OrderRequestDto orderRequestDto) {
+        // DB 영속화하지 않고 Kafka 이벤트 발행하므로 Kafka 이벤트 Key 생성 (스트림 조인에서 사용)
         String orderEventId = getOrderEventId(orderRequestDto.accountId());
         OrderKafkaEvent orderKafkaEvent = OrderKafkaEvent.of(orderRequestDto, orderEventId);
         kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
@@ -41,11 +42,12 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     @Transactional
     public void insertFinalOrder(OrderKafkaEvent orderKafkaEvent) {
         assert orderKafkaEvent.getOrderEventId() != null;
-        if(!isExistOrderByOrderEventId(orderKafkaEvent.getOrderEventId())) {
-            Order order = Order.of(orderKafkaEvent);
-            orderRepository.save(order);
-            kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderKafkaEvent.getOrderEventId());
-        }
+
+        Order order = Order.of(orderKafkaEvent);
+        orderRepository.save(order);
+
+        // Kafka 상태 저장소에서 제거하기 위해 Tombstone 설정
+        kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderKafkaEvent.getOrderEventId());
     }
 
     @Override

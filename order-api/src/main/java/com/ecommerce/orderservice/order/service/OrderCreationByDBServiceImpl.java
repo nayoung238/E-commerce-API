@@ -22,7 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 /**
- * waiting 상태의 주문을 DB insert -> 재고 변경 결과 이벤트로 주문 상태 update 하는 방식
+ * 1. waiting 상태의 주문을 DB insert
+ * 2. 재고 변경 결과 이벤트를 받아 주문 상태 update
  * 주문 생성을 위해 DB 두 번 접근 (insert -> update)
  */
 @Service @Primary
@@ -43,15 +44,23 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
         order.initializeOrderEventId(getOrderEventId(order.getAccountId()));
         orderRepository.save(order);
 
+        // Kafka 이벤트 발행을 위한 내부 이벤트 생성 (Transactional Outbox Pattern)
         internalEventService.publishInternalEvent(order.getOrderCreationInternalEvent());
         return OrderDto.of(order);
     }
 
     @Transactional
     public void updateOrderStatus(OrderKafkaEvent orderKafkaEvent) {
-        Order order = orderRepository.findByOrderEventId(orderKafkaEvent.getOrderEventId())
-                        .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER.getMessage()));
-        order.updateOrderStatus(orderKafkaEvent);
+        Optional<Order> order = orderRepository.findByOrderEventId(orderKafkaEvent.getOrderEventId());
+        if (order.isPresent()) {
+            order.get().updateOrderStatus(orderKafkaEvent);
+        }
+        else {
+            /*
+                TODO: DB 영속화 실패, but Kafka 이벤트 발행되어 상품 서비스에서 처리된 상황
+                상품 서비스로 요청 처리 취소 발행
+             */
+        }
     }
 
     @Override
@@ -60,10 +69,15 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
 
         Optional<Order> order = orderRepository.findByOrderEventId(orderKafkaEvent.getOrderEventId());
         if(order.isPresent()) {
+            // 주문 요청은 영속화, but 처리 지연 발생
             if(Objects.equals(OrderProcessingStatus.PROCESSING, order.get().getOrderProcessingStatus())) {
                 kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC, null, orderKafkaEvent);
             }
-        } else kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, null, orderKafkaEvent);
+        }
+        // DB 영속화 실패했는데, Kafka 이벤트만 발행된 경우
+        else {
+            kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, null, orderKafkaEvent);
+        }
     }
 
     @Override
