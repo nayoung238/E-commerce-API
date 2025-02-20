@@ -18,7 +18,7 @@ spring:
     name: api-gateway-service
   data:
     mongodb:
-      uri: mongodb://admin:admin123@localhost:27017/api-gateway?retryWrites=true&w=majority
+      uri: mongodb://admin:admin123@localhost:27017/api-gateway?authSource=admin&retryWrites=true&w=majority
 
 #  config:
 #    import: "optional:configserver:"
