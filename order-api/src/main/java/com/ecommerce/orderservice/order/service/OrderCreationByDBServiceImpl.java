@@ -41,10 +41,8 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     public OrderDto create(OrderRequestDto orderRequestDto) {
         Order order = Order.of(orderRequestDto);
         order.initializeOrderEventId(getOrderEventId(order.getAccountId()));
-        order.getOrderItems()
-                .forEach(o -> o.initializeOrder(order));
-
         orderRepository.save(order);
+
         internalEventService.publishInternalEvent(order.getOrderCreationInternalEvent());
         return OrderDto.of(order);
     }

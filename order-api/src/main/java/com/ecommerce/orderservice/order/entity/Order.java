@@ -60,12 +60,16 @@ public class Order {
                 .map(OrderItem::of)
                 .collect(Collectors.toList());
 
-        return Order.builder()
+        Order order = Order.builder()
                 .accountId(orderRequestDto.accountId())
                 .orderItems(orderItems)
                 .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .requestedAt(LocalDateTime.now())
                 .build();
+
+        order.getOrderItems()
+            .forEach(orderItem -> orderItem.initializeOrder(order));
+        return order;
     }
 
     public static Order of(OrderKafkaEvent orderKafkaEvent) {
