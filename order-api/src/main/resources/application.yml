@@ -4,18 +4,39 @@ server:
 spring:
   application:
     name: order-service
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+      hibernate.query.in_clause_parameter_padding: true
+  #      hibernate.query.plan_cache_max_size: 2048
+  #      hibernate.query.plan_parameter_max_size: 128
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/order_db
+    username: root
+
   data:
     redis:
       port: 6379
+
   kafka:
+    bootstrap-servers: localhost:29092
     producer:
       acks: all
     consumer:
       group-id: orderServiceGroup
     streams:
       application-id: order_application
+
   main:
     allow-bean-definition-overriding: true
+
   cloud:
     openfeign:
       client:
@@ -24,10 +45,12 @@ spring:
             connect-timeout: 5000
             read-timeout: 5000
             logger-level: basic
+
     discovery:
       client:
         simple:
           local:
+            host: localhost
             port: 8089
             service-id: item-service
 
@@ -44,6 +67,8 @@ eureka:
     fetch-registry: true
     healthcheck:
       enabled: true
+    service-url:
+      defaultZone: http://localhost:${eureka.client.eureka-server-port}/eureka
 
 resilience4j:
   retry:

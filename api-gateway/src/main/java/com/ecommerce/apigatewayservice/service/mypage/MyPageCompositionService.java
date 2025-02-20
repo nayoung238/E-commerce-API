@@ -1,11 +1,13 @@
 package com.ecommerce.apigatewayservice.service.mypage;
 
-import com.ecommerce.apigatewayservice.service.mypage.dto.SimpleAccountDto;
-import com.ecommerce.apigatewayservice.service.mypage.dto.MyPageDto;
+import com.ecommerce.apigatewayservice.service.mypage.dto.AccountResponseDto;
+import com.ecommerce.apigatewayservice.service.mypage.dto.CouponResponseDto;
+import com.ecommerce.apigatewayservice.service.mypage.dto.MyPageResponseDto;
 import com.ecommerce.apigatewayservice.service.mypage.dto.OrderListDto;
 import com.ecommerce.apigatewayservice.service.reactiveloadbalancer.ReactiveLoadBalancerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,8 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -24,8 +28,8 @@ public class MyPageCompositionService {
     private final ReactiveLoadBalancerService reactiveLoadBalancerService;
     private final WebClient.Builder webClientBuilder;
 
-    public Mono<MyPageDto> getMyPageDetails(ServerRequest serverRequest) {
-        Mono<SimpleAccountDto> account = getAccount(serverRequest)
+    public Mono<MyPageResponseDto> getMyPageDetails(ServerRequest serverRequest) {
+        Mono<AccountResponseDto> account = getAccount(serverRequest)
                 .doOnError(throwable -> log.error("Exception thrown by getAccount method: {}", throwable.getMessage()))
                 .onErrorResume(throwable -> Mono.empty())
                 .switchIfEmpty(Mono.error(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR)));
@@ -34,11 +38,15 @@ public class MyPageCompositionService {
                 .doOnError(throwable -> log.error("Exception thrown by getOrderList method: {}", throwable.getMessage()))
                 .onErrorResume(throwable -> Mono.just(OrderListDto.emptyInstance()));
 
-        return Mono.zip(account, orderList)
-                .map(tuple -> MyPageDto.of(tuple.getT1(), tuple.getT2()));
+        Mono<List<CouponResponseDto>> coupons = getCoupons(serverRequest)
+                .doOnError(throwable -> log.error("Exception thrown by getCoupons method: {}", throwable.getMessage()))
+                .onErrorResume(throwable -> Mono.just(Collections.emptyList()));
+
+        return Mono.zip(account, orderList, coupons)
+                .map(tuple -> MyPageResponseDto.of(tuple.getT1(), tuple.getT2(), tuple.getT3()));
     }
 
-    private Mono<SimpleAccountDto> getAccount(ServerRequest serverRequest) {
+    private Mono<AccountResponseDto> getAccount(ServerRequest serverRequest) {
         Long accountId = Long.valueOf(serverRequest.pathVariable("accountId"));
 
         return reactiveLoadBalancerService.chooseInstance("ACCOUNT-SERVICE")
@@ -46,10 +54,10 @@ public class MyPageCompositionService {
                     String url = String.format("http://%s:%d", i.getHost(), i.getPort());
                     return webClientBuilder.baseUrl(url).build()
                             .get()
-                            .uri("/accounts/simple/{accountId}", accountId)
+                            .uri("/accounts/{accountId}", accountId)
                             .accept(MediaType.APPLICATION_JSON)
                             .retrieve()
-                            .bodyToMono(SimpleAccountDto.class);
+                            .bodyToMono(AccountResponseDto.class);
                 });
     }
 
@@ -73,5 +81,21 @@ public class MyPageCompositionService {
                             .retrieve()
                             .bodyToMono(OrderListDto.class);
                 });
+    }
+
+    private Mono<List<CouponResponseDto>> getCoupons(ServerRequest serverRequest) {
+        Long accountId = Long.valueOf(serverRequest.pathVariable("accountId"));
+
+        return reactiveLoadBalancerService.chooseInstance("COUPON-SERVICE")
+            .flatMap(i -> {
+                String url = String.format("http://%s:%d", i.getHost(), i.getPort());
+                return webClientBuilder.baseUrl(url).build()
+                    .get()
+                    .uri("/coupons/log")
+                    .header("X-Account-Id", String.valueOf(accountId))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<List<CouponResponseDto>>() {});
+            });
     }
 }
