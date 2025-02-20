@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.internalevent.service;
 
-import com.ecommerce.orderservice.common.exception.ExceptionCode;
+import com.ecommerce.orderservice.common.exception.ErrorCode;
 import com.ecommerce.orderservice.common.exception.InternalEventException;
 import com.ecommerce.orderservice.internalevent.InternalEventStatus;
 import com.ecommerce.orderservice.internalevent.ordercreation.OrderCreationInternalEvent;
@@ -30,7 +30,7 @@ public class InternalEventService {
     @Transactional
     public void updatePublicationStatus(String orderEventId, InternalEventStatus status) {
         OrderCreationInternalEvent event = orderCreationInternalEventRepository.findByOrderEventId(orderEventId)
-                .orElseThrow(() -> new InternalEventException(ExceptionCode.NOT_FOUND_ORDER_CREATION_INTERNAL_EVENT));
+                .orElseThrow(() -> new InternalEventException(ErrorCode.NOT_FOUND_ORDER_CREATION_INTERNAL_EVENT));
         event.updatePublicationStatus(status);
     }
 }

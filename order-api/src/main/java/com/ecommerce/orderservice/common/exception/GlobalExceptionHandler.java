@@ -20,42 +20,42 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ExceptionResponse exceptionResponse = ExceptionResponse.builder()
-                .code(String.valueOf(ExceptionCode.NOT_VALID))
+                .code(String.valueOf(ErrorCode.NOT_VALID))
                 .message(Objects.requireNonNull(ex.getBindingResult().getFieldError()).getDefaultMessage())
                 .build();
 
-        return new ResponseEntity<>(exceptionResponse, ExceptionCode.NOT_VALID.getHttpStatus());
+        return new ResponseEntity<>(exceptionResponse, ErrorCode.NOT_VALID.getHttpStatus());
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException e) {
         ExceptionResponse exceptionResponse = ExceptionResponse.builder()
-                .code(String.valueOf(ExceptionCode.CONSTRAINT_VIOLATION))
+                .code(String.valueOf(ErrorCode.CONSTRAINT_VIOLATION))
                 .message(e.getMessage())
                 .build();
 
-        return new ResponseEntity<>(exceptionResponse, ExceptionCode.CONSTRAINT_VIOLATION.getHttpStatus());
+        return new ResponseEntity<>(exceptionResponse, ErrorCode.CONSTRAINT_VIOLATION.getHttpStatus());
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException e) {
         ExceptionResponse exceptionResponse = ExceptionResponse.builder()
-                .code(String.valueOf(ExceptionCode.NOT_FOUND))
+                .code(String.valueOf(ErrorCode.NOT_FOUND))
                 .message(e.getMessage())
                 .build();
 
-        return new ResponseEntity<>(exceptionResponse, ExceptionCode.NOT_FOUND.getHttpStatus());
+        return new ResponseEntity<>(exceptionResponse, ErrorCode.NOT_FOUND.getHttpStatus());
     }
 
-    private ResponseEntity<Object> handleExceptionInternal(ExceptionCode exceptionCode) {
-        return ResponseEntity.status(exceptionCode.getHttpStatus())
-                .body(createExceptionResponse(exceptionCode));
+    private ResponseEntity<Object> handleExceptionInternal(ErrorCode errorCode) {
+        return ResponseEntity.status(errorCode.getHttpStatus())
+                .body(createExceptionResponse(errorCode));
     }
 
-    private ExceptionResponse createExceptionResponse(ExceptionCode exceptionCode) {
+    private ExceptionResponse createExceptionResponse(ErrorCode errorCode) {
         return ExceptionResponse.builder()
-                .code(exceptionCode.name())
-                .message(exceptionCode.getMessage())
+                .code(errorCode.name())
+                .message(errorCode.getMessage())
                 .build();
     }
 }

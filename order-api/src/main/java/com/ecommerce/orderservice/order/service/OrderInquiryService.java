@@ -4,7 +4,7 @@ import com.ecommerce.orderservice.order.entity.Order;
 import com.ecommerce.orderservice.order.dto.OrderListDto;
 import com.ecommerce.orderservice.order.repository.OrderRepository;
 import com.ecommerce.orderservice.order.dto.OrderDto;
-import com.ecommerce.orderservice.common.exception.ExceptionCode;
+import com.ecommerce.orderservice.common.exception.ErrorCode;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -21,14 +21,14 @@ public class OrderInquiryService {
 
     public OrderDto findLatestOrderByAccountId(Long accountId) {
         Order order = orderRepository.findLatestOrderByAccountId(accountId)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ORDER.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER.getMessage()));
 
         return OrderDto.of(order);
     }
 
     public OrderDto findOrderByOrderEventId(String orderEventId) {
         Order order = orderRepository.findByOrderEventId(orderEventId)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ORDER.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER.getMessage()));
         return OrderDto.of(order);
     }
 

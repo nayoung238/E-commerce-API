@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum ExceptionCode {
+public enum ErrorCode {
 
     NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않습니다."),
     NOT_FOUND_ORDER(HttpStatus.NOT_FOUND, "주문이 존재하지 않습니다."),

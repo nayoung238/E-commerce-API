@@ -1,8 +1,8 @@
 package com.ecommerce.orderservice.order.repository;
 
-import com.ecommerce.orderservice.order.QOrder;
-import com.ecommerce.orderservice.order.QOrderItem;
 import com.ecommerce.orderservice.order.entity.Order;
+import com.ecommerce.orderservice.order.entity.QOrder;
+import com.ecommerce.orderservice.order.entity.QOrderItem;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;

@@ -2,7 +2,7 @@ package com.ecommerce.orderservice.order.service;
 
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
 import com.ecommerce.orderservice.order.dto.OrderRequestDto;
-import com.ecommerce.orderservice.common.exception.ExceptionCode;
+import com.ecommerce.orderservice.common.exception.ErrorCode;
 import com.ecommerce.orderservice.internalevent.service.InternalEventService;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
@@ -52,7 +52,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     @Transactional
     public void updateOrderStatus(OrderKafkaEvent orderKafkaEvent) {
         Order order = orderRepository.findByOrderEventId(orderKafkaEvent.getOrderEventId())
-                        .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ORDER.getMessage()));
+                        .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER.getMessage()));
         order.updateOrderStatus(orderKafkaEvent);
     }
 
@@ -83,7 +83,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
 
     private void handleOrderSuccess(String orderEventId) {
         Order order = orderRepository.findByOrderEventId(orderEventId)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ORDER.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER.getMessage()));
 
         order.updateOrderStatus(OrderProcessingStatus.SUCCESSFUL);
     }
@@ -108,7 +108,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     @Transactional
     public void handleOrderFailure(String orderEventId) {
         Order order = orderRepository.findByOrderEventId(orderEventId)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ORDER.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER.getMessage()));
 
         order.updateOrderStatus(OrderProcessingStatus.CANCELED);
         internalEventService.publishInternalEvent(order.getOrderCreationInternalEvent());
