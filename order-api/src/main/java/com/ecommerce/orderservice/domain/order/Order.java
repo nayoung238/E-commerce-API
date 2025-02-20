@@ -55,12 +55,12 @@ public class Order {
     }
 
     public static Order of(OrderRequestDto orderRequestDto) {
-        List<OrderItem> orderItems = orderRequestDto.getOrderItemRequestDtos().stream()
+        List<OrderItem> orderItems = orderRequestDto.orderItemRequestDtos().stream()
                 .map(OrderItem::of)
                 .collect(Collectors.toList());
 
         return Order.builder()
-                .accountId(orderRequestDto.getAccountId())
+                .accountId(orderRequestDto.accountId())
                 .orderItems(orderItems)
                 .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .requestedAt(LocalDateTime.now())

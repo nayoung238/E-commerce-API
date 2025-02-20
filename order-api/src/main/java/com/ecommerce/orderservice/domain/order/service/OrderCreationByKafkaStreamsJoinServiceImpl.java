@@ -32,7 +32,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     @Override
     @Transactional
     public OrderDto create(OrderRequestDto orderRequestDto) {
-        String orderEventId = getOrderEventId(orderRequestDto.getAccountId());
+        String orderEventId = getOrderEventId(orderRequestDto.accountId());
         OrderKafkaEvent orderKafkaEvent = OrderKafkaEvent.of(orderRequestDto, orderEventId);
         kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
         return OrderDto.of(orderKafkaEvent);

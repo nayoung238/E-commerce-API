@@ -21,7 +21,10 @@ public class IntegrationTestSupport {
 
     protected OrderRequestDto getOrderRequestDto(long accountId, List<Long> orderItemIds) {
         List<OrderItemRequestDto> orderItemRequestDtos = orderItemIds.stream()
-                .map(i -> OrderItemRequestDto.of(i, 3L))
+                .map(i -> OrderItemRequestDto.builder()
+                    .itemId(i)
+                    .quantity(3L)
+                    .build())
                 .toList();
 
         return OrderRequestDto.of(accountId, orderItemRequestDtos);

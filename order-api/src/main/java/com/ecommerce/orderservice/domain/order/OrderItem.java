@@ -38,8 +38,8 @@ public class OrderItem {
 
     public static OrderItem of(OrderItemRequestDto orderItemRequestDto) {
         return OrderItem.builder()
-                .itemId(orderItemRequestDto.getItemId())
-                .quantity(orderItemRequestDto.getQuantity())
+                .itemId(orderItemRequestDto.itemId())
+                .quantity(orderItemRequestDto.quantity())
                 .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .build();
     }

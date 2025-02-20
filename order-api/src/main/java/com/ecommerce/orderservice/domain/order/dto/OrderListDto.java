@@ -1,24 +1,17 @@
 package com.ecommerce.orderservice.domain.order.dto;
 
 import com.ecommerce.orderservice.domain.order.Order;
-import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Getter;
 
 import java.util.Comparator;
 import java.util.List;
 
-@Getter
-public class OrderListDto {
+@Builder
+public record OrderListDto (
 
-    private final long accountId;
-    private final List<OrderSimpleDto> orderSimpleDtoList;
-
-    @Builder(access = AccessLevel.PRIVATE)
-    private OrderListDto(long accountId, List<OrderSimpleDto> orderSimpleDtoList) {
-        this.accountId = accountId;
-        this.orderSimpleDtoList = orderSimpleDtoList;
-    }
+    long accountId,
+    List<OrderSimpleDto> orderSimpleDtoList
+) {
 
     public static OrderListDto of(long accountId, List<Order> orders) {
         List<OrderSimpleDto> orderSimpleDtoList =  orders.stream()

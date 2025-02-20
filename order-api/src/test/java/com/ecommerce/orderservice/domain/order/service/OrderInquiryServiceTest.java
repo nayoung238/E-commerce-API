@@ -115,7 +115,7 @@ class OrderInquiryServiceTest extends IntegrationTestSupport {
 
         // verify
         final int numberOfOrders = Integer.min(numberOfRequests, OrderInquiryService.PAGE_SIZE); // min(3, 5)
-        assertThat(orderListDto.getOrderSimpleDtoList()).hasSize(numberOfOrders);
+        assertThat(orderListDto.orderSimpleDtoList()).hasSize(numberOfOrders);
     }
 
     @DisplayName("PageRequest.PageSize보다 주문 수가 많으면 PageRequest.PageSize만큼 조회")
@@ -139,7 +139,7 @@ class OrderInquiryServiceTest extends IntegrationTestSupport {
 
         // verify
         final int numberOfOrders = Integer.min(numberOfRequests, OrderInquiryService.PAGE_SIZE); // min(10, 5)
-        assertThat(orderListDto.getOrderSimpleDtoList()).hasSize(numberOfOrders);
+        assertThat(orderListDto.orderSimpleDtoList()).hasSize(numberOfOrders);
     }
 
     @DisplayName("특정 주문 기준으로 주문 목록 요청 시 기준보다 과거에 생성된 주문 목록 조회")
@@ -175,9 +175,9 @@ class OrderInquiryServiceTest extends IntegrationTestSupport {
         OrderListDto orderListDto = orderInquiryService.findOrderByAccountIdAndOrderId(accountId, orderCursorId);
 
         // verify
-        assertThat(orderListDto.getOrderSimpleDtoList())
+        assertThat(orderListDto.orderSimpleDtoList())
                 .hasSize(numberOfOrders)
-                .extracting(OrderSimpleDto::getOrderId)
+                .extracting(OrderSimpleDto::orderId)
                 .containsExactlyElementsOf(requestedOrderIds);
     }
 

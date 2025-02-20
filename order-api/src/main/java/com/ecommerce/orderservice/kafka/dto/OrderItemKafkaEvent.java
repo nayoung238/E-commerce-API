@@ -39,8 +39,8 @@ public class OrderItemKafkaEvent {
 
     public static OrderItemKafkaEvent of(OrderItemRequestDto orderItemRequestDto) {
         return OrderItemKafkaEvent.builder()
-                .itemId(orderItemRequestDto.getItemId())
-                .quantity(orderItemRequestDto.getQuantity())
+                .itemId(orderItemRequestDto.itemId())
+                .quantity(orderItemRequestDto.quantity())
                 .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .build();
     }

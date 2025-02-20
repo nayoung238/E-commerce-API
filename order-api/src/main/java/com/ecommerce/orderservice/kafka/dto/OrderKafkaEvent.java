@@ -64,14 +64,14 @@ public class OrderKafkaEvent {
 
     public static OrderKafkaEvent of(OrderRequestDto orderRequestDto, String orderEventId) {
         List<OrderItemKafkaEvent> orderItemKafkaEvents = orderRequestDto
-                .getOrderItemRequestDtos()
+                .orderItemRequestDtos()
                 .stream()
                 .map(OrderItemKafkaEvent::of)
                 .toList();
 
         return OrderKafkaEvent.builder()
                 .orderEventId(orderEventId)
-                .accountId(orderRequestDto.getAccountId())
+                .accountId(orderRequestDto.accountId())
                 .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .orderItemKafkaEvents(orderItemKafkaEvents)
                 .requestedAt(LocalDateTime.now())

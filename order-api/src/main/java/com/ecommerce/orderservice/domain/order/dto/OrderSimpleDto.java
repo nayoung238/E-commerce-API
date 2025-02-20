@@ -2,40 +2,31 @@ package com.ecommerce.orderservice.domain.order.dto;
 
 import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.OrderItem;
+import com.ecommerce.orderservice.domain.order.OrderProcessingStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Getter
-public class OrderSimpleDto {
+@Builder
+public record OrderSimpleDto (
 
-    private final Long orderId;
-    private final String orderEventId;
-    private final String orderName;
-    private final String orderStatus;
+    long orderId,
+    String orderEventId,
+    String orderName,
+    OrderProcessingStatus orderStatus,
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
-    private final LocalDateTime requestedAt;
-
-    @Builder(access = AccessLevel.PRIVATE)
-    private OrderSimpleDto(long orderId, String orderEventId, String orderName, String orderStatus, LocalDateTime requestedAt) {
-        this.orderId = orderId;
-        this.orderEventId = orderEventId;
-        this.orderName = orderName;
-        this.orderStatus = orderStatus;
-        this.requestedAt = requestedAt;
-    }
+    LocalDateTime requestedAt
+) {
 
     public static OrderSimpleDto of(Order order) {
         return OrderSimpleDto.builder()
                 .orderId(order.getId())
                 .orderEventId(order.getOrderEventId())
                 .orderName(getOrderName(order.getOrderItems()))
-                .orderStatus(String.valueOf(order.getOrderProcessingStatus()))
+                .orderStatus(order.getOrderProcessingStatus())
                 .requestedAt(order.getRequestedAt())
                 .build();
     }
