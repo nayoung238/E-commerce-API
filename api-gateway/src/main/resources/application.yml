@@ -8,6 +8,8 @@ eureka:
     eureka-server-port: 8761
     healthcheck:
       enabled: true
+    service-url:
+      defaultZone: http://localhost:${eureka.client.eureka-server-port}/eureka
   instance:
     prefer-ip-address: true
 
@@ -16,7 +18,7 @@ spring:
     name: api-gateway-service
   data:
     mongodb:
-      uri: mongodb+srv://...@cluster0.k6glgwz.mongodb.net/api-gateway?retryWrites=true&w=majority
+      uri: mongodb://admin:admin123@localhost:27017/api-gateway?retryWrites=true&w=majority
 
 #  config:
 #    import: "optional:configserver:"
