@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.kafka.dto;
 
-import com.ecommerce.itemservice.domain.item.ItemProcessingStatus;
+import com.ecommerce.itemservice.item.enums.ItemProcessingStatus;
 import lombok.*;
 
 @Getter

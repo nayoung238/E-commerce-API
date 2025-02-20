@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice;
 
-import com.ecommerce.itemservice.domain.item.Item;
+import com.ecommerce.itemservice.item.entity.Item;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
 import org.springframework.kafka.test.context.EmbeddedKafka;

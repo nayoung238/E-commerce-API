@@ -1,8 +1,8 @@
 package com.ecommerce.itemservice.api.item;
 
-import com.ecommerce.itemservice.domain.item.dto.ItemRegisterRequest;
-import com.ecommerce.itemservice.domain.item.dto.ItemDto;
-import com.ecommerce.itemservice.domain.item.service.ItemService;
+import com.ecommerce.itemservice.item.dto.ItemRegisterRequest;
+import com.ecommerce.itemservice.item.dto.ItemDto;
+import com.ecommerce.itemservice.item.service.ItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
