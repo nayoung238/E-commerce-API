@@ -1,11 +1,13 @@
 package com.ecommerce.apigatewayservice.service.mypage;
 
 import com.ecommerce.apigatewayservice.service.mypage.dto.AccountResponseDto;
+import com.ecommerce.apigatewayservice.service.mypage.dto.CouponResponseDto;
 import com.ecommerce.apigatewayservice.service.mypage.dto.MyPageResponseDto;
 import com.ecommerce.apigatewayservice.service.mypage.dto.OrderListDto;
 import com.ecommerce.apigatewayservice.service.reactiveloadbalancer.ReactiveLoadBalancerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,8 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -34,8 +38,12 @@ public class MyPageCompositionService {
                 .doOnError(throwable -> log.error("Exception thrown by getOrderList method: {}", throwable.getMessage()))
                 .onErrorResume(throwable -> Mono.just(OrderListDto.emptyInstance()));
 
-        return Mono.zip(account, orderList)
-                .map(tuple -> MyPageResponseDto.of(tuple.getT1(), tuple.getT2()));
+        Mono<List<CouponResponseDto>> coupons = getCoupons(serverRequest)
+                .doOnError(throwable -> log.error("Exception thrown by getCoupons method: {}", throwable.getMessage()))
+                .onErrorResume(throwable -> Mono.just(Collections.emptyList()));
+
+        return Mono.zip(account, orderList, coupons)
+                .map(tuple -> MyPageResponseDto.of(tuple.getT1(), tuple.getT2(), tuple.getT3()));
     }
 
     private Mono<AccountResponseDto> getAccount(ServerRequest serverRequest) {
@@ -73,5 +81,21 @@ public class MyPageCompositionService {
                             .retrieve()
                             .bodyToMono(OrderListDto.class);
                 });
+    }
+
+    private Mono<List<CouponResponseDto>> getCoupons(ServerRequest serverRequest) {
+        Long accountId = Long.valueOf(serverRequest.pathVariable("accountId"));
+
+        return reactiveLoadBalancerService.chooseInstance("COUPON-SERVICE")
+            .flatMap(i -> {
+                String url = String.format("http://%s:%d", i.getHost(), i.getPort());
+                return webClientBuilder.baseUrl(url).build()
+                    .get()
+                    .uri("/coupons/log")
+                    .header("X-Account-Id", String.valueOf(accountId))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<List<CouponResponseDto>>() {});
+            });
     }
 }
