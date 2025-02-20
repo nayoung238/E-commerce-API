@@ -2,7 +2,7 @@ package com.ecommerce.itemservice.item.service;
 
 import com.ecommerce.itemservice.item.dto.ItemRegisterRequest;
 import com.ecommerce.itemservice.item.enums.ItemProcessingStatus;
-import com.ecommerce.itemservice.common.exception.ExceptionCode;
+import com.ecommerce.itemservice.common.exception.ErrorCode;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
 import com.ecommerce.itemservice.item.dto.ItemDto;
@@ -39,7 +39,7 @@ public class ItemService {
     public OrderItemKafkaEvent updateStockByOptimisticLock(OrderItemKafkaEvent orderItemKafkaEvent, ItemProcessingStatus itemProcessingStatus) {
         try {
             Item item = itemRepository.findByIdWithOptimisticLock(orderItemKafkaEvent.getItemId())
-                    .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ITEM.getMessage()));
+                    .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ITEM.getMessage()));
 
             if(itemProcessingStatus == ItemProcessingStatus.STOCK_CONSUMPTION) {
                 item.decreaseStock(orderItemKafkaEvent.getQuantity());
@@ -70,6 +70,6 @@ public class ItemService {
         if (orderProcessingStatus != null) {
             return OrderProcessingStatus.getStatus(orderProcessingStatus);
         }
-        throw new EntityNotFoundException(ExceptionCode.NOT_FOUND_ORDER_DETAILS.getMessage());
+        throw new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER_DETAILS.getMessage());
     }
 }

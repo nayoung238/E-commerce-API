@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.item.repository;
 
-import com.ecommerce.itemservice.common.exception.ExceptionCode;
+import com.ecommerce.itemservice.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -27,7 +27,7 @@ public class ItemRedisRepository {
 
     public Long decrementItemStock(Long itemId, Long quantity) {
         if(!isExistItem(itemId)) {
-            throw new IllegalArgumentException(String.valueOf(ExceptionCode.NOT_FOUND_ITEM_IN_REDIS));
+            throw new IllegalArgumentException(String.valueOf(ErrorCode.NOT_FOUND_ITEM_IN_REDIS));
         }
         return redisTemplate
                 .opsForValue()
@@ -36,7 +36,7 @@ public class ItemRedisRepository {
 
     public Long incrementItemStock(Long itemId, Long quantity) {
         if(!isExistItem(itemId)) {
-            throw new IllegalArgumentException(String.valueOf(ExceptionCode.NOT_FOUND_ITEM_IN_REDIS));
+            throw new IllegalArgumentException(String.valueOf(ErrorCode.NOT_FOUND_ITEM_IN_REDIS));
         }
         return redisTemplate
                 .opsForValue()

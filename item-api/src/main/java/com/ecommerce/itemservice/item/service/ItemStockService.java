@@ -1,7 +1,7 @@
 package com.ecommerce.itemservice.item.service;
 
 import com.ecommerce.itemservice.item.enums.ItemProcessingStatus;
-import com.ecommerce.itemservice.common.exception.ExceptionCode;
+import com.ecommerce.itemservice.common.exception.ErrorCode;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
@@ -111,7 +111,7 @@ public class ItemStockService {
     @Transactional
     public void updateStockWithPessimisticLock(Long itemId, Long quantity, ItemProcessingStatus itemProcessingStatus) {
         Item item = itemRepository.findByIdWithPessimisticLock(itemId)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.NOT_FOUND_ITEM.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ITEM.getMessage()));
 
         if(quantity < 0) quantity *= -1;
         if(itemProcessingStatus == ItemProcessingStatus.STOCK_CONSUMPTION) {

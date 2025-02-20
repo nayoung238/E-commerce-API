@@ -1,7 +1,7 @@
 package com.ecommerce.itemservice.item.entity;
 
 import com.ecommerce.itemservice.item.dto.ItemRegisterRequest;
-import com.ecommerce.itemservice.common.exception.ExceptionCode;
+import com.ecommerce.itemservice.common.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -58,7 +58,7 @@ public class Item {
 
     public void decreaseStock(Long quantity) {
         if(stock < quantity)
-            throw new IllegalArgumentException(ExceptionCode.INSUFFICIENT_STOCK_EXCEPTION.getMessage());
+            throw new IllegalArgumentException(ErrorCode.INSUFFICIENT_STOCK_EXCEPTION.getMessage());
 
         stock -= quantity;
     }
