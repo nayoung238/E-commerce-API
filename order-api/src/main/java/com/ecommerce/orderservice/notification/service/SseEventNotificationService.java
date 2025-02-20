@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.order.service;
+package com.ecommerce.orderservice.notification.service;
 
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
