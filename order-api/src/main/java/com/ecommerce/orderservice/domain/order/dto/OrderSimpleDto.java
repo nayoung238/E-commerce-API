@@ -2,6 +2,7 @@ package com.ecommerce.orderservice.domain.order.dto;
 
 import com.ecommerce.orderservice.domain.order.Order;
 import com.ecommerce.orderservice.domain.order.OrderItem;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +17,8 @@ public class OrderSimpleDto {
     private final String orderEventId;
     private final String orderName;
     private final String orderStatus;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private final LocalDateTime requestedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
