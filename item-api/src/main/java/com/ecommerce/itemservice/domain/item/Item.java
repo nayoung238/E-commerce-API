@@ -37,9 +37,9 @@ public class Item {
 
     public static Item of(ItemRegisterRequest request) {
         return Item.builder()
-                .name(request.getName())
-                .stock(request.getStock())
-                .price(request.getPrice())
+                .name(request.name())
+                .stock(request.stock())
+                .price(request.price())
                 .build();
     }
 

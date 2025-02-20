@@ -5,23 +5,21 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import lombok.Getter;
 
-@Getter
 @Builder
-public class ItemRegisterRequest {
+public record ItemRegisterRequest (
 
     @NotBlank(message = "아이템명은 필수입니다.")
     @Schema(description = "아이템명", nullable = false)
-    private String name;
+    String name,
 
     @NotNull(message = "아이템 재고는 필수입니다.")
     @Min(value = 0, message = "아이템 재고는 0 이상이어야 합니다.")
     @Schema(description = "아이템 재고", nullable = false)
-    private Long stock;
+    Long stock,
 
     @NotNull(message = "가격은 필수입니다.")
     @Min(value = 0, message = "가격은 0 이상이어야 합니다.")
     @Schema(description = "아이템 가격", nullable = false)
-    private Long price;
-}
+    Long price
+) { }
