@@ -1,10 +1,10 @@
-package com.ecommerce.apigatewayservice.service.mypage;
+package com.ecommerce.apigatewayservice.mypage.service;
 
-import com.ecommerce.apigatewayservice.service.mypage.dto.AccountResponseDto;
-import com.ecommerce.apigatewayservice.service.mypage.dto.CouponResponseDto;
-import com.ecommerce.apigatewayservice.service.mypage.dto.MyPageResponseDto;
-import com.ecommerce.apigatewayservice.service.mypage.dto.OrderListDto;
-import com.ecommerce.apigatewayservice.service.reactiveloadbalancer.ReactiveLoadBalancerService;
+import com.ecommerce.apigatewayservice.common.servicediscovery.service.ReactiveLoadBalancerService;
+import com.ecommerce.apigatewayservice.mypage.dto.AccountResponseDto;
+import com.ecommerce.apigatewayservice.mypage.dto.CouponResponseDto;
+import com.ecommerce.apigatewayservice.mypage.dto.MyPageResponseDto;
+import com.ecommerce.apigatewayservice.mypage.dto.OrderListDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;

@@ -1,6 +1,6 @@
-package com.ecommerce.apigatewayservice.service.mypage;
+package com.ecommerce.apigatewayservice.mypage.service;
 
-import com.ecommerce.apigatewayservice.service.mypage.dto.MyPageResponseDto;
+import com.ecommerce.apigatewayservice.mypage.dto.MyPageResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MyPageCQRSService {
+public class MyPageCqrsService {
 
     private final MyPageCompositionService myPageCompositionService;
     private final ReactiveMongoTemplate reactiveMongoTemplate;

@@ -1,4 +1,4 @@
-package com.ecommerce.apigatewayservice.service.mypage.dto;
+package com.ecommerce.apigatewayservice.mypage.dto;
 
 public record AccountResponseDto (
 
