@@ -1,3 +1,15 @@
 spring:
   application:
     name: api-composer
+
+eureka:
+  instance:
+    instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    eureka-server-port: 8761
+    register-with-eureka: true
+    fetch-registry: true
+    healthcheck:
+      enabled: true
+    service-url:
+      defaultZone: http://localhost:${eureka.client.eureka-server-port}/eureka
