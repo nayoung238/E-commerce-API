@@ -35,7 +35,7 @@
   - Service Discovery를 통해 다른 마이크로서비스 주소 조회
 - 성과
   - API Gateway는 클라이언트 요청만 처리해 역할 명확해짐
-- [내부 Load Balancer](https://github.com/imzero238/E-commerce-API/blob/main/api-gateway/src/main/java/com/ecommerce/apigatewayservice/service/reactiveloadbalancer/ReactiveLoadBalancerService.java#L18) 코드
+- [내부 Load Balancer](https://github.com/nayoung238/E-commerce-API/blob/main/api-gateway/src/main/java/com/ecommerce/apigatewayservice/service/reactiveloadbalancer/ReactiveLoadBalancerService.java#L18) 코드
 - 포스팅 [DMZ 영역의 API Gateway와 내부 Microservices 분리](https://medium.com/@im_zero/dmz-%EC%98%81%EC%97%AD%EC%9D%98-api-gateway%EC%99%80-%EB%82%B4%EB%B6%80-microservices-%EB%B6%84%EB%A6%AC-dcd2048bf0d7)
 
 <br>
@@ -47,12 +47,13 @@
 - 이슈 발생
   - 특정 서비스가 다른 서비스의 도메인까지 고려해야 하는 문제 발생
 - 해결
-  - 서비스 진입점인 API Gateway에서 API 조합해 응답 구성
-  - 중요도가 낮은 데이터는 Empty Mono 발생 시 제외하고 응답
+  - ~~서비스 진입점인 API Gateway에서 API 조합해 응답 구성~~
+    - Webflux 구현으로 유지보수 힘듦 → API composer 서비스로 이동
+  - 응답 데이터 Empty ~~Mono~~ 발생 시 중요도가 낮은 데이터는 제외하고 응답
 - 새로운 문제 발생
   - 요청마다 여러 서비스 호출 → 네트워크 비용 증가
   - 요청마다 인메모리 조인 발생 → CQRS 패턴으로 해결
-- [API Composition](https://github.com/imzero238/E-commerce-API/blob/main/api-gateway/src/main/java/com/ecommerce/apigatewayservice/service/mypage/MyPageCompositionService.java#L27) 코드
+- [API Composition](https://github.com/nayoung238/E-commerce-API/blob/main/api-composer/src/main/java/com/ecommerce/apicomposer/mypage/service/MyPageCompositionService.java#L31) 코드
 - 포스팅 [API Composition Pattern](https://medium.com/@im_zero/api-composition-pattern-f220523ca761)
 
 <br>
@@ -61,13 +62,14 @@
 
 ![](/_img/cqrs-pattern.png)
 - 이슈 발생
-  - API 조합 시 네트워크 비용 증가
+  - API 조합 시 여러 서비스 호출로 네트워크 비용 증가
 - 해결
-  - API Gateway에서 생성한 파생 데이터를 MongoDB에 영속화
+  - ~~API Gateway~~ API composer에서 생성한 파생 데이터 → MongoDB에 영속화
+  - 원천 데이터 변경 시 기능에 따라 파생 데이터 수정 or 제거
 - 성과
   - 요청마다 인메모리 조인 발생하지 않음
   - 캐싱된 데이터 사용 → 네트워크 비용 절감
-- [CQRS 패턴](https://github.com/imzero238/E-commerce-API/blob/main/api-gateway/src/main/java/com/ecommerce/apigatewayservice/service/mypage/MyPageCQRSService.java#L25) 코드
+- [CQRS 패턴](https://github.com/nayoung238/E-commerce-API/blob/main/api-composer/src/main/java/com/ecommerce/apicomposer/mypage/service/MyPageCqrsService.java#L26) 코드
 - 포스팅 [Command and Query Responsibility Segregation (CQRS) pattern](https://medium.com/@im_zero/command-and-query-responsibility-segregation-cqrs-pattern-674876273ec5)
 
 <br>
@@ -84,24 +86,8 @@
   - Suppress operator 사용 → window 최종 결과만 emit
 - 새로운 문제 발생
   - **drop 되는 이벤트 이슈로 적용 실패**
-- [Window Aggregations Topology](https://github.com/imzero238/E-commerce-API/blob/main/item-api/src/main/java/com/ecommerce/itemservice/kafka/config/streams/StockAggregationTopology.java#L42)
+- [Window Aggregations Topology](https://github.com/nayoung238/E-commerce-API/blob/main/item-api/src/main/java/com/ecommerce/itemservice/kafka/config/streams/StockAggregationTopology.java#L42)
 - 포스팅 [Kafka Streams Aggregations - Window Results 컨트롤하기](https://medium.com/@im_zero/kafka-streams%EC%9D%98-window-results-%EC%BB%A8%ED%8A%B8%EB%A1%A4%ED%95%98%EA%B8%B0-3c20c360cf02)
-
-<br>
-
-### Resilience4J CircuitBreaker + Retry 설정
-
-![](/_img/circuit-breaker-retry.png)
-
-- 이슈 발생
-  - 이미 다운된, 응답 지연이 발생하는 서비스 재호출 → 응답 지연 가능성 높음
-- 해결
-  - Resilience4J CircuitBreaker 모듈 추가해 해당 API 상태 확인
-  - Retry 모듈에 Exponential Backoff and Jitter 전략 설정 (재시도로 인한 네트워크 혼잡 방지)
-- [API Gateway](https://github.com/imzero238/E-commerce-API/blob/main/api-gateway/src/main/resources/application.yml#L59) 설정
-- [OpenFeign](https://github.com/imzero238/E-commerce-API/blob/main/order-api/src/main/java/com/ecommerce/orderservice/openfeign/ItemServiceClient.java#L28) 설정
-- 포스팅 [Spring Cloud Gateway - Circuit Breaker, Time Limiter](https://medium.com/@im_zero/spring-cloud-gateway-circuit-breaker-time-limiter-5e3c26a62b4c)
-- 포스팅 [Resilience4J Retry, CircuitBreaker 적용 및 Exponential Backoff and Jitter 재시도 요청 분산시키기](https://medium.com/@im_zero/resilience4j-retry-circuitbreaker-%EC%A0%81%EC%9A%A9%ED%95%98%EA%B8%B0-a60d06a46c54)
 
 <br>
 
@@ -118,7 +104,7 @@
   - DB insert 된 데이터만 Kafka Event 발생
 - 새로운 문제 발생
   - DB insert 작업과 Kafka Event 발행 작업이 직렬화 되어 TPS 저하 → KStream-KTable Join 해결 시도
-- [Transactional Outbox Pattern](https://github.com/imzero238/E-commerce-API/blob/main/order-api/src/main/java/com/ecommerce/orderservice/internalevent/InternalEventListener.java#L26) 코드
+- [Transactional Outbox Pattern](https://github.com/nayoung238/E-commerce-API/blob/main/order-api/src/main/java/com/ecommerce/orderservice/internalevent/InternalEventListener.java#L26) 코드
 - 포스팅 [Transactional Outbox Pattern으로 선형성 보장하기](https://medium.com/@im_zero/transactional-outbox-pattern%EC%9C%BC%EB%A1%9C-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EB%B0%9C%ED%96%89-%EB%B3%B4%EC%9E%A5%ED%95%98%EA%B8%B0-0f2e045b2e50)
 
 <br>
@@ -131,11 +117,12 @@
   - Transactional Outbox 패턴 적용 시 DB insert 작업과 Kafka Event 발행 작업 직렬화 → TPS 저하
 - 해결
   - KStream-KTable Join 작업으로 최종 결과를 DB insert (DB I/O 감소)
-  - Transactional Outbox 패턴 대비 처리 속도 83% 개선 (10.2s → 1.7s)
+- 성과
+  - Transactional Outbox 패턴 대비 처리 속도 **83% 개선 (10.2s → 1.7s)**
 - 새로운 문제 발생
   - 데이터 실시간 접근 어려움
   - 내부 상태 관리 필요 → Tombstone 레코드 설정해 해결
-- [KStream-KTable Join](https://github.com/imzero238/E-commerce-API/blob/main/order-api/src/main/java/com/ecommerce/orderservice/kafka/config/streams/KStreamKTableJoinConfig.java#L83) 코드
+- [KStream-KTable Join](https://github.com/nayoung238/E-commerce-API/blob/main/order-api/src/main/java/com/ecommerce/orderservice/kafka/config/streams/KStreamKTableJoinConfig.java#L83) 코드
 - 포스팅 [KStream-KTable Join 적용 실패기 — 성능 83% 개선](https://medium.com/@im_zero/kstream-ktable-join-%EC%A0%81%EC%9A%A9-%EC%8B%A4%ED%8C%A8%EA%B8%B0-f7b8bfa11e42)
 
 
@@ -148,11 +135,12 @@
 - 이슈 발생
   - Redis 트랜잭션 내 여러 명령어 각각 Redis 서버로 전송 → 네트워크 비용 증가
 - 원인
-  - [SessionCallback](https://github.com/imzero238/E-commerce-API/blob/main/coupon-api/src/main/java/com/ecommerce/couponservice/redis/manager/CouponStockRedisManager.java#L55) 사용
+  - [SessionCallback](https://github.com/nayoung238/E-commerce-API/blob/main/coupon-api/src/main/java/com/ecommerce/couponservice/redis/manager/CouponStockRedisManager.java#L55) 사용
 - 해결
   - Lua script로 여러 작업 명령어 일괄 전송 및 원자적 처리 → 네트워크 비용 절감
-  - SessionCallback 대비 처리 속도 82% 개선 (2.73s -> 0.495s)
-- [Lau script](https://github.com/imzero238/E-commerce-API/blob/main/coupon-api/src/main/java/com/ecommerce/couponservice/redis/manager/CouponStockRedisManager.java#L121) 코드
+- 성과
+  - SessionCallback 대비 처리 속도 **82% 개선 (2.73s -> 0.495s)**
+- [Lau script](https://github.com/nayoung238/E-commerce-API/blob/main/coupon-api/src/main/java/com/ecommerce/couponservice/redis/manager/CouponStockRedisManager.java#L121) 코드
 - 포스팅 [쿠폰 발급을 위한 Redis Streams + Lua Script 적용기](https://medium.com/@im_zero/%EC%BF%A0%ED%8F%B0-%EB%B0%9C%EA%B8%89%EC%9D%84-%EC%9C%84%ED%95%9C-redis-streams-lua-script-%EC%A0%81%EC%9A%A9%EA%B8%B0-5f3dc4d02b2c)
 
 <br>
@@ -169,4 +157,22 @@
 - 해결
   - Redisson(Distributed Lock) 획득한 트랜잭션만 DB 접근
   - 트랜잭션보다 Redisson Lease time 먼저 종료되는 상황 대비 → **Optimistic Lock 추가 사용**해 데이터 정합성 유지
-- [Redisson](https://github.com/imzero238/E-commerce-API/blob/main/item-api/src/main/java/com/ecommerce/itemservice/domain/item/service/StockUpdateByRedissonServiceImpl.java#L29) 코드
+- 성과
+  - DB 부하 감소
+- [Redisson](https://github.com/nayoung238/E-commerce-API/blob/main/item-api/src/main/java/com/ecommerce/itemservice/domain/item/service/StockUpdateByRedissonServiceImpl.java#L29) 코드
+
+<br>
+
+### Resilience4J CircuitBreaker + Retry 설정
+
+![](/_img/circuit-breaker-retry.png)
+
+- 이슈 발생
+  - 이미 다운된, 응답 지연이 발생하는 서비스 재호출 → 응답 지연 가능성 높음
+- 해결
+  - Resilience4J CircuitBreaker 모듈 추가해 해당 API 상태 확인
+  - Retry 모듈에 Exponential Backoff and Jitter 전략 설정 (재시도로 인한 네트워크 혼잡 방지)
+- [API Gateway](https://github.com/nayoung238/E-commerce-API/blob/main/api-gateway/src/main/resources/application.yml#L59) 설정
+- [OpenFeign](https://github.com/nayoung238/E-commerce-API/blob/main/order-api/src/main/java/com/ecommerce/orderservice/openfeign/ItemServiceClient.java#L28) 설정
+- 포스팅 [Spring Cloud Gateway - Circuit Breaker, Time Limiter](https://medium.com/@im_zero/spring-cloud-gateway-circuit-breaker-time-limiter-5e3c26a62b4c)
+- 포스팅 [Resilience4J Retry, CircuitBreaker 적용 및 Exponential Backoff and Jitter 재시도 요청 분산시키기](https://medium.com/@im_zero/resilience4j-retry-circuitbreaker-%EC%A0%81%EC%9A%A9%ED%95%98%EA%B8%B0-a60d06a46c54)
