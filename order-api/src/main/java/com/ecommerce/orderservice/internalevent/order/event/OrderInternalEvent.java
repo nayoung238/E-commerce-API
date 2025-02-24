@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.internalevent.ordercreation;
+package com.ecommerce.orderservice.internalevent.order.event;
 
 import com.ecommerce.orderservice.internalevent.InternalEventStatus;
 import jakarta.persistence.*;
@@ -7,7 +7,7 @@ import lombok.*;
 @Entity
 @Getter
 @NoArgsConstructor
-public class OrderCreationInternalEvent {
+public class OrderInternalEvent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,13 +24,13 @@ public class OrderCreationInternalEvent {
     }
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderCreationInternalEvent(String orderEventId, InternalEventStatus publicationStatus) {
+    private OrderInternalEvent(String orderEventId, InternalEventStatus publicationStatus) {
         this.orderEventId = orderEventId;
         this.publicationStatus = publicationStatus;
     }
 
-    public static OrderCreationInternalEvent init(String orderEventId) {
-        return OrderCreationInternalEvent.builder()
+    public static OrderInternalEvent init(String orderEventId) {
+        return OrderInternalEvent.builder()
                 .orderEventId(orderEventId)
                 .publicationStatus(InternalEventStatus.init)
                 .build();

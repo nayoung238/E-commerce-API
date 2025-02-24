@@ -1,8 +1,8 @@
 package com.ecommerce.orderservice.internalevent;
 
+import com.ecommerce.orderservice.internalevent.order.event.OrderInternalEvent;
 import com.ecommerce.orderservice.order.dto.OrderDto;
 import com.ecommerce.orderservice.order.service.OrderInquiryService;
-import com.ecommerce.orderservice.internalevent.ordercreation.OrderCreationInternalEvent;
 import com.ecommerce.orderservice.internalevent.service.InternalEventService;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
@@ -24,13 +24,13 @@ public class InternalEventListener {
     private final OrderInquiryService orderInquiryService;
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
-    public void insertOrderCreationInternalEvent(OrderCreationInternalEvent event) {
+    public void insertOrderCreationInternalEvent(OrderInternalEvent event) {
         internalEventService.saveOrderCreationInternalEvent(event);
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void createKafkaEvent(OrderCreationInternalEvent event) {
+    public void createKafkaEvent(OrderInternalEvent event) {
         OrderDto orderDto = orderInquiryService.findOrderByOrderEventId(event.getOrderEventId());
         kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, orderDto.getOrderEventId(), OrderKafkaEvent.of(orderDto));
     }

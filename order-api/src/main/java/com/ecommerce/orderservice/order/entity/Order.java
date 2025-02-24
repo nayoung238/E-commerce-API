@@ -2,7 +2,7 @@ package com.ecommerce.orderservice.order.entity;
 
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
 import com.ecommerce.orderservice.order.dto.OrderRequestDto;
-import com.ecommerce.orderservice.internalevent.ordercreation.OrderInternalEvent;
+import com.ecommerce.orderservice.internalevent.order.event.OrderInternalEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import jakarta.persistence.*;
 import lombok.*;
