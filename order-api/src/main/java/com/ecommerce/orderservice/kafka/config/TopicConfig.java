@@ -15,6 +15,7 @@ public class TopicConfig {
     public static final String ORDER_PROCESSING_RESULT_TOPIC = "e-commerce.item.item-update-result";
     public static final String ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC = "e-commerce.item.item-update-result-streams-only";
     public static final String FINAL_ORDER_STREAMS_ONLY_TOPIC = "e-commerce.order.final-order-details-streams-only";
+    public static final String ORDER_UPDATED_TOPIC = "e-commerce.order.updated-order";
 
     @Bean
     public KafkaAdmin.NewTopics newTopics() {

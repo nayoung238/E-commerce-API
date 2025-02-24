@@ -14,5 +14,8 @@ public enum OrderProcessingStatus {
     BAD_REQUEST,
     ITEM_NOT_FOUND,
 
-    SERVER_ERROR;
+    SERVER_ERROR,
+
+    CREATION,
+    UPDATE;
 }
