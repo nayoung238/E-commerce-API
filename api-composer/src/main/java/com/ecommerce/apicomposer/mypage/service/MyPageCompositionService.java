@@ -5,10 +5,7 @@ import com.ecommerce.apicomposer.common.exception.ErrorCode;
 import com.ecommerce.apicomposer.common.service.AccountServiceClient;
 import com.ecommerce.apicomposer.common.service.CouponServiceClient;
 import com.ecommerce.apicomposer.common.service.OrderServiceClient;
-import com.ecommerce.apicomposer.mypage.dto.AccountResponseDto;
-import com.ecommerce.apicomposer.mypage.dto.CouponResponseDto;
-import com.ecommerce.apicomposer.mypage.dto.MyPageResponseDto;
-import com.ecommerce.apicomposer.mypage.dto.OrderListDto;
+import com.ecommerce.apicomposer.mypage.dto.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +31,7 @@ public class MyPageCompositionService {
     public MyPageResponseDto getMyPageDetails(HttpServletRequest httpServletRequest) {
         try {
             AccountResponseDto account = findAccountAsync(httpServletRequest).get();
-            OrderListDto orderList = findOrderListAsync(httpServletRequest).get();
+            List<OrderSimpleDto> orderList = findOrderListAsync(httpServletRequest).get();
             List<CouponResponseDto> couponList = findCouponListAsync(httpServletRequest).get();
             return MyPageResponseDto.of(account, orderList, couponList);
         } catch (ExecutionException | InterruptedException e) {
@@ -54,7 +51,7 @@ public class MyPageCompositionService {
             });
     }
 
-    private CompletableFuture<OrderListDto> findOrderListAsync(HttpServletRequest httpServletRequest) {
+    private CompletableFuture<List<OrderSimpleDto>> findOrderListAsync(HttpServletRequest httpServletRequest) {
         Long accountId = Long.valueOf(httpServletRequest.getHeader("X-Account-Id"));
 
         return CompletableFuture
@@ -62,7 +59,7 @@ public class MyPageCompositionService {
             .orTimeout(TIMEOUT, TimeUnit.SECONDS)
             .exceptionally(ex -> {
                 log.error("Error fetching order list: {}", ex.getMessage());
-                return OrderListDto.emptyInstance();
+                return Collections.emptyList();
             });
     }
 

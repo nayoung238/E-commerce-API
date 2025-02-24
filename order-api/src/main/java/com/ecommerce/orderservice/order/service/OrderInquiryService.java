@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.order.service;
 
+import com.ecommerce.orderservice.order.dto.OrderSimpleDto;
 import com.ecommerce.orderservice.order.entity.Order;
-import com.ecommerce.orderservice.order.dto.OrderListDto;
 import com.ecommerce.orderservice.order.repository.OrderRepository;
 import com.ecommerce.orderservice.order.dto.OrderDto;
 import com.ecommerce.orderservice.common.exception.ErrorCode;
@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -32,7 +33,7 @@ public class OrderInquiryService {
         return OrderDto.of(order);
     }
 
-    public OrderListDto findOrderByAccountIdAndOrderId(Long accountId, Long orderId) {
+    public List<OrderSimpleDto> findOrderByAccountIdAndOrderId(Long accountId, Long orderId) {
         PageRequest pageRequest = PageRequest.of(0, PAGE_SIZE);
         List<Order> orders;
         if(orderId != null)
@@ -40,6 +41,9 @@ public class OrderInquiryService {
         else
             orders = orderRepository.findByAccountIdOrderByOrderIdDesc(accountId, pageRequest);
 
-        return OrderListDto.of(accountId, orders);
+        return orders.stream()
+            .sorted(Comparator.comparing(Order::getId).reversed())
+            .map(OrderSimpleDto::of)
+            .toList();
     }
 }

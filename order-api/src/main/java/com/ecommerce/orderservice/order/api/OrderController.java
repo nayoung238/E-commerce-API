@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.order.api;
 
 import com.ecommerce.orderservice.order.dto.OrderRequestDto;
-import com.ecommerce.orderservice.order.dto.OrderListDto;
+import com.ecommerce.orderservice.order.dto.OrderSimpleDto;
 import com.ecommerce.orderservice.order.service.OrderCreationService;
 import com.ecommerce.orderservice.order.service.OrderInquiryService;
 import com.ecommerce.orderservice.order.dto.OrderDto;
@@ -19,6 +19,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "OrderController", description = "주문 생성 및 주문 목록 제공")
 @RestController
@@ -52,7 +54,7 @@ public class OrderController {
     @GetMapping(value = {"/{accountId}/{cursorOrderId}", "/{accountId}"})
     public ResponseEntity<?> getOrderList(@PathVariable @Valid @Positive(message = "사용자 아이디는 1 이상이어야 합니다.") Long accountId,
                                           @PathVariable(required = false) @Valid @Positive(message = "주문 커서 아이디는 1 이상이어야 합니다.") Long cursorOrderId) {
-        OrderListDto response = orderInquiryService.findOrderByAccountIdAndOrderId(accountId, cursorOrderId);
+        List<OrderSimpleDto> response = orderInquiryService.findOrderByAccountIdAndOrderId(accountId, cursorOrderId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

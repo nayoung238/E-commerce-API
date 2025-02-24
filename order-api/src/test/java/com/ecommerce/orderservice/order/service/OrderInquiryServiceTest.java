@@ -1,7 +1,6 @@
 package com.ecommerce.orderservice.order.service;
 
 import com.ecommerce.orderservice.IntegrationTestSupport;
-import com.ecommerce.orderservice.domain.order.dto.*;
 import com.ecommerce.orderservice.order.dto.*;
 import com.ecommerce.orderservice.order.repository.OrderRepository;
 import com.ecommerce.orderservice.internalevent.service.InternalEventService;
@@ -112,11 +111,11 @@ class OrderInquiryServiceTest extends IntegrationTestSupport {
         createOrder(accountId, orderItemIds);
 
         // exercise
-        OrderListDto orderListDto = orderInquiryService.findOrderByAccountIdAndOrderId(accountId, null);
+        List<OrderSimpleDto> orderListDto = orderInquiryService.findOrderByAccountIdAndOrderId(accountId, null);
 
         // verify
         final int numberOfOrders = Integer.min(numberOfRequests, OrderInquiryService.PAGE_SIZE); // min(3, 5)
-        assertThat(orderListDto.orderSimpleDtoList()).hasSize(numberOfOrders);
+        assertThat(orderListDto).hasSize(numberOfOrders);
     }
 
     @DisplayName("PageRequest.PageSize보다 주문 수가 많으면 PageRequest.PageSize만큼 조회")
@@ -136,11 +135,11 @@ class OrderInquiryServiceTest extends IntegrationTestSupport {
         createOrder(accountId, orderItemIds);
 
         // exercise
-        OrderListDto orderListDto = orderInquiryService.findOrderByAccountIdAndOrderId(accountId, null);
+        List<OrderSimpleDto> orderListDto = orderInquiryService.findOrderByAccountIdAndOrderId(accountId, null);
 
         // verify
         final int numberOfOrders = Integer.min(numberOfRequests, OrderInquiryService.PAGE_SIZE); // min(10, 5)
-        assertThat(orderListDto.orderSimpleDtoList()).hasSize(numberOfOrders);
+        assertThat(orderListDto).hasSize(numberOfOrders);
     }
 
     @DisplayName("특정 주문 기준으로 주문 목록 요청 시 기준보다 과거에 생성된 주문 목록 조회")
@@ -173,10 +172,10 @@ class OrderInquiryServiceTest extends IntegrationTestSupport {
                 .toList();
 
         // exercise
-        OrderListDto orderListDto = orderInquiryService.findOrderByAccountIdAndOrderId(accountId, orderCursorId);
+        List<OrderSimpleDto> orderListDto = orderInquiryService.findOrderByAccountIdAndOrderId(accountId, orderCursorId);
 
         // verify
-        assertThat(orderListDto.orderSimpleDtoList())
+        assertThat(orderListDto)
                 .hasSize(numberOfOrders)
                 .extracting(OrderSimpleDto::orderId)
                 .containsExactlyElementsOf(requestedOrderIds);

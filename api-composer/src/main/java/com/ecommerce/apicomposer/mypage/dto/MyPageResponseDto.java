@@ -24,12 +24,12 @@ public record MyPageResponseDto (
     List<CouponResponseDto> coupons
 ) {
 
-    public static MyPageResponseDto of(AccountResponseDto account, OrderListDto orders, List<CouponResponseDto> coupons) {
+    public static MyPageResponseDto of(AccountResponseDto account, List<OrderSimpleDto> orders, List<CouponResponseDto> coupons) {
         return MyPageResponseDto.builder()
                 .accountId(account.accountId())
                 .loginId(account.loginId())
                 .name(account.name())
-                .orders(orders.getOrderSimpleDtoList())
+                .orders(orders)
                 .coupons(coupons)
                 .build();
     }
