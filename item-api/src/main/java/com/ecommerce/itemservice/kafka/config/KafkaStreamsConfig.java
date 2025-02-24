@@ -1,4 +1,4 @@
-package com.ecommerce.itemservice.kafka.config.streams;
+package com.ecommerce.itemservice.kafka.config;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.LongDeserializer;

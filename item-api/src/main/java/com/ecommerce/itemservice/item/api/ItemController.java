@@ -1,4 +1,4 @@
-package com.ecommerce.itemservice.api.item;
+package com.ecommerce.itemservice.item.api;
 
 import com.ecommerce.itemservice.item.dto.ItemRegisterRequest;
 import com.ecommerce.itemservice.item.dto.ItemDto;

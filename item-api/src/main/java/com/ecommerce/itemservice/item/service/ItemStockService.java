@@ -6,7 +6,7 @@ import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
-import com.ecommerce.itemservice.kafka.service.producer.KafkaProducerService;
+import com.ecommerce.itemservice.kafka.service.KafkaProducerService;
 import com.ecommerce.itemservice.item.entity.Item;
 import com.ecommerce.itemservice.item.repository.ItemRepository;
 import com.ecommerce.itemservice.item.repository.OrderRedisRepository;

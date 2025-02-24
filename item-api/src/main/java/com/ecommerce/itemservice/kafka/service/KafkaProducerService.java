@@ -1,4 +1,4 @@
-package com.ecommerce.itemservice.kafka.service.producer;
+package com.ecommerce.itemservice.kafka.service;
 
 import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
 import lombok.RequiredArgsConstructor;

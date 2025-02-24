@@ -7,7 +7,7 @@ import com.ecommerce.itemservice.item.repository.ItemRepository;
 import com.ecommerce.itemservice.item.enums.ItemProcessingStatus;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
-import com.ecommerce.itemservice.kafka.service.producer.KafkaProducerService;
+import com.ecommerce.itemservice.kafka.service.KafkaProducerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

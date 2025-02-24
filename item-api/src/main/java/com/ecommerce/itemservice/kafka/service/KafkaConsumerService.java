@@ -1,4 +1,4 @@
-package com.ecommerce.itemservice.kafka.service.consumer;
+package com.ecommerce.itemservice.kafka.service;
 
 import com.ecommerce.itemservice.item.enums.ItemProcessingStatus;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
