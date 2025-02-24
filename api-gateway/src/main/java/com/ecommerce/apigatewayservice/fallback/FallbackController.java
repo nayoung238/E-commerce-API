@@ -1,4 +1,4 @@
-package com.ecommerce.apigatewayservice.mypage.api;
+package com.ecommerce.apigatewayservice.fallback;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.extern.slf4j.Slf4j;

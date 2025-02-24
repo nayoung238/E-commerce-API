@@ -1,15 +1,9 @@
 package com.ecommerce.apigatewayservice.common.config;
 
-import com.ecommerce.apigatewayservice.mypage.service.MyPageCqrsService;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.server.RequestPredicates;
-import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.RouterFunctions;
-import org.springframework.web.reactive.function.server.ServerResponse;
 
 @Configuration
 public class RouterConfig {
@@ -29,18 +23,8 @@ public class RouterConfig {
                 .route(r -> r.path("/coupon-api/**")
                         .filters(f -> f.rewritePath("/coupon-api/(?<segment>.*)", "/${segment}"))
                         .uri("lb://COUPON-SERVICE"))
-                .build();
-    }
-
-    @Bean
-    public RouterFunction<ServerResponse> myPageRoutes(MyPageCqrsService myPageCqrsService) {
-        return RouterFunctions.route()
-                .GET("/my-page-details/{accountId}",
-                        RequestPredicates.accept(MediaType.APPLICATION_JSON),
-                        myPageCqrsService::getMyPageDetails)
-                .GET("/my-page-details/{accountId}/{cursorOrderId}",
-                        RequestPredicates.accept(MediaType.APPLICATION_JSON),
-                        myPageCqrsService::getMyPageDetails)
+                .route(r -> r.path("/my-page/**")
+                        .uri("lb://API-COMPOSER"))
                 .build();
     }
 }
