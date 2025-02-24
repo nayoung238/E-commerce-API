@@ -116,7 +116,7 @@ public class Order {
                 .forEach(o -> o.updateOrderStatus(orderStatusHashMap.get(o.getItemId())));
     }
 
-    public OrderInternalEvent getOrderCreationInternalEvent() {
-        return OrderInternalEvent.init(orderEventId);
+    public OrderInternalEvent getOrderInternalEvent() {
+        return OrderInternalEvent.of(accountId, orderEventId, OrderProcessingStatus.CREATION);
     }
 }
