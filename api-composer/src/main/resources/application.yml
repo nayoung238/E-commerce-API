@@ -2,6 +2,10 @@ spring:
   application:
     name: api-composer
 
+  data:
+    mongodb:
+      uri: mongodb://admin:admin123@localhost:27017/composed_data?authSource=admin&retryWrites=true&w=majority
+
 eureka:
   instance:
     instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}

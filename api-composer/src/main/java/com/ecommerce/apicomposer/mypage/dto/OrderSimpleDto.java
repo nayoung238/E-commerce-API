@@ -1,4 +1,4 @@
-package com.ecommerce.apigatewayservice.mypage.dto;
+package com.ecommerce.apicomposer.mypage.dto;
 
 import lombok.Getter;
 
