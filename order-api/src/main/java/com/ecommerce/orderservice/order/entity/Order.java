@@ -2,7 +2,7 @@ package com.ecommerce.orderservice.order.entity;
 
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
 import com.ecommerce.orderservice.order.dto.OrderRequestDto;
-import com.ecommerce.orderservice.internalevent.ordercreation.OrderCreationInternalEvent;
+import com.ecommerce.orderservice.internalevent.order.event.OrderInternalEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "orders", indexes = @Index(name = "idx_order_event_id", columnList = "orderEventId"))
 @EntityListeners(AuditingEntityListener.class)
@@ -43,18 +45,6 @@ public class Order {
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime requestedAt;
-
-    @Builder(access = AccessLevel.PRIVATE)
-    private Order(Long id, String orderEventId, Long accountId,
-                  List<OrderItem> orderItems, OrderProcessingStatus orderProcessingStatus,
-                  LocalDateTime requestedAt) {
-        this.id = id;
-        this.orderEventId = orderEventId;
-        this.accountId = accountId;
-        this.orderItems = orderItems;
-        this.orderProcessingStatus = orderProcessingStatus;
-        this.requestedAt = requestedAt;
-    }
 
     public static Order of(OrderRequestDto orderRequestDto) {
         List<OrderItem> orderItems = orderRequestDto.orderItemRequestDtos().stream()
@@ -126,7 +116,7 @@ public class Order {
                 .forEach(o -> o.updateOrderStatus(orderStatusHashMap.get(o.getItemId())));
     }
 
-    public OrderCreationInternalEvent getOrderCreationInternalEvent() {
-        return OrderCreationInternalEvent.init(orderEventId);
+    public OrderInternalEvent getOrderInternalEvent() {
+        return OrderInternalEvent.of(accountId, orderEventId, OrderProcessingStatus.CREATION);
     }
 }

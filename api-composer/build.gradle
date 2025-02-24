@@ -40,6 +40,9 @@ dependencies {
 	// open feign
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
+	// message queue
+	implementation 'org.springframework.kafka:spring-kafka'
+
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 

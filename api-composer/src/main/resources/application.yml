@@ -6,6 +6,11 @@ spring:
     mongodb:
       uri: mongodb://admin:admin123@localhost:27017/composed_data?authSource=admin&retryWrites=true&w=majority
 
+  kafka:
+    bootstrap-servers: localhost:29092
+    consumer:
+      group-id: apiComposerGroup
+
 eureka:
   instance:
     instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}

@@ -9,6 +9,8 @@ import lombok.*;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderItem {
 
@@ -30,15 +32,6 @@ public class OrderItem {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
-
-    @Builder(access = AccessLevel.PRIVATE)
-    private OrderItem(Long id, Long itemId, Long quantity, OrderProcessingStatus orderProcessingStatus, Order order) {
-        this.id = id;
-        this.itemId = itemId;
-        this.quantity = quantity;
-        this.orderProcessingStatus = orderProcessingStatus;
-        this.order = order;
-    }
 
     public static OrderItem of(OrderItemRequestDto orderItemRequestDto) {
         return OrderItem.builder()

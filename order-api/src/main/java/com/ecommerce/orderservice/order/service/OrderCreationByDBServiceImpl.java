@@ -45,7 +45,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
         orderRepository.save(order);
 
         // Kafka 이벤트 발행을 위한 내부 이벤트 생성 (Transactional Outbox Pattern)
-        internalEventService.publishInternalEvent(order.getOrderCreationInternalEvent());
+        internalEventService.publishInternalEvent(order.getOrderInternalEvent());
         return OrderDto.of(order);
     }
 
@@ -123,6 +123,6 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER.getMessage()));
 
         order.updateOrderStatus(OrderProcessingStatus.CANCELED);
-        internalEventService.publishInternalEvent(order.getOrderCreationInternalEvent());
+        internalEventService.publishInternalEvent(order.getOrderInternalEvent());
     }
 }
