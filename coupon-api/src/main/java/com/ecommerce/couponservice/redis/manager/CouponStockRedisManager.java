@@ -52,7 +52,7 @@ public class CouponStockRedisManager extends BaseRedisManager {
         return value != null ? value.toString() : null;
     }
 
-    public CouponIssuanceStatus issueCouponUsingSessionCallback(Long couponId, Long accountId) {
+    public CouponIssuanceStatus issueCouponUsingSessionCallback(Long couponId, Long userId) {
         return redisTemplate.execute(new SessionCallback<CouponIssuanceStatus>() {
             @Override
             public <K, V> CouponIssuanceStatus execute(RedisOperations<K, V> operations) throws DataAccessException {
@@ -65,9 +65,9 @@ public class CouponStockRedisManager extends BaseRedisManager {
                 String waitQueueKey = getWaitQueueKey(couponId);
                 String enterQueueKey = getEnterQueueKey(couponId);
 
-                pipelinedOps.opsForZSet().score(waitQueueKey, accountId.toString());
+                pipelinedOps.opsForZSet().score(waitQueueKey, userId.toString());
                 pipelinedOps.opsForHash().increment(couponKey, CouponHashName.STOCK.name(), -1);
-                pipelinedOps.opsForZSet().remove(enterQueueKey, accountId.toString());
+                pipelinedOps.opsForZSet().remove(enterQueueKey, userId.toString());
 
                 List<Object> results = operations.exec();
                 if (results == null) {
@@ -92,7 +92,7 @@ public class CouponStockRedisManager extends BaseRedisManager {
         });
     }
 
-    public Map<String, Object> issueCouponUsingLuaScript(Long couponId, Long accountId) {
+    public Map<String, Object> issueCouponUsingLuaScript(Long couponId, Long userId) {
         String couponHashKey = getCouponKey(couponId);
         String waitQueueKey = getWaitQueueKey(couponId);
         String enterQueueKey = getEnterQueueKey(couponId);
@@ -113,12 +113,12 @@ public class CouponStockRedisManager extends BaseRedisManager {
                         "end";
 
         RedisScript<String> redisScript = RedisScript.of(script, String.class);
-        List<String> keys = List.of(couponId.toString(), couponHashKey, accountId.toString(), waitQueueKey, enterQueueKey);
+        List<String> keys = List.of(couponId.toString(), couponHashKey, userId.toString(), waitQueueKey, enterQueueKey);
         String result = redisTemplate.execute(redisScript, keys);
         return convertMap(result);
     }
 
-    public Map<String, Object> issueCouponAndPublishEvent(Long couponId, Long accountId) {
+    public Map<String, Object> issueCouponAndPublishEvent(Long couponId, Long userId) {
         String couponHashKey = getCouponKey(couponId);
         String waitQueueKey = getWaitQueueKey(couponId);
         String enterQueueKey = getEnterQueueKey(couponId);
@@ -142,7 +142,7 @@ public class CouponStockRedisManager extends BaseRedisManager {
                         "end";
 
         RedisScript<String> redisScript = RedisScript.of(script, String.class);
-        List<String> keys = List.of(couponId.toString(), couponHashKey, accountId.toString(), waitQueueKey, enterQueueKey, streamsKey);
+        List<String> keys = List.of(couponId.toString(), couponHashKey, userId.toString(), waitQueueKey, enterQueueKey, streamsKey);
         String result = redisTemplate.execute(redisScript, keys);
         return convertMap(result);
     }

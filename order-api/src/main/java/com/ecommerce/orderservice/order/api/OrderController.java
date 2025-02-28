@@ -51,10 +51,10 @@ public class OrderController {
             @ApiResponse(responseCode = "400", description = "조건을 위반한 데이터 입력시 주문 실패", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
             @ApiResponse(responseCode = "500", description = "서버 오류 발생", content = @Content(schema = @Schema(implementation = Exception.class)))
     })
-    @GetMapping(value = {"/{accountId}/{cursorOrderId}", "/{accountId}"})
-    public ResponseEntity<?> getOrderList(@PathVariable @Valid @Positive(message = "사용자 아이디는 1 이상이어야 합니다.") Long accountId,
+    @GetMapping(value = {"/{userId}/{cursorOrderId}", "/{userId}"})
+    public ResponseEntity<?> getOrderList(@PathVariable @Valid @Positive(message = "사용자 아이디는 1 이상이어야 합니다.") Long userId,
                                           @PathVariable(required = false) @Valid @Positive(message = "주문 커서 아이디는 1 이상이어야 합니다.") Long cursorOrderId) {
-        List<OrderSimpleDto> response = orderInquiryService.findOrderByAccountIdAndOrderId(accountId, cursorOrderId);
+        List<OrderSimpleDto> response = orderInquiryService.findOrderByUserIdAndOrderId(userId, cursorOrderId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -65,9 +65,9 @@ public class OrderController {
             @ApiResponse(responseCode = "404", description = "주문이 존재하지 않는 경우", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
             @ApiResponse(responseCode = "500", description = "서버 오류 발생", content = @Content(schema = @Schema(implementation = Exception.class)))
     })
-    @GetMapping("/latest/{accountId}")
-    public ResponseEntity<?> getLatestOrder(@PathVariable @Valid @Positive(message = "사용자 아이디는 1 이상이어야 합니다.") Long accountId) {
-        OrderDto response = orderInquiryService.findLatestOrderByAccountId(accountId);
+    @GetMapping("/latest/{userId}")
+    public ResponseEntity<?> getLatestOrder(@PathVariable @Valid @Positive(message = "사용자 아이디는 1 이상이어야 합니다.") Long userId) {
+        OrderDto response = orderInquiryService.findLatestOrderByUserId(userId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

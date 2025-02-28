@@ -29,22 +29,22 @@ class OrderRepositoryTest extends IntegrationTestSupport {
 
     @DisplayName("여러 아이템이 담겨있는 주문 1개 생성")
     @Test
-    void findOrderByAccountId () {
+    void findOrderByUserId () {
         // given
-        final long accountId = 2L;
+        final long userId = 2L;
         final List<Long> orderItemIds = List.of(2L, 3L, 7L);
         final OrderProcessingStatus orderProcessingStatus = OrderProcessingStatus.SUCCESSFUL;
-        Order order = getOrder(accountId, orderItemIds, orderProcessingStatus);
+        Order order = getOrder(userId, orderItemIds, orderProcessingStatus);
 
         // when
         orderRepository.save(order);
 
         // then
-        List<Order> orders = orderRepository.findAllByAccountId(accountId);
+        List<Order> orders = orderRepository.findAllByUserId(userId);
         assertThat(orders).hasSize(1);
 
         Order savedOrder = orders.get(0);
-        assertThat(savedOrder.getAccountId()).isEqualTo(accountId);
+        assertThat(savedOrder.getUserId()).isEqualTo(userId);
         assertThat(savedOrder.getOrderProcessingStatus()).isEqualTo(orderProcessingStatus);
 
         assertThat(savedOrder.getOrderItems())
@@ -56,26 +56,26 @@ class OrderRepositoryTest extends IntegrationTestSupport {
 
     @DisplayName("여러 아이템이 담겨있는 주문 n개 생성")
     @Test
-    void findAllOrderByAccountId () {
+    void findAllOrderByUserId () {
         // given
-        final long accountId = 2L;
+        final long userId = 2L;
         List<Order> orders = new ArrayList<>();
         final List<Long> orderItemIds1 = List.of(2L, 3L, 7L);
         final OrderProcessingStatus orderProcessingStatus1 = OrderProcessingStatus.FAILED;
-        orders.add(getOrder(accountId, orderItemIds1, orderProcessingStatus1));
+        orders.add(getOrder(userId, orderItemIds1, orderProcessingStatus1));
 
         final List<Long> orderItemIds2 = List.of(5L);
         final OrderProcessingStatus orderProcessingStatus2 = OrderProcessingStatus.SUCCESSFUL;
-        orders.add(getOrder(accountId, orderItemIds2, orderProcessingStatus2));
+        orders.add(getOrder(userId, orderItemIds2, orderProcessingStatus2));
 
         // when
         orderRepository.saveAll(orders);
 
         // then
-        List<Order> savedOrders = orderRepository.findAllByAccountId(accountId);
+        List<Order> savedOrders = orderRepository.findAllByUserId(userId);
         assertThat(savedOrders)
                 .hasSize(2)
-                .allMatch(order -> order.getAccountId().equals(accountId))
+                .allMatch(order -> order.getUserId().equals(userId))
                 .extracting(Order::getOrderProcessingStatus)
                 .containsExactlyInAnyOrder(orderProcessingStatus1, orderProcessingStatus2);
 
@@ -98,26 +98,26 @@ class OrderRepositoryTest extends IntegrationTestSupport {
     @Test
     public void 최신_주문_데이터_조회_테스트() throws InterruptedException {
         // given & when
-        final long accountId = 2L;
+        final long userId = 2L;
 
         final List<Long> orderItemIds1 = List.of(2L, 3L, 7L);
         final OrderProcessingStatus orderProcessingStatus1 = OrderProcessingStatus.FAILED;
-        Order request1 = getOrder(accountId, orderItemIds1, orderProcessingStatus1);
+        Order request1 = getOrder(userId, orderItemIds1, orderProcessingStatus1);
         orderRepository.save(request1);
 
         Thread.sleep(2000);
 
         final List<Long> orderItemIds2 = List.of(5L);
         final OrderProcessingStatus orderProcessingStatus2 = OrderProcessingStatus.SUCCESSFUL;
-        Order request2 = getOrder(accountId, orderItemIds2, orderProcessingStatus2);
+        Order request2 = getOrder(userId, orderItemIds2, orderProcessingStatus2);
         orderRepository.save(request2);
 
         // then
-        Optional<Order> optionalOrder = orderRepository.findLatestOrderByAccountId(accountId);
+        Optional<Order> optionalOrder = orderRepository.findLatestOrderByUserId(userId);
         assertThat(optionalOrder).isPresent();
 
         Order savedOrder = optionalOrder.get();
-        assertThat(savedOrder.getAccountId()).isEqualTo(accountId);
+        assertThat(savedOrder.getUserId()).isEqualTo(userId);
         assertThat(savedOrder.getOrderProcessingStatus()).isEqualTo(orderProcessingStatus2);
 
         assertThat(savedOrder.getOrderItems())
@@ -126,16 +126,17 @@ class OrderRepositoryTest extends IntegrationTestSupport {
                 .containsExactlyInAnyOrderElementsOf(orderItemIds2);
     }
 
-    private Order getOrder(long accountId, List<Long> orderItemIds, OrderProcessingStatus orderProcessingStatus) {
+    private Order getOrder(long userId, List<Long> orderItemIds, OrderProcessingStatus orderProcessingStatus) {
         List<OrderItem> orderItems = orderItemIds.stream()
                 .map(i -> OrderItem.of(i, 3L, orderProcessingStatus))
                 .toList();
 
         Order order =  Order.of(
                 null, // OrderEventId 필드는 KStream-KTable Join 방식에서 사용
-                accountId,
-                orderItems, orderProcessingStatus,
-                null, null);  // requestedAt 필드는 KStream-KTable Join 방식에서 사용하는 필드
+                userId,
+                orderItems,
+                orderProcessingStatus,
+                null);  // requestedAt 필드는 KStream-KTable Join 방식에서 사용하는 필드
 
         orderItems.forEach(orderItem -> orderItem.initializeOrder(order));
         return order;

@@ -11,5 +11,5 @@ import java.util.List;
 public interface CouponServiceClient {
 
 	@GetMapping("/coupons/log")
-	List<CouponResponseDto> findCouponList(@RequestHeader("X-Account-Id") Long accountId);
+	List<CouponResponseDto> findCouponList(@RequestHeader("X-User-Id") Long userId);
 }

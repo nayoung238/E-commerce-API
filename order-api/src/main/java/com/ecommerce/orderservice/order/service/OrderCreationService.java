@@ -21,9 +21,9 @@ public interface OrderCreationService {
     void handleOrderFailure(String orderEventId);
 
     default String getOrderEventId(@NotNull(message = "사용자 아이디는 필수입니다.")
-                                   @Positive(message = "사용자 아이디는 1 이상이어야 합니다.") long accountId) {
+                                   @Positive(message = "사용자 아이디는 1 이상이어야 합니다.") long userId) {
         String[] uuid = UUID.randomUUID().toString().split("-");
-        return accountId + "-" + uuid[0];
+        return userId + "-" + uuid[0];
     }
 
     /*

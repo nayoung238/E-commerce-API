@@ -48,9 +48,9 @@ class OrderCreationByDBServiceImpl2Test extends IntegrationTestSupport {
     @Test
     void 내부_이벤트_발행_여부_테스트() {
         // setup(data)
-        final long accountId = 2L;
+        final long userId = 2L;
         final List<Long> orderItemIds = List.of(2L, 3L, 7L);
-        OrderRequestDto orderRequestDto = getOrderRequestDto(accountId, orderItemIds);
+        OrderRequestDto orderRequestDto = getOrderRequestDto(userId, orderItemIds);
 
         // setup(expectations)
         doNothing()
@@ -71,9 +71,9 @@ class OrderCreationByDBServiceImpl2Test extends IntegrationTestSupport {
                 .when(internalEventService).publishInternalEvent(any());
 
         // setup(data) & exercise
-        final long accountId = 2L;
+        final long userId = 2L;
         final List<Long> orderItemIds = List.of(2L, 3L, 7L);
-        OrderRequestDto orderRequestDto = getOrderRequestDto(accountId, orderItemIds);
+        OrderRequestDto orderRequestDto = getOrderRequestDto(userId, orderItemIds);
         OrderDto waitingOrder = orderCreationByDBServiceImpl.create(orderRequestDto);
 
         Thread.sleep(2000);
@@ -84,7 +84,7 @@ class OrderCreationByDBServiceImpl2Test extends IntegrationTestSupport {
         Thread.sleep(3000);
 
         // verify
-        OrderDto finalOrder = orderInquiryService.findLatestOrderByAccountId(accountId);
+        OrderDto finalOrder = orderInquiryService.findLatestOrderByUserId(userId);
         assertThat(finalOrder).isNotNull();
         assertThat(finalOrder.getOrderEventId()).isEqualTo(waitingOrder.getOrderEventId());
 

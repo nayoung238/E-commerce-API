@@ -2,7 +2,7 @@
 
 ![png](/_img/api-gateway.png)
 
-account, item, order service 등 여러 Microservice의 포트 번호를 기억하고 있다면, 각 마이크로서비스의 포트 번호를 이용해 접근하면 된다. 
+user, item, order service 등 여러 Microservice의 포트 번호를 기억하고 있다면, 각 마이크로서비스의 포트 번호를 이용해 접근하면 된다. 
 하지만 다양한 Microservice가 생기고, **Scale-out을 위해 여러 인스턴스를 구동한다면 모두 다른 포트 번호를 할당하고 관리하는 것이 번거로울 것**이다. 
 이를 위해 Spring Cloud Gateway를 사용한다.
 <br>
@@ -21,7 +21,7 @@ Spring Cloud Gateway를 사용하면 Gateway의 포트 번호로 등록된 모�
 
 - ```http://localhost:8089/item-api/items/23```
 - ```http://localhost:8089/order-api/orders/7```
-- ```http://localhost:8089/account-api/account/9584```
+- ```http://localhost:8089/auth-api/users/9584```
 
 <br>
 

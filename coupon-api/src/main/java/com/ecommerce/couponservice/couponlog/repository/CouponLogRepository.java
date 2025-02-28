@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface CouponLogRepository extends CrudRepository<CouponLog, Long> {
 
-	List<CouponLog> findAllByAccountId(Long accountId);
+	List<CouponLog> findAllByUserId(Long userId);
 }

@@ -15,7 +15,7 @@ public record OrderRequestDto (
     @NotNull(message = "사용자 아이디는 필수입니다.")
     @Min(value = 1, message = "사용자 아이디는 1 이상이어야 합니다.")
     @Schema(description = "사용자 아이디", nullable = false)
-    Long accountId,
+    Long userId,
 
     @Valid
     @Size(min = 1, message = "주문 아이템은 필수입니다")
@@ -23,9 +23,9 @@ public record OrderRequestDto (
     List<OrderItemRequestDto> orderItemRequestDtos
 ) {
 
-    public static OrderRequestDto of(long accountId, List<OrderItemRequestDto> orderItemRequestDtos) {
+    public static OrderRequestDto of(long userId, List<OrderItemRequestDto> orderItemRequestDtos) {
         return OrderRequestDto.builder()
-                .accountId(accountId)
+                .userId(userId)
                 .orderItemRequestDtos(orderItemRequestDtos)
                 .build();
     }

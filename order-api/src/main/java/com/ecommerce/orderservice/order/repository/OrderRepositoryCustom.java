@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface OrderRepositoryCustom {
 
-    List<Order> findByAccountIdOrderByOrderIdDesc(Long accountId, PageRequest pageRequest);
+    List<Order> findByUserIdOrderByOrderIdDesc(Long userId, PageRequest pageRequest);
 
-    List<Order> findByAccountIdAndOrderIdLessThanOrderByOrderIdDesc(Long accountId, Long orderId, PageRequest pageRequest);
+    List<Order> findByUserIdAndOrderIdLessThanOrderByOrderIdDesc(Long userId, Long orderId, PageRequest pageRequest);
 }

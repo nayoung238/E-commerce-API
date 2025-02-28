@@ -12,21 +12,21 @@ import java.util.UUID;
 @ActiveProfiles("test")
 public class UnitTestSupport {
 
-    protected OrderKafkaEvent getOrderKafkaEvent(long accountId, List<Long> itemIds, long quantity, OrderProcessingStatus orderProcessingStatus) {
+    protected OrderKafkaEvent getOrderKafkaEvent(long userId, List<Long> itemIds, long quantity, OrderProcessingStatus orderProcessingStatus) {
         List<OrderItemKafkaEvent> orderItemKafkaEvents = itemIds.stream()
                 .map(i -> getOrderItemKafkaEvent(i, quantity, orderProcessingStatus))
                 .toList();
 
         return OrderKafkaEvent.of(
-                getOrderEventId(accountId),
-                accountId,
+                getOrderEventId(userId),
+                userId,
                 orderProcessingStatus,
                 orderItemKafkaEvents,
                 LocalDateTime.now());
     }
 
-    private String getOrderEventId(long accountId) {
-        return accountId + "-" + UUID.randomUUID().toString().substring(0, 8);
+    private String getOrderEventId(long userId) {
+        return userId + "-" + UUID.randomUUID().toString().substring(0, 8);
     }
 
     /*

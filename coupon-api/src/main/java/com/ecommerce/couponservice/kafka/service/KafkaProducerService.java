@@ -20,9 +20,9 @@ public class KafkaProducerService {
 			.whenComplete((couponUpdatedEventSendResult, throwable) -> {
 				if(throwable == null) {
 					RecordMetadata metadata = couponUpdatedEventSendResult.getRecordMetadata();
-					log.info("Kafka event published successfully -> topic: {}, accountId: {}, couponName: {}",
+					log.info("Kafka event published successfully -> topic: {}, userId: {}, couponName: {}",
 						metadata.topic(),
-						couponUpdatedEventSendResult.getProducerRecord().value().accountId(),
+						couponUpdatedEventSendResult.getProducerRecord().value().userId(),
 						couponUpdatedEventSendResult.getProducerRecord().value().couponName());
 				} else {
 					// TODO: 카프카 이벤트 재발행

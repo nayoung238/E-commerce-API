@@ -2,7 +2,7 @@ package com.ecommerce.orderservice.order.entity;
 
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
 import com.ecommerce.orderservice.order.dto.OrderRequestDto;
-import com.ecommerce.orderservice.internalevent.order.event.OrderInternalEvent;
+import com.ecommerce.orderservice.internalevent.entity.OrderInternalEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,7 +33,7 @@ public class Order {
     private String orderEventId;
 
     @Column(nullable = false)
-    private Long accountId;
+    private Long userId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<OrderItem> orderItems;
@@ -52,7 +52,7 @@ public class Order {
                 .collect(Collectors.toList());
 
         Order order = Order.builder()
-                .accountId(orderRequestDto.accountId())
+                .userId(orderRequestDto.userId())
                 .orderItems(orderItems)
                 .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .requestedAt(LocalDateTime.now())
@@ -70,7 +70,7 @@ public class Order {
 
         Order order = Order.builder()
                 .orderEventId(orderKafkaEvent.getOrderEventId())
-                .accountId(orderKafkaEvent.getAccountId())
+                .userId(orderKafkaEvent.getUserId())
                 .orderItems(orderItems)
                 .orderProcessingStatus(orderKafkaEvent.getOrderProcessingStatus())
                 .requestedAt(orderKafkaEvent.getRequestedAt())
@@ -82,13 +82,13 @@ public class Order {
     }
 
     // Test 코드에서 사용
-    public static Order of(String orderEventId, long accountId,
+    public static Order of(String orderEventId, long userId,
                            List<OrderItem> orderItems,
                            OrderProcessingStatus orderProcessingStatus,
                            LocalDateTime requestedAt) {
         return Order.builder()
                 .orderEventId(orderEventId)
-                .accountId(accountId)
+                .userId(userId)
                 .orderItems(orderItems)
                 .orderProcessingStatus(orderProcessingStatus)
                 .requestedAt(requestedAt)
@@ -117,6 +117,6 @@ public class Order {
     }
 
     public OrderInternalEvent getOrderInternalEvent() {
-        return OrderInternalEvent.of(accountId, orderEventId, OrderProcessingStatus.CREATION);
+        return OrderInternalEvent.of(userId, orderEventId, OrderProcessingStatus.CREATION);
     }
 }

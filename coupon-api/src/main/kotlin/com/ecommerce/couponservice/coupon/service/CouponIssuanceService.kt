@@ -16,17 +16,17 @@ class CouponIssuanceService(
 ) {
     private val log = LoggerFactory.getLogger(CouponIssuanceService::class.java)
 
-    suspend fun issueCouponInBatchAsync(couponId: Long, accountIds: List<Long>) {
+    suspend fun issueCouponInBatchAsync(couponId: Long, userIds: List<Long>) {
         coroutineScope {
-            accountIds.map { accountId ->
+            userIds.map { userId ->
                 launch(Dispatchers.IO) {
                     try {
-                        val result: Map<String, Any> = couponStockRedisManager.issueCouponAndPublishEvent(couponId, accountId)
+                        val result: Map<String, Any> = couponStockRedisManager.issueCouponAndPublishEvent(couponId, userId)
                         when (result["status"].toString()) {
                             "SUCCESS" -> {
                                 val newStock = (result["newStock"] as Number).toLong()
-                                saveCouponLog(couponId, accountId)
-                                log.info("Coupon issued successfully: Coupon Id = $couponId, New Stock = $newStock, Account Id = $accountId")
+                                saveCouponLog(couponId, userId)
+                                log.info("Coupon issued successfully: Coupon Id = $couponId, New Stock = $newStock, User Id = $userId")
                                 // TODO: 쿠폰 발급 성공 알림
                             }
                             "FAILED" -> {
@@ -36,20 +36,20 @@ class CouponIssuanceService(
                             }
                             "ERROR" -> {
                                 val reason = result["reason"] as String
-                                log.error("Error during coupon issuance: Coupon Id = $couponId, Account Id = $accountId, Reason = $reason")
+                                log.error("Error during coupon issuance: Coupon Id = $couponId, User Id = $userId, Reason = $reason")
                             }
                         }
                     } catch (e: Exception) {
-                        log.error("Unexpected error during coupon issuance: Coupon Id = $couponId, Account Id = $accountId, error = ${e.message}")
+                        log.error("Unexpected error during coupon issuance: Coupon Id = $couponId, User Id = $userId, error = ${e.message}")
                     }
                 }
             }
         }
     }
 
-    private suspend fun saveCouponLog(couponId: Long, accountId: Long) {
+    private suspend fun saveCouponLog(couponId: Long, userId: Long) {
         withContext(Dispatchers.IO) {
-            couponLogService.saveCouponLog(couponId, accountId)
+            couponLogService.saveCouponLog(couponId, userId)
         }
     }
 }

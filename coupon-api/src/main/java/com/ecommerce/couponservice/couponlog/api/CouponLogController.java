@@ -25,14 +25,14 @@ public class CouponLogController {
 
 	private final CouponLogService couponLogService;
 
-	@Operation(summary = "쿠폰 목록 조회", description = "HTTP 헤더에 X-Account-Id 추가해주세요")
+	@Operation(summary = "쿠폰 목록 조회", description = "HTTP 헤더에 X-User-Id 추가해주세요")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "쿠푼 목록 조회 성공", content = @Content(schema = @Schema(implementation = List.class))),
 	})
 	@GetMapping
 	public ResponseEntity<?> findAllCouponLogs(HttpServletRequest httpServletRequest) {
-		Long accountId = Long.valueOf(httpServletRequest.getHeader("X-Account-Id"));
-		List<CouponLogResponseDto> response = couponLogService.findAllCouponLogs(accountId);
+		Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
+		List<CouponLogResponseDto> response = couponLogService.findAllCouponLogs(userId);
 		return ResponseEntity.ok(response);
 	}
 }

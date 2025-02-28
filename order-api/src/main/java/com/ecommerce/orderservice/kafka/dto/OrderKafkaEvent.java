@@ -16,17 +16,17 @@ import java.util.stream.Collectors;
 public class OrderKafkaEvent {
 
     private String orderEventId;
-    private Long accountId;
+    private Long userId;
     private OrderProcessingStatus orderProcessingStatus;
     private List<OrderItemKafkaEvent> orderItemKafkaEvents;
     private LocalDateTime requestedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderKafkaEvent(String orderEventId, long accountId,
+    private OrderKafkaEvent(String orderEventId, long userId,
                             OrderProcessingStatus orderProcessingStatus, List<OrderItemKafkaEvent> orderItemKafkaEvents,
                             LocalDateTime requestedAt) {
         this.orderEventId = orderEventId;
-        this.accountId = accountId;
+        this.userId = userId;
         this.orderProcessingStatus = orderProcessingStatus;
         this.orderItemKafkaEvents = orderItemKafkaEvents;
         this.requestedAt = requestedAt;
@@ -40,7 +40,7 @@ public class OrderKafkaEvent {
 
         return OrderKafkaEvent.builder()
                 .orderEventId(order.getOrderEventId())
-                .accountId(order.getAccountId())
+                .userId(order.getUserId())
                 .orderProcessingStatus(order.getOrderProcessingStatus() != null ? order.getOrderProcessingStatus() : null)
                 .orderItemKafkaEvents(orderItemKafkaEvents)
                 .requestedAt(LocalDateTime.now())
@@ -55,7 +55,7 @@ public class OrderKafkaEvent {
 
         return OrderKafkaEvent.builder()
                 .orderEventId(orderDto.getOrderEventId())
-                .accountId(orderDto.getAccountId())
+                .userId(orderDto.getUserId())
                 .orderProcessingStatus(orderDto.getOrderProcessingStatus() != null ? orderDto.getOrderProcessingStatus() : null)
                 .orderItemKafkaEvents(orderItemKafkaEvents)
                 .requestedAt(LocalDateTime.now())
@@ -71,7 +71,7 @@ public class OrderKafkaEvent {
 
         return OrderKafkaEvent.builder()
                 .orderEventId(orderEventId)
-                .accountId(orderRequestDto.accountId())
+                .userId(orderRequestDto.userId())
                 .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .orderItemKafkaEvents(orderItemKafkaEvents)
                 .requestedAt(LocalDateTime.now())
