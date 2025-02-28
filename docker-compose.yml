@@ -30,7 +30,7 @@ services:
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
     depends_on:
       - zookeeper
-  
+
   mysql:
     image: mysql
     container_name: mysql
@@ -54,9 +54,9 @@ services:
       - 6379:6379
 
   api-gateway-service:
-    image: imzero82/api-gateway-service:0.0.1
+    image: .../api-gateway-service:0.0.1
     container_name: api-gateway-service
-    ports: 
+    ports:
       - 8089:8089
     environment:
       - eureka.client.serviceUrl.defaultZone=http://service-discovery:8061/eureka/
@@ -64,13 +64,13 @@ services:
       - service-discovery
 
   service-discovery:
-    image: imzero82/service-discovery:0.0.1
+    image: .../service-discovery:0.0.1
     container_name: service-discovery
-    ports: 
+    ports:
       - 8061:8061
 
   order-service:
-    image: imzero82/order-service:0.0.1
+    image: .../order-service:0.0.1
     container_name: order-service
     environment:
       - eureka.client.serviceUrl.defaultZone=http://service-discovery:8061/eureka/
@@ -83,7 +83,7 @@ services:
       - kafka
 
   item-service:
-    image: imzero82/item-service:0.0.1
+    image: .../item-service:0.0.1
     container_name: item-service
     environment:
       - eureka.client.serviceUrl.defaultZone=http://service-discovery:8061/eureka/
@@ -94,13 +94,13 @@ services:
       - service-discovery
       - mysql
       - kafka
-  
-  account-service:
-    image: imzero82/account-service:0.0.1
-    container_name: account-service
+
+  auth-service:
+    image: .../auth-service:0.0.1
+    container_name: auth-service
     environment:
       - eureka.client.serviceUrl.defaultZone=http://service-discovery:8061/eureka/
-      - spring.datasource.url=jdbc:mysql://mysql:3306/account_service?serverTimezone=UTC&characterEncoding=UTF-8&autoReconnection=true
+      - spring.datasource.url=jdbc:mysql://mysql:3306/auth_service?serverTimezone=UTC&characterEncoding=UTF-8&autoReconnection=true
       - spring.data.redis.url=redis://redis:6379/redis
       - spring.kafka.bootstrap-servers=kafka://kafka:9092
     depends_on:
