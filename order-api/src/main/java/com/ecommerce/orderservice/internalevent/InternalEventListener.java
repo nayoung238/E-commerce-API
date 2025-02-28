@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.internalevent;
 
-import com.ecommerce.orderservice.internalevent.order.event.OrderInternalEvent;
+import com.ecommerce.orderservice.internalevent.entity.OrderInternalEvent;
 import com.ecommerce.orderservice.kafka.dto.updatedEvent.OrderUpdatedEvent;
 import com.ecommerce.orderservice.order.dto.OrderDto;
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
