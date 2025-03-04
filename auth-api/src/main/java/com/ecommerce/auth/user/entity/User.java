@@ -6,19 +6,14 @@ import com.ecommerce.auth.common.exception.ErrorCode;
 import com.ecommerce.auth.user.dto.SignUpRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Collections;
 @Entity
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "users")
-public class User implements UserDetails {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,15 +45,5 @@ public class User implements UserDetails {
         if (!password.equals(requestedPassword)) {
             throw new CustomException(ErrorCode.INVALID_PASSWORD);
         }
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority(BaseRole.USER.name()));
-    }
-
-    @Override
-    public String getUsername() {
-        return id.toString();
     }
 }

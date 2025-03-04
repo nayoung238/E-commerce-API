@@ -40,6 +40,11 @@ public class UserService {
         return UserResponseDto.of(user);
     }
 
+    public User findUserEntity(Long userId) {
+        return userRepository.findById(userId)
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+    }
+
     public User findUserEntity(String loginId) {
         return userRepository.findByLoginId(loginId)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));

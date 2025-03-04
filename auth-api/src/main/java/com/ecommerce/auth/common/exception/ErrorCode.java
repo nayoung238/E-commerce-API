@@ -21,6 +21,7 @@ public enum ErrorCode {
     JWT_PROCESSING_FAILED(HttpStatus.BAD_REQUEST, "JWT 처리 중 오류가 발생했습니다."),
     MISSING_USER_ID(HttpStatus.BAD_REQUEST, "토큰 생성 시 userId 값은 필수입니다."),
     MISSING_ROLE(HttpStatus.BAD_REQUEST, "토큰 생성 시 role 값은 필수입니다."),
+    FORBIDDEN(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
 
     // data
     DUPLICATE_LOGIN_ID(HttpStatus.BAD_REQUEST,"이미 사용 중인 로그인 아이디입니다."),

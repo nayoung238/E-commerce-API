@@ -2,6 +2,7 @@ package com.ecommerce.auth.auth.service;
 
 import com.ecommerce.auth.auth.dto.request.LoginRequest;
 import com.ecommerce.auth.auth.entity.RefreshToken;
+import com.ecommerce.auth.auth.entity.UserPrincipal;
 import com.ecommerce.auth.auth.jwt.JwtUtil;
 import com.ecommerce.auth.auth.repository.AccessTokenBlackListRepository;
 import com.ecommerce.auth.auth.repository.RefreshTokenRepository;
@@ -14,12 +15,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AuthService {
 
 	private final UserService userService;
@@ -99,5 +98,10 @@ public class AuthService {
 			return header.split(" ", 2)[1];
 		}
 		return null;
+	}
+
+	public UserPrincipal getUserPrincipal(Long userId) {
+		User user = userService.findUserEntity(userId);
+		return UserPrincipal.of(user);
 	}
 }
