@@ -1,5 +1,6 @@
 package com.ecommerce.auth.user.service;
 
+import com.ecommerce.auth.auth.enums.BaseRole;
 import com.ecommerce.auth.user.dto.UserResponseDto;
 import com.ecommerce.auth.user.dto.SignUpRequestDto;
 import com.ecommerce.auth.user.entity.User;
@@ -37,5 +38,17 @@ public class UserService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
         return UserResponseDto.of(user);
+    }
+
+    public User findUserEntity(String loginId) {
+        return userRepository.findByLoginId(loginId)
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+    }
+
+    public BaseRole getRole(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        return user.getRole();
     }
 }
