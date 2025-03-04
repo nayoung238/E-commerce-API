@@ -47,3 +47,7 @@ redis:
     consumer:
       group: coupon-service-consumer-group
       name: coupon-service-consumer
+
+jwt:
+  issuer: auth-service
+  secret_key: cPlFdV3BdHxqABIwNpgvyOkZgskfj23jeJNxjujgQoE=
