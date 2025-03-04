@@ -1,10 +1,11 @@
-package com.ecommerce.auth.common.config;
+package com.ecommerce.orderservice.common.config;
 
-import com.ecommerce.auth.auth.jwt.JwtUtil;
-import com.ecommerce.auth.auth.jwt.JwtAuthenticationProvider;
+import com.ecommerce.orderservice.auth.jwt.JwtAuthenticationProvider;
+import com.ecommerce.orderservice.auth.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -30,19 +31,14 @@ public class SecurityConfig {
 			.formLogin(AbstractHttpConfigurer::disable)
 			.logout(AbstractHttpConfigurer::disable)
 			.authorizeHttpRequests(auth -> auth
-				.requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+				.requestMatchers(HttpMethod.POST, "/orders/create").permitAll()
+				.requestMatchers(HttpMethod.GET, "/orders/health-check").permitAll()
 				.anyRequest().authenticated()
 			)
 			.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 			.build();
 	}
-
-	private static final String[] PUBLIC_ENDPOINTS = {
-		"/users/sign-up",
-		"/auth/login",
-		"/users/health-check"
-	};
 
 	public JwtAuthenticationFilter tokenAuthenticationFilter() {
 		return new JwtAuthenticationFilter(jwtUtil, jwtAuthenticationProvider);

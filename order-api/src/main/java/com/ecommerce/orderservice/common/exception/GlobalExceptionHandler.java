@@ -17,6 +17,13 @@ import java.util.Objects;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<String> customException(CustomException ex){
+        return ResponseEntity
+            .status(ex.getErrorCode().getHttpStatus())
+            .body(ex.getErrorCode().getMessage());
+    }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ExceptionResponse exceptionResponse = ExceptionResponse.builder()

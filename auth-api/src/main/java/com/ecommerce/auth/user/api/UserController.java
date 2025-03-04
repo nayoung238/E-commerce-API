@@ -1,5 +1,8 @@
 package com.ecommerce.auth.user.api;
 
+import com.ecommerce.auth.auth.entity.UserPrincipal;
+import com.ecommerce.auth.common.exception.CustomException;
+import com.ecommerce.auth.common.exception.ErrorCode;
 import com.ecommerce.auth.user.service.UserService;
 import com.ecommerce.auth.user.dto.UserResponseDto;
 import com.ecommerce.auth.user.dto.SignUpRequestDto;
@@ -14,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Users", description = "유저 API")
@@ -42,7 +46,12 @@ public class UserController {
         @ApiResponse(responseCode = "400", description = "존재하지 않는 계정", content = @Content(schema = @Schema(implementation = String.class)))
     })
     @GetMapping("/{userId}")
-    public ResponseEntity<?> findUser(@PathVariable Long userId) {
+    public ResponseEntity<?> findUser(@PathVariable Long userId,
+                                      @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        if (!userPrincipal.getId().equals(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
         UserResponseDto response = userService.findUser(userId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

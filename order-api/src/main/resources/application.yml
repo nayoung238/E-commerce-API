@@ -75,3 +75,7 @@ resilience4j:
     retry-aspect-order: 2
   circuitbreaker:
     circuit-breaker-aspect-order: 1
+
+jwt:
+  issuer: auth-service
+  secret_key: cPlFdV3BdHxqABIwNpgvyOkZgskfj23jeJNxjujgQoE=

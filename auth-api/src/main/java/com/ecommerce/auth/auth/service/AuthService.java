@@ -2,10 +2,11 @@ package com.ecommerce.auth.auth.service;
 
 import com.ecommerce.auth.auth.dto.request.LoginRequest;
 import com.ecommerce.auth.auth.entity.RefreshToken;
+import com.ecommerce.auth.auth.entity.UserPrincipal;
 import com.ecommerce.auth.auth.jwt.JwtUtil;
 import com.ecommerce.auth.auth.repository.AccessTokenBlackListRepository;
 import com.ecommerce.auth.auth.repository.RefreshTokenRepository;
-import com.ecommerce.auth.common.config.TokenAuthenticationFilter;
+import com.ecommerce.auth.common.config.JwtAuthenticationFilter;
 import com.ecommerce.auth.common.exception.CustomException;
 import com.ecommerce.auth.common.exception.ErrorCode;
 import com.ecommerce.auth.user.entity.User;
@@ -36,10 +37,12 @@ public class AuthService {
 		String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getRole());
 		String refreshToken = jwtUtil.generateRefreshToken(user.getId(), user.getRole());
 
+		log.info("Generated access token and refresh token for userId={} - Access Token: {}, Refresh Token: {}", user.getId(), accessToken, refreshToken);
+
 		refreshTokenRepository.save(RefreshToken.of(user.getId(), refreshToken));
 
-		httpServletResponse.setHeader(TokenAuthenticationFilter.HEADER_AUTHORIZATION,
-									TokenAuthenticationFilter.TOKEN_PREFIX + accessToken);
+		httpServletResponse.setHeader(JwtAuthenticationFilter.HEADER_AUTHORIZATION,
+									JwtAuthenticationFilter.TOKEN_PREFIX + accessToken);
 
 		Cookie cookie = new Cookie(COOKIE_REFRESH_TOKEN_NAME, refreshToken);
 		cookie.setHttpOnly(true);
@@ -56,8 +59,8 @@ public class AuthService {
 		}
 
 		String accessToken = jwtUtil.refreshAccessToken(refreshToken);
-		httpServletResponse.setHeader(TokenAuthenticationFilter.HEADER_AUTHORIZATION,
-									TokenAuthenticationFilter.TOKEN_PREFIX + accessToken);
+		httpServletResponse.setHeader(JwtAuthenticationFilter.HEADER_AUTHORIZATION,
+									JwtAuthenticationFilter.TOKEN_PREFIX + accessToken);
 	}
 
 	public void logout(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
@@ -94,10 +97,15 @@ public class AuthService {
 	}
 
 	private String getAccessToken(HttpServletRequest httpServletRequest) {
-		String header = httpServletRequest.getHeader(TokenAuthenticationFilter.HEADER_AUTHORIZATION);
-		if (header != null && header.startsWith(TokenAuthenticationFilter.TOKEN_PREFIX)) {
+		String header = httpServletRequest.getHeader(JwtAuthenticationFilter.HEADER_AUTHORIZATION);
+		if (header != null && header.startsWith(JwtAuthenticationFilter.TOKEN_PREFIX)) {
 			return header.split(" ", 2)[1];
 		}
 		return null;
+	}
+
+	public UserPrincipal getUserPrincipal(Long userId) {
+		User user = userService.findUserEntity(userId);
+		return UserPrincipal.of(user);
 	}
 }
