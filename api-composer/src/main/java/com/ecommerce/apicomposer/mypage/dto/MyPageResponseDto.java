@@ -8,8 +8,8 @@ import java.util.List;
 @Builder
 public record MyPageResponseDto (
 
-    @JsonProperty("accountId")
-    Long accountId,
+    @JsonProperty("userId")
+    Long userId,
 
     @JsonProperty("loginId")
     String loginId,
@@ -24,11 +24,11 @@ public record MyPageResponseDto (
     List<CouponResponseDto> coupons
 ) {
 
-    public static MyPageResponseDto of(AccountResponseDto account, List<OrderSimpleDto> orders, List<CouponResponseDto> coupons) {
+    public static MyPageResponseDto of(UserResponseDto user, List<OrderSimpleDto> orders, List<CouponResponseDto> coupons) {
         return MyPageResponseDto.builder()
-                .accountId(account.accountId())
-                .loginId(account.loginId())
-                .name(account.name())
+                .userId(user.userId())
+                .loginId(user.loginId())
+                .name(user.name())
                 .orders(orders)
                 .coupons(coupons)
                 .build();

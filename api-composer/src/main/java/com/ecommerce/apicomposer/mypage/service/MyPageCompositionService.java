@@ -2,7 +2,7 @@ package com.ecommerce.apicomposer.mypage.service;
 
 import com.ecommerce.apicomposer.common.exception.CustomException;
 import com.ecommerce.apicomposer.common.exception.ErrorCode;
-import com.ecommerce.apicomposer.common.service.AccountServiceClient;
+import com.ecommerce.apicomposer.common.service.AuthServiceClient;
 import com.ecommerce.apicomposer.common.service.CouponServiceClient;
 import com.ecommerce.apicomposer.common.service.OrderServiceClient;
 import com.ecommerce.apicomposer.mypage.dto.*;
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class MyPageCompositionService {
 
-    private final AccountServiceClient accountServiceClient;
+    private final AuthServiceClient authServiceClient;
     private final OrderServiceClient orderServiceClient;
     private final CouponServiceClient couponServiceClient;
 
@@ -30,32 +30,32 @@ public class MyPageCompositionService {
 
     public MyPageResponseDto getMyPageDetails(HttpServletRequest httpServletRequest) {
         try {
-            AccountResponseDto account = findAccountAsync(httpServletRequest).get();
+            UserResponseDto user = findUserAsync(httpServletRequest).get();
             List<OrderSimpleDto> orderList = findOrderListAsync(httpServletRequest).get();
             List<CouponResponseDto> couponList = findCouponListAsync(httpServletRequest).get();
-            return MyPageResponseDto.of(account, orderList, couponList);
+            return MyPageResponseDto.of(user, orderList, couponList);
         } catch (ExecutionException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
     }
 
-    private CompletableFuture<AccountResponseDto> findAccountAsync(HttpServletRequest httpServletRequest) {
-        Long accountId = Long.valueOf(httpServletRequest.getHeader("X-Account-Id"));
+    private CompletableFuture<UserResponseDto> findUserAsync(HttpServletRequest httpServletRequest) {
+        Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
 
         return CompletableFuture
-            .supplyAsync(() -> accountServiceClient.findAccount(accountId))
+            .supplyAsync(() -> authServiceClient.findUser(userId))
             .orTimeout(TIMEOUT, TimeUnit.SECONDS)
             .exceptionally(ex -> {
-                log.error("Error fetching account: {}", ex.getMessage());
-                throw new CustomException(ErrorCode.ACCOUNT_SERVICE_UNAVAILABLE);
+                log.error("Error fetching user: {}", ex.getMessage());
+                throw new CustomException(ErrorCode.USER_SERVICE_UNAVAILABLE);
             });
     }
 
     private CompletableFuture<List<OrderSimpleDto>> findOrderListAsync(HttpServletRequest httpServletRequest) {
-        Long accountId = Long.valueOf(httpServletRequest.getHeader("X-Account-Id"));
+        Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
 
         return CompletableFuture
-            .supplyAsync(() -> orderServiceClient.findOrderList(accountId))
+            .supplyAsync(() -> orderServiceClient.findOrderList(userId))
             .orTimeout(TIMEOUT, TimeUnit.SECONDS)
             .exceptionally(ex -> {
                 log.error("Error fetching order list: {}", ex.getMessage());
@@ -64,10 +64,10 @@ public class MyPageCompositionService {
     }
 
     private CompletableFuture<List<CouponResponseDto>> findCouponListAsync(HttpServletRequest httpServletRequest) {
-        Long accountId = Long.valueOf(httpServletRequest.getHeader("X-Account-Id"));
+        Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
 
         return CompletableFuture
-            .supplyAsync(() -> couponServiceClient.findCouponList(accountId))
+            .supplyAsync(() -> couponServiceClient.findCouponList(userId))
             .orTimeout(TIMEOUT, TimeUnit.SECONDS)
             .exceptionally(ex -> {
                 log.error("Error fetching coupon list: {}", ex.getMessage());

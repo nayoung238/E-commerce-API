@@ -19,7 +19,7 @@ import java.util.List;
 @ActiveProfiles("test")
 public class IntegrationTestSupport {
 
-    protected OrderRequestDto getOrderRequestDto(long accountId, List<Long> orderItemIds) {
+    protected OrderRequestDto getOrderRequestDto(long userId, List<Long> orderItemIds) {
         List<OrderItemRequestDto> orderItemRequestDtos = orderItemIds.stream()
                 .map(i -> OrderItemRequestDto.builder()
                     .itemId(i)
@@ -27,7 +27,7 @@ public class IntegrationTestSupport {
                     .build())
                 .toList();
 
-        return OrderRequestDto.of(accountId, orderItemRequestDtos);
+        return OrderRequestDto.of(userId, orderItemRequestDtos);
     }
 
     protected OrderKafkaEvent getOrderKafkaEvent(OrderDto orderDto, OrderProcessingStatus finalOrderProcessingStatus) {

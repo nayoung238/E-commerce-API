@@ -26,19 +26,19 @@ public class WaitQueuePositionResponseDto {
                 .build();
     }
 
-    public static WaitQueuePositionResponseDto accountIdNotInWaitQueue(Long couponId, Long accountId) {
+    public static WaitQueuePositionResponseDto userIdNotInWaitQueue(Long couponId, Long userId) {
         return WaitQueuePositionResponseDto.builder()
                 .exists(false)
                 .position(null)
-                .message(String.format("The wait queue for coupon %d does not contain account %d", couponId, accountId))
+                .message(String.format("The wait queue for coupon %d does not contain user %d", couponId, userId))
                 .build();
     }
 
-    public static WaitQueuePositionResponseDto accountIdInWaitQueue(Long couponId, Long accountId, Long position) {
+    public static WaitQueuePositionResponseDto userIdInWaitQueue(Long couponId, Long userId, Long position) {
         return WaitQueuePositionResponseDto.builder()
                 .exists(true)
                 .position(position)
-                .message(String.format("Account %d is in position %d for coupon %d", accountId, position, couponId))
+                .message(String.format("User %d is in position %d for coupon %d", userId, position, couponId))
                 .build();
     }
 

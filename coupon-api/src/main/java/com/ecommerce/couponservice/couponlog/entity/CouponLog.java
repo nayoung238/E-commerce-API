@@ -20,5 +20,5 @@ public class CouponLog {
 	private Coupon coupon;
 
 	@Column(nullable = false)
-	private Long accountId;
+	private Long userId;
 }

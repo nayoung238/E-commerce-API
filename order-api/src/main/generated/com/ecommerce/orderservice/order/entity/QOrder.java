@@ -20,7 +20,7 @@ public class QOrder extends EntityPathBase<Order> {
 
     public static final QOrder order = new QOrder("order1");
 
-    public final NumberPath<Long> accountId = createNumber("accountId", Long.class);
+    public final NumberPath<Long> userId = createNumber("userId", Long.class);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 

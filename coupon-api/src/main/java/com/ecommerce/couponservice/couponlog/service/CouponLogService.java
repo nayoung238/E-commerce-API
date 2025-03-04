@@ -21,21 +21,21 @@ public class CouponLogService {
 	private final CouponLogRepository couponLogRepository;
 
 	@Transactional
-	public void saveCouponLog(Long couponId, Long accountId) {
+	public void saveCouponLog(Long couponId, Long userId) {
 		Coupon coupon = couponRepository.findById(couponId)
 			.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_COUPON));
 
 		CouponLog couponLog = CouponLog.builder()
 			.coupon(coupon)
-			.accountId(accountId)
+			.userId(userId)
 			.build();
 
 		couponLogRepository.save(couponLog);
 		couponRepository.save(coupon);
 	}
 
-	public List<CouponLogResponseDto> findAllCouponLogs(Long accountId) {
-		return couponLogRepository.findAllByAccountId(accountId)
+	public List<CouponLogResponseDto> findAllCouponLogs(Long userId) {
+		return couponLogRepository.findAllByUserId(userId)
 			.stream()
 			.map(CouponLogResponseDto::of)
 			.toList();

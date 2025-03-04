@@ -10,10 +10,10 @@ import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long>, OrderRepositoryCustom {
 
-    List<Order> findAllByAccountId(long accountId);
+    List<Order> findAllByUserId(long userId);
 
-    @Query("select o from Order o where o.accountId=:accountId order by o.id desc limit 1")
-    Optional<Order> findLatestOrderByAccountId(@Param("accountId") long accountId);
+    @Query("select o from Order o where o.userId=:userId order by o.id desc limit 1")
+    Optional<Order> findLatestOrderByUserId(@Param("userId") long userId);
 
     Optional<Order> findByOrderEventId(String orderEventId);
 

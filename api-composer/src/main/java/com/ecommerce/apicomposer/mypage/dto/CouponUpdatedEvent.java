@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 public record CouponUpdatedEvent(
 
-	long accountId,
+	long userId,
 	String couponName,
 	BigDecimal discountRate,
 	CouponStatus couponStatus

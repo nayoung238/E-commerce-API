@@ -44,9 +44,9 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends IntegrationTestSupp
     @Test
     void 최종_주문_생성_테스트 () throws InterruptedException {
         // given
-        final long accountId = 2L;
+        final long userId = 2L;
         final List<Long> orderItemIds = List.of(34L, 12L, 4L);
-        OrderRequestDto orderRequestDto = getOrderRequestDto(accountId, orderItemIds);
+        OrderRequestDto orderRequestDto = getOrderRequestDto(userId, orderItemIds);
         OrderDto requestedOrder = orderCreationByKafkaStreamsJoinService.create(orderRequestDto);
 
         Thread.sleep(2000);
@@ -58,7 +58,7 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends IntegrationTestSupp
         Thread.sleep(2000);
 
         // then
-        OrderDto finalOrder = orderInquiryService.findLatestOrderByAccountId(accountId);
+        OrderDto finalOrder = orderInquiryService.findLatestOrderByUserId(userId);
         assertThat(finalOrder).isNotNull();
         assertThat(finalOrder.getOrderEventId()).isEqualTo(requestedOrder.getOrderEventId());
 
@@ -71,9 +71,9 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends IntegrationTestSupp
     @Test
     void 스트림즈_조인_필터_테스트 () throws InterruptedException {
         // given
-        final long accountId = 2L;
+        final long userId = 2L;
         final List<Long> orderItemIds = List.of(1L, 2L, 3L);
-        OrderRequestDto orderRequestDto = getOrderRequestDto(accountId, orderItemIds);
+        OrderRequestDto orderRequestDto = getOrderRequestDto(userId, orderItemIds);
         OrderDto requestedOrder = orderCreationByKafkaStreamsJoinService.create(orderRequestDto);
 
         Thread.sleep(2000);
@@ -86,7 +86,7 @@ class OrderCreationByKafkaStreamsJoinServiceImplTest extends IntegrationTestSupp
 
         // then
         Assertions.assertThrows(EntityNotFoundException.class,
-                () -> orderInquiryService.findLatestOrderByAccountId(accountId));
+                () -> orderInquiryService.findLatestOrderByUserId(userId));
     }
 
     /*

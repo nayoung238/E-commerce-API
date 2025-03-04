@@ -20,8 +20,8 @@ public class OrderInquiryService {
     public final OrderRepository orderRepository;
     public static final int PAGE_SIZE = 5;
 
-    public OrderDto findLatestOrderByAccountId(Long accountId) {
-        Order order = orderRepository.findLatestOrderByAccountId(accountId)
+    public OrderDto findLatestOrderByUserId(Long userId) {
+        Order order = orderRepository.findLatestOrderByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER.getMessage()));
 
         return OrderDto.of(order);
@@ -33,13 +33,13 @@ public class OrderInquiryService {
         return OrderDto.of(order);
     }
 
-    public List<OrderSimpleDto> findOrderByAccountIdAndOrderId(Long accountId, Long orderId) {
+    public List<OrderSimpleDto> findOrderByUserIdAndOrderId(Long userId, Long orderId) {
         PageRequest pageRequest = PageRequest.of(0, PAGE_SIZE);
         List<Order> orders;
         if(orderId != null)
-            orders = orderRepository.findByAccountIdAndOrderIdLessThanOrderByOrderIdDesc(accountId, orderId, pageRequest);
+            orders = orderRepository.findByUserIdAndOrderIdLessThanOrderByOrderIdDesc(userId, orderId, pageRequest);
         else
-            orders = orderRepository.findByAccountIdOrderByOrderIdDesc(accountId, pageRequest);
+            orders = orderRepository.findByUserIdOrderByOrderIdDesc(userId, pageRequest);
 
         return orders.stream()
             .sorted(Comparator.comparing(Order::getId).reversed())

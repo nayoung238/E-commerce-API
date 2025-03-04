@@ -48,12 +48,12 @@ spring:
 #              args:
 #                name: orderCircuitBreaker
 #                fallbackUri: forward:/fallback
-#        - id: account-service
-#          uri: lb://ACCOUNT-SERVICE
+#        - id: auth-service
+#          uri: lb://AUTH-SERVICE
 #          predicates:
-#            - Path=/account-api/**
+#            - Path=/auth-api/**
 #          filters:
-#            - RewritePath=/account-api/?(?<segment>.*), /$\{segment}
+#            - RewritePath=/auth-api/?(?<segment>.*), /$\{segment}
 
 resilience4j:
   timelimiter:

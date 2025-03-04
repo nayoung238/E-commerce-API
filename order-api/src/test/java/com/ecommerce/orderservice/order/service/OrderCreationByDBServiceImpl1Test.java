@@ -42,9 +42,9 @@ class OrderCreationByDBServiceImpl1Test extends IntegrationTestSupport {
     @Test
     void 내부_이벤트_발행_여부_테스트() {
         // setup(data)
-        final long accountId = 2L;
+        final long userId = 2L;
         final List<Long> orderItemIds = List.of(2L, 3L, 7L);
-        OrderRequestDto orderRequestDto = getOrderRequestDto(accountId, orderItemIds);
+        OrderRequestDto orderRequestDto = getOrderRequestDto(userId, orderItemIds);
 
         // setup(expectations)
         doNothing()
@@ -65,9 +65,9 @@ class OrderCreationByDBServiceImpl1Test extends IntegrationTestSupport {
     @Test
     void 요청_주문_생성_테스트() {
         // setup(data)
-        final long accountId = 2L;
+        final long userId = 2L;
         final List<Long> orderItemIds = List.of(2L, 3L, 7L);
-        OrderRequestDto orderRequestDto = getOrderRequestDto(accountId, orderItemIds);
+        OrderRequestDto orderRequestDto = getOrderRequestDto(userId, orderItemIds);
 
         // setup(expectations)
         doNothing()
@@ -88,9 +88,9 @@ class OrderCreationByDBServiceImpl1Test extends IntegrationTestSupport {
     @Test
     void 요청_주문_목록_테스트() {
         // setup(data)
-        final long accountId = 2L;
+        final long userId = 2L;
         final List<Long> orderItemIds = List.of(2L, 3L, 7L);
-        OrderRequestDto orderRequestDto = getOrderRequestDto(accountId, orderItemIds);
+        OrderRequestDto orderRequestDto = getOrderRequestDto(userId, orderItemIds);
 
         // setup(expectations)
         doNothing()
@@ -101,7 +101,7 @@ class OrderCreationByDBServiceImpl1Test extends IntegrationTestSupport {
 
         // verify
         assertThat(response.getId()).isPositive();
-        assertThat(response.getAccountId()).isEqualTo(accountId);
+        assertThat(response.getUserId()).isEqualTo(userId);
         assertThat(response.getOrderItemDtos())
                 .hasSize(orderItemIds.size())
                 .extracting(OrderItemDto::getItemId)

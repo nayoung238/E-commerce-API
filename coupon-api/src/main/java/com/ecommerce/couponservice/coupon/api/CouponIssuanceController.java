@@ -22,24 +22,24 @@ public class CouponIssuanceController {
     private final CouponManagementService couponManagementService;
     private final CouponQueueService couponQueueService;
 
-    @PostMapping("/v1/{couponId}/{accountId}")
+    @PostMapping("/v1/{couponId}/{userId}")
     public ResponseEntity<?> issueCoupon(@PathVariable @Valid @Positive(message = "쿠폰 아이디는 1 이상이어야 합니다.") Long couponId,
-                                         @PathVariable @Valid @Positive(message = "사용자 계정 아이디는 1 이상이어야 합니다.") Long accountId) {
-        CouponIssuanceResultDto response = couponManagementService.issueCouponInDatabase(couponId, accountId);
+                                         @PathVariable @Valid @Positive(message = "유저 아이디는 1 이상이어야 합니다.") Long userId) {
+        CouponIssuanceResultDto response = couponManagementService.issueCouponInDatabase(couponId, userId);
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/v2/{couponId}/{accountId}")
+    @PostMapping("/v2/{couponId}/{userId}")
     public ResponseEntity<?> addToWaitQueue(@PathVariable @Valid @Positive(message = "쿠폰 아이디는 1 이상이어야 합니다.") Long couponId,
-                                                      @PathVariable @Valid @Positive(message = "사용자 계정 아이디는 1 이상이어야 합니다.") Long accountId) {
-        WaitQueuePositionResponseDto response = couponQueueService.addToCouponWaitQueue(couponId, accountId);
+                                            @PathVariable @Valid @Positive(message = "유저 아이디는 1 이상이어야 합니다.") Long userId) {
+        WaitQueuePositionResponseDto response = couponQueueService.addToCouponWaitQueue(couponId, userId);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/v2/{couponId}/{accountId}")
+    @GetMapping("/v2/{couponId}/{userId}")
     public ResponseEntity<?> getPositionInWaitQueue(@PathVariable @Valid @Positive(message = "쿠폰 아이디는 1 이상이어야 합니다.") Long couponId,
-                                                      @PathVariable @Valid @Positive(message = "사용자 계정 아이디는 1 이상이어야 합니다.") Long accountId) {
-        WaitQueuePositionResponseDto response = couponQueueService.getPositionInWaitQueue(couponId, accountId);
+                                                    @PathVariable @Valid @Positive(message = "유저 아이디는 1 이상이어야 합니다.") Long userId) {
+        WaitQueuePositionResponseDto response = couponQueueService.getPositionInWaitQueue(couponId, userId);
         return ResponseEntity.ok(response);
     }
 }

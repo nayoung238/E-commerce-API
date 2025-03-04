@@ -33,7 +33,7 @@ public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreation
     @Transactional
     public OrderDto create(OrderRequestDto orderRequestDto) {
         // DB 영속화하지 않고 Kafka 이벤트 발행하므로 Kafka 이벤트 Key 생성 (스트림 조인에서 사용)
-        String orderEventId = getOrderEventId(orderRequestDto.accountId());
+        String orderEventId = getOrderEventId(orderRequestDto.userId());
         OrderKafkaEvent orderKafkaEvent = OrderKafkaEvent.of(orderRequestDto, orderEventId);
         kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
         return OrderDto.of(orderKafkaEvent);

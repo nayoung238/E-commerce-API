@@ -53,12 +53,12 @@ public class CouponManagementService {
     }
 
     @Transactional
-    public CouponIssuanceResultDto issueCouponInDatabase(Long couponId, Long accountId) {
+    public CouponIssuanceResultDto issueCouponInDatabase(Long couponId, Long userId) {
         Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_COUPON.getMessage()));
 
         CouponIssuanceStatus status = coupon.decrementQuantity();
-        couponLogService.saveCouponLog(couponId, accountId);
-        return CouponIssuanceResultDto.of(couponId, accountId, status);
+        couponLogService.saveCouponLog(couponId, userId);
+        return CouponIssuanceResultDto.of(couponId, userId, status);
     }
 }

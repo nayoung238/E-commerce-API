@@ -21,9 +21,9 @@ public class CouponQueueRedisManager extends BaseRedisManager {
     private final long START_INDEX = 0L;
     public static final long BATCH_SIZE = 10L;
 
-    public void addCouponWaitQueue(Long couponId, Long accountId) {
+    public void addCouponWaitQueue(Long couponId, Long userId) {
         String waitKey = getWaitQueueKey(couponId);
-        addZSet(waitKey, accountId.toString());
+        addZSet(waitKey, userId.toString());
     }
 
     private void addZSet(String key, String value) {
@@ -32,12 +32,12 @@ public class CouponQueueRedisManager extends BaseRedisManager {
                 .add(key, value, (double) System.currentTimeMillis());
     }
 
-    public Long getWaitQueueRank(Long couponId, Long accountId) {
+    public Long getWaitQueueRank(Long couponId, Long userId) {
         String waitKey = getWaitQueueKey(couponId);
         if(Objects.equals(Boolean.FALSE, redisTemplate.hasKey(waitKey))) {
             throw new CustomRedisException(ErrorCode.WAIT_QUEUE_NOT_FOUND);
         }
-        return redisTemplate.opsForZSet().rank(waitKey, accountId.toString());
+        return redisTemplate.opsForZSet().rank(waitKey, userId.toString());
     }
 
     public long moveFromWaitToEnterQueue(Long couponId) {
@@ -45,27 +45,27 @@ public class CouponQueueRedisManager extends BaseRedisManager {
         String enterQueueKey = getEnterQueueKey(couponId);
         AtomicLong movedCount = new AtomicLong(0);
 
-        Set<ZSetOperations.TypedTuple<String>> topWaitingAccountIds = redisTemplate
+        Set<ZSetOperations.TypedTuple<String>> topWaitingUserIds = redisTemplate
                 .opsForZSet()
                 .rangeWithScores(waitQueueKey, START_INDEX, BATCH_SIZE - 1);
 
-        if (topWaitingAccountIds!= null && !topWaitingAccountIds.isEmpty()) {
+        if (topWaitingUserIds!= null && !topWaitingUserIds.isEmpty()) {
             List txResults = redisTemplate.execute(new SessionCallback<>() {
 
                 @Override
                 public <K, V> List execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
                     operations.multi();
                     RedisOperations<String, String> pipelinedOps = (RedisOperations<String, String>) operations;
-                    pipelinedOps.opsForZSet().add(enterQueueKey, topWaitingAccountIds);
+                    pipelinedOps.opsForZSet().add(enterQueueKey, topWaitingUserIds);
 
-                    topWaitingAccountIds.forEach(tuple -> pipelinedOps.opsForZSet().remove(waitQueueKey, tuple.getValue()));
+                    topWaitingUserIds.forEach(tuple -> pipelinedOps.opsForZSet().remove(waitQueueKey, tuple.getValue()));
                     return operations.exec();
                 }
             });
 
             if (txResults != null && !txResults.isEmpty()) {
-                movedCount.set(topWaitingAccountIds.size());
-                log.info("Moved {} accounts from wait queue to enter queue", movedCount.get());
+                movedCount.set(topWaitingUserIds.size());
+                log.info("Moved {} users from wait queue to enter queue", movedCount.get());
             } else {
                 log.warn("Transaction failed or no items were moved");
             }
@@ -100,9 +100,9 @@ public class CouponQueueRedisManager extends BaseRedisManager {
                 .rangeWithScores(enterQueueKey, START_INDEX, BATCH_SIZE - 1);
     }
 
-    public void removeEnterQueueValue(Long couponId, Long accountId) {
+    public void removeEnterQueueValue(Long couponId, Long userId) {
         String enterQueueKey = getEnterQueueKey(couponId);
-        removeZSet(enterQueueKey, accountId.toString());
+        removeZSet(enterQueueKey, userId.toString());
     }
 
     private void removeZSet(String key, String value) {

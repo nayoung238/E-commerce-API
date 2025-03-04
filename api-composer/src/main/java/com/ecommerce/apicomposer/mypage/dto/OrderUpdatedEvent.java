@@ -4,7 +4,7 @@ import com.ecommerce.apicomposer.mypage.enums.OrderProcessingStatus;
 
 public record OrderUpdatedEvent (
 
-	long accountId,
+	long userId,
 	String orderEventId,
 	OrderProcessingStatus orderProcessingStatus
 ) { }

@@ -10,30 +10,30 @@ import java.util.List;
 public class OrderKafkaEvent {
 
     private String orderEventId;
-    private Long accountId;
+    private Long userId;
     private OrderProcessingStatus orderProcessingStatus;
     private List<OrderItemKafkaEvent> orderItemKafkaEvents;
     private LocalDateTime requestedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderKafkaEvent(String orderEventId, long accountId,
+    private OrderKafkaEvent(String orderEventId, long userId,
                             OrderProcessingStatus orderProcessingStatus,
                             List<OrderItemKafkaEvent> orderItemKafkaEvents,
                             LocalDateTime requestedAt) {
         this.orderEventId = orderEventId;
-        this.accountId = accountId;
+        this.userId = userId;
         this.orderProcessingStatus = orderProcessingStatus;
         this.orderItemKafkaEvents = orderItemKafkaEvents;
         this.requestedAt = requestedAt;
     }
 
-    public static OrderKafkaEvent of(String orderEventId, long accountId,
+    public static OrderKafkaEvent of(String orderEventId, long userId,
                                      OrderProcessingStatus orderProcessingStatus,
                                      List<OrderItemKafkaEvent> orderItemKafkaEvents,
                                      LocalDateTime requestedAt) {
         return OrderKafkaEvent.builder()
                 .orderEventId(orderEventId)
-                .accountId(accountId)
+                .userId(userId)
                 .orderProcessingStatus(orderProcessingStatus)
                 .orderItemKafkaEvents(orderItemKafkaEvents)
                 .requestedAt(requestedAt)

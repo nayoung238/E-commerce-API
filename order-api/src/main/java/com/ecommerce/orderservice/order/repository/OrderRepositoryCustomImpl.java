@@ -16,9 +16,9 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<Order> findByAccountIdOrderByOrderIdDesc(Long accountId, PageRequest pageRequest) {
+    public List<Order> findByUserIdOrderByOrderIdDesc(Long userId, PageRequest pageRequest) {
         return queryFactory.selectFrom(QOrder.order)
-                .where(QOrder.order.accountId.eq(accountId))
+                .where(QOrder.order.userId.eq(userId))
                 .join(QOrder.order.orderItems, QOrderItem.orderItem).fetchJoin()
                 .orderBy(new OrderSpecifier<>(com.querydsl.core.types.Order.DESC, QOrder.order.id))
                 .limit(pageRequest.getPageSize())
@@ -26,10 +26,10 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
     }
 
     @Override
-    public List<Order> findByAccountIdAndOrderIdLessThanOrderByOrderIdDesc(Long accountId, Long orderId, PageRequest pageRequest) {
+    public List<Order> findByUserIdAndOrderIdLessThanOrderByOrderIdDesc(Long userId, Long orderId, PageRequest pageRequest) {
         return queryFactory.selectFrom(QOrder.order)
                 .where(
-                        QOrder.order.accountId.eq(accountId),
+                        QOrder.order.userId.eq(userId),
                         QOrder.order.id.lt(orderId)
                 )
                 .join(QOrder.order.orderItems, QOrderItem.orderItem).fetchJoin()

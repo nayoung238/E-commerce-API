@@ -14,18 +14,18 @@ public class OrderDto {
 
     private final Long id;
     private final String orderEventId;
-    private final Long accountId;
+    private final Long userId;
     private OrderProcessingStatus orderProcessingStatus;
     private final List<OrderItemDto> orderItemDtos;
     private final LocalDateTime requestedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderDto(Long id, String orderEventId, Long accountId,
+    private OrderDto(Long id, String orderEventId, Long userId,
                      OrderProcessingStatus orderProcessingStatus, List<OrderItemDto> orderItemDtos,
                      LocalDateTime requestedAt) {
         this.id = id;
         this.orderEventId = orderEventId;
-        this.accountId = accountId;
+        this.userId = userId;
         this.orderProcessingStatus = orderProcessingStatus;
         this.orderItemDtos = orderItemDtos;
         this.requestedAt = requestedAt;
@@ -40,7 +40,7 @@ public class OrderDto {
         return OrderDto.builder()
                 .id(order.getId())
                 .orderEventId(order.getOrderEventId())
-                .accountId(order.getAccountId())
+                .userId(order.getUserId())
                 .orderProcessingStatus((order.getOrderProcessingStatus() == null) ? OrderProcessingStatus.PROCESSING : order.getOrderProcessingStatus())
                 .orderItemDtos(orderItemDtos)
                 .requestedAt(order.getRequestedAt())
@@ -57,7 +57,7 @@ public class OrderDto {
         return OrderDto.builder()
                 .id(null)
                 .orderEventId(orderKafkaEvent.getOrderEventId())
-                .accountId(orderKafkaEvent.getAccountId())
+                .userId(orderKafkaEvent.getUserId())
                 .orderProcessingStatus(orderKafkaEvent.getOrderProcessingStatus())
                 .orderItemDtos(orderItemDtos)
                 .requestedAt(orderKafkaEvent.getRequestedAt())

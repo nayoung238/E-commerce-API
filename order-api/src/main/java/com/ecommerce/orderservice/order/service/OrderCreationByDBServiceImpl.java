@@ -41,7 +41,7 @@ public class OrderCreationByDBServiceImpl implements OrderCreationService {
     @Transactional
     public OrderDto create(OrderRequestDto orderRequestDto) {
         Order order = Order.of(orderRequestDto);
-        order.initializeOrderEventId(getOrderEventId(order.getAccountId()));
+        order.initializeOrderEventId(getOrderEventId(order.getUserId()));
         orderRepository.save(order);
 
         // Kafka 이벤트 발행을 위한 내부 이벤트 생성 (Transactional Outbox Pattern)

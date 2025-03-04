@@ -32,12 +32,12 @@ class CouponIssuanceScheduler(
                 return
             }
 
-            val accountIds = getAccountIdsFromEnterQueue(couponId)
-            if (accountIds.isEmpty()) {
-                log.warn("No valid accountIds found for couponId: {}", couponId)
+            val userIds = getUserIdsFromEnterQueue(couponId)
+            if (userIds.isEmpty()) {
+                log.warn("No valid userIds found for couponId: {}", couponId)
                 return
             }
-            couponIssuanceService.issueCouponInBatchAsync(couponId, accountIds)
+            couponIssuanceService.issueCouponInBatchAsync(couponId, userIds)
         } catch (e: NumberFormatException) {
             log.error("Failed to parse enter queue key: {}", enterKey, e)
         } catch (e: Exception) {
@@ -45,7 +45,7 @@ class CouponIssuanceScheduler(
         }
     }
 
-    private fun getAccountIdsFromEnterQueue(couponId: Long): List<Long> {
+    private fun getUserIdsFromEnterQueue(couponId: Long): List<Long> {
         return couponQueueRedisManager.getEnterQueueValueAndScore(couponId)
             .mapNotNull { it.value }
             .mapNotNull { it.toLongOrNull() }

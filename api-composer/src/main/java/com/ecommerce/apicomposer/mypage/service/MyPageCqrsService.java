@@ -24,9 +24,9 @@ public class MyPageCqrsService {
     private final MongoTemplate mongoTemplate;
 
     public MyPageResponseDto getMyPage(HttpServletRequest httpServletRequest) {
-        Long accountId = Long.valueOf(httpServletRequest.getHeader("X-Account-Id"));
+        Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
 
-        MyPageResponseDto myPageResponse = findMyPage(accountId);
+        MyPageResponseDto myPageResponse = findMyPage(userId);
         if (myPageResponse != null) {
             return myPageResponse;
         }
@@ -35,8 +35,8 @@ public class MyPageCqrsService {
         return saveMyPage(myPageResponse);
     }
 
-    private MyPageResponseDto findMyPage(Long accountId) {
-        Query query = new Query(Criteria.where("accountId").is(accountId));
+    private MyPageResponseDto findMyPage(Long userId) {
+        Query query = new Query(Criteria.where("userId").is(userId));
         return mongoTemplate.findOne(query, MyPageResponseDto.class);
     }
 
@@ -46,26 +46,26 @@ public class MyPageCqrsService {
 
     @KafkaListener(topics = KafkaTopicConfig.ORDER_UPDATED_TOPIC)
     private void listenOrderUpdated(ConsumerRecord<Object, OrderUpdatedEvent> record) {
-        log.info("Event consumed successfully -> Topic: {}, accountId: {}, OrderStatus: {}",
+        log.info("Event consumed successfully -> Topic: {}, userId: {}, OrderStatus: {}",
             record.topic(),
-            record.value().accountId(),
+            record.value().userId(),
             record.value().orderProcessingStatus());
 
-        deleteMyPage(record.value().accountId());
+        deleteMyPage(record.value().userId());
     }
 
     @KafkaListener(topics = KafkaTopicConfig.COUPON_UPDATED_TOPIC)
     private void listenCouponUpdated(ConsumerRecord<Object, CouponUpdatedEvent> record) {
-        log.info("Event consumed successfully -> Topic: {}, accountId: {}, CouponStatus: {}",
+        log.info("Event consumed successfully -> Topic: {}, userId: {}, CouponStatus: {}",
             record.topic(),
-            record.value().accountId(),
+            record.value().userId(),
             record.value().couponStatus());
 
-        deleteMyPage(record.value().accountId());
+        deleteMyPage(record.value().userId());
     }
 
-    private DeleteResult deleteMyPage(Long accountId) {
-        Query query = new Query(Criteria.where("accountId").is(accountId));
+    private DeleteResult deleteMyPage(Long userId) {
+        Query query = new Query(Criteria.where("userId").is(userId));
         return mongoTemplate.remove(query, MyPageResponseDto.class);
     }
 }

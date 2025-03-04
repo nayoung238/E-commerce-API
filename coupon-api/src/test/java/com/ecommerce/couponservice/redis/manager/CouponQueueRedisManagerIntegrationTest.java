@@ -35,18 +35,18 @@ class CouponQueueRedisManagerIntegrationTest extends IntegrationTestSupport {
     void shouldAddAllUsersToEnterQueueAtOnceWhenRequestIsBelowBatchSize() {
         // given
         Long couponId = 1L;
-        List<Long> accountIds = IntStream.rangeClosed(1, Math.max((int) (BATCH_SIZE - 2), 1))
+        List<Long> userIds = IntStream.rangeClosed(1, Math.max((int) (BATCH_SIZE - 2), 1))
                 .mapToObj(Long:: valueOf)
                 .toList();
 
         // when
-        accountIds.forEach(i -> couponQueueRedisManager.addCouponWaitQueue(couponId, i));
+        userIds.forEach(i -> couponQueueRedisManager.addCouponWaitQueue(couponId, i));
 
         // then
         long movedCount = couponQueueRedisManager.moveFromWaitToEnterQueue(couponId);
-        assertEquals(accountIds.size(), movedCount);
+        assertEquals(userIds.size(), movedCount);
         assertThat(redisTemplate.opsForZSet().size(getWaitQueueKey(couponId))).isZero();
-        assertThat(redisTemplate.opsForZSet().size(getEnterQueueKey(couponId))).isEqualTo(accountIds.size());
+        assertThat(redisTemplate.opsForZSet().size(getEnterQueueKey(couponId))).isEqualTo(userIds.size());
     }
 
     @DisplayName("Batch 사이즈보다 많은 사용자가 단일 쿠폰 발급 요청 시 Batch 단위로 Enter Queue에 추가해야 한다.")
@@ -54,23 +54,23 @@ class CouponQueueRedisManagerIntegrationTest extends IntegrationTestSupport {
     void shouldAddUsersToEnterQueueInBatchesWhenRequestExceedsBatchSize() {
         // given
         Long couponId = 1L;
-        List<Long> accountIds = IntStream.rangeClosed(1, (int) (BATCH_SIZE + 3))
+        List<Long> userIds = IntStream.rangeClosed(1, (int) (BATCH_SIZE + 3))
                 .mapToObj(Long:: valueOf)
                 .toList();
 
         // when
-        accountIds.forEach(i -> couponQueueRedisManager.addCouponWaitQueue(couponId, i));
+        userIds.forEach(i -> couponQueueRedisManager.addCouponWaitQueue(couponId, i));
 
         // then
         long movedCount = couponQueueRedisManager.moveFromWaitToEnterQueue(couponId);
         assertEquals(BATCH_SIZE, movedCount);
-        assertThat(redisTemplate.opsForZSet().size(getWaitQueueKey(couponId))).isEqualTo(accountIds.size() - BATCH_SIZE);
+        assertThat(redisTemplate.opsForZSet().size(getWaitQueueKey(couponId))).isEqualTo(userIds.size() - BATCH_SIZE);
 
         movedCount += couponQueueRedisManager.moveFromWaitToEnterQueue(couponId);
-        assertEquals(accountIds.size(), movedCount);
+        assertEquals(userIds.size(), movedCount);
         assertThat(redisTemplate.opsForZSet().size(getWaitQueueKey(couponId))).isZero();
 
-        assertThat(redisTemplate.opsForZSet().size(getEnterQueueKey(couponId))).isEqualTo(accountIds.size());
+        assertThat(redisTemplate.opsForZSet().size(getEnterQueueKey(couponId))).isEqualTo(userIds.size());
     }
 
     @DisplayName("다수 쿠폰에 대한 Wait Queue에 있는 사용자를 Enter Queue로 이동시켜야 한다.")
@@ -78,10 +78,10 @@ class CouponQueueRedisManagerIntegrationTest extends IntegrationTestSupport {
     void shouldMoveUsersFromWaitToEnterQueueForMultipleCoupons() {
         // given
         List<Long> couponIds = List.of(1L, 2L);
-        final long accountId = 1L;
+        final long userId = 1L;
 
         // when
-        couponIds.forEach(i -> couponQueueRedisManager.addCouponWaitQueue(i, accountId));
+        couponIds.forEach(i -> couponQueueRedisManager.addCouponWaitQueue(i, userId));
 
         // then
         couponIds.forEach(id -> {

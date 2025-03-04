@@ -36,7 +36,7 @@ class CouponQueueServiceUnitTest {
     void shouldEnterWaitQueueWhenRequestingCouponIssuance () {
         // setup(data)
         final Long couponId = 1L;
-        final Long accountId = 1L;
+        final Long userId = 1L;
 
         // setup(expectations)
         when(couponStockRedisManager.getStock(couponId)).thenReturn(Optional.of(2L));
@@ -44,7 +44,7 @@ class CouponQueueServiceUnitTest {
         when(couponQueueRedisManager.getWaitQueueRank(anyLong(), anyLong())).thenReturn(1L);
 
         // exercise
-        couponQueueService.addToCouponWaitQueue(couponId, accountId);
+        couponQueueService.addToCouponWaitQueue(couponId, userId);
 
         // verify
         verify(couponQueueRedisManager, times(1))
@@ -59,7 +59,7 @@ class CouponQueueServiceUnitTest {
     void shouldReturnCorrectResponseWhenEnteringExistingCouponWaitQueue () {
         // setup(data)
         final Long couponId = 1L;
-        final Long accountId = 1L;
+        final Long userId = 1L;
         final long rank = 1L;
         final long expectedPosition = rank + 1;
 
@@ -69,14 +69,14 @@ class CouponQueueServiceUnitTest {
         when(couponQueueRedisManager.getWaitQueueRank(anyLong(), anyLong())).thenReturn(rank);
 
         // exercise
-        WaitQueuePositionResponseDto response = couponQueueService.addToCouponWaitQueue(couponId, accountId);
+        WaitQueuePositionResponseDto response = couponQueueService.addToCouponWaitQueue(couponId, userId);
 
         // verify
         assertThat(response).isNotNull();
         assertTrue(response.isExists());
         assertEquals(expectedPosition, response.getPosition());
 
-        String expectedMessage = String.format("Account %d is in position %d for coupon %d", accountId, expectedPosition, couponId);
+        String expectedMessage = String.format("User %d is in position %d for coupon %d", userId, expectedPosition, couponId);
         assertEquals(expectedMessage, response.getMessage());
     }
 
@@ -85,13 +85,13 @@ class CouponQueueServiceUnitTest {
     void shouldReturnAppropriateResponseForNonExistentCoupon() {
         // setup(data)
         final Long couponId = 1L;
-        final Long accountId = 1L;
+        final Long userId = 1L;
 
         // setup(expectations)
         when(couponStockRedisManager.getStock(couponId)).thenReturn(Optional.empty());
 
         // exercise
-        WaitQueuePositionResponseDto response = couponQueueService.addToCouponWaitQueue(couponId, accountId);
+        WaitQueuePositionResponseDto response = couponQueueService.addToCouponWaitQueue(couponId, userId);
 
         // verify
         assertThat(response).isNotNull();
@@ -104,10 +104,10 @@ class CouponQueueServiceUnitTest {
 
     @DisplayName("존재하는 쿠폰이지만, 대기열에 없는 사용자에 대해 적절한 응답을 반환해야 한다.")
     @Test
-    void shouldReturnAppropriateResponseForExistingCouponButAccountNotInQueue() {
+    void shouldReturnAppropriateResponseForExistingCouponButUserNotInQueue() {
         // setup(data)
         final Long couponId = 1L;
-        final Long accountId = 1L;
+        final Long userId = 1L;
         final Long rank = null;
 
         // setup(expectations)
@@ -116,14 +116,14 @@ class CouponQueueServiceUnitTest {
         when(couponQueueRedisManager.getWaitQueueRank(anyLong(), anyLong())).thenReturn(rank);
 
         // exercise
-        WaitQueuePositionResponseDto response = couponQueueService.addToCouponWaitQueue(couponId, accountId);
+        WaitQueuePositionResponseDto response = couponQueueService.addToCouponWaitQueue(couponId, userId);
 
         // verify
         assertThat(response).isNotNull();
         assertFalse(response.isExists());
         assertNull(response.getPosition());
 
-        String expectedMessage = String.format("The wait queue for coupon %d does not contain account %d", couponId, accountId);
+        String expectedMessage = String.format("The wait queue for coupon %d does not contain user %d", couponId, userId);
         assertEquals(expectedMessage, response.getMessage());
     }
 }
