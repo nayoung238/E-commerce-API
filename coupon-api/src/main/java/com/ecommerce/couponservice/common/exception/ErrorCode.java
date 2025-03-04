@@ -22,6 +22,7 @@ public enum ErrorCode {
 
     NOT_FOUND_INTERNAL_EVENT(HttpStatus.NOT_FOUND, "Internal event could not be found"),
 
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "액세스 토큰이 만료되었습니다."),
     ACCESS_TOKEN_FORMAT_INVALID(HttpStatus.BAD_REQUEST, "엑세스 토큰 형식이 잘못되었습니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN, "접근 권한이 없습니다.");
