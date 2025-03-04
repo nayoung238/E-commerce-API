@@ -15,10 +15,12 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
 	private final UserService userService;
@@ -34,6 +36,8 @@ public class AuthService {
 
 		String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getRole());
 		String refreshToken = jwtUtil.generateRefreshToken(user.getId(), user.getRole());
+
+		log.info("Generated access token and refresh token for userId={} - Access Token: {}, Refresh Token: {}", user.getId(), accessToken, refreshToken);
 
 		refreshTokenRepository.save(RefreshToken.of(user.getId(), refreshToken));
 
