@@ -1,6 +1,6 @@
 package com.ecommerce.auth.common.config;
 
-import com.ecommerce.auth.auth.jwt.TokenAuthenticationProvider;
+import com.ecommerce.auth.auth.jwt.JwtAuthenticationProvider;
 import com.ecommerce.auth.auth.jwt.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -14,10 +14,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @RequiredArgsConstructor
-public class TokenAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JwtUtil jwtUtil;
-	private final TokenAuthenticationProvider tokenAuthenticationProvider;
+	private final JwtAuthenticationProvider jwtAuthenticationProvider;
 	public final static String HEADER_AUTHORIZATION = "Authorization";
 	public final static String TOKEN_PREFIX = "Bearer ";
 
@@ -30,7 +30,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 		String token = getAccessToken(authorizationHeader);
 
 		if (jwtUtil.validateToken(token)) {
-			Authentication authentication = tokenAuthenticationProvider.getAuthentication(token);
+			Authentication authentication = jwtAuthenticationProvider.getAuthentication(token);
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 		}
 

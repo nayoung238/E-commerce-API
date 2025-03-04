@@ -1,7 +1,7 @@
 package com.ecommerce.auth.common.config;
 
 import com.ecommerce.auth.auth.jwt.JwtUtil;
-import com.ecommerce.auth.auth.jwt.TokenAuthenticationProvider;
+import com.ecommerce.auth.auth.jwt.JwtAuthenticationProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
 	private final JwtUtil jwtUtil;
-	private final TokenAuthenticationProvider tokenAuthenticationProvider;
+	private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -44,7 +44,7 @@ public class SecurityConfig {
 		"/users/health-check"
 	};
 
-	public TokenAuthenticationFilter tokenAuthenticationFilter() {
-		return new TokenAuthenticationFilter(jwtUtil, tokenAuthenticationProvider);
+	public JwtAuthenticationFilter tokenAuthenticationFilter() {
+		return new JwtAuthenticationFilter(jwtUtil, jwtAuthenticationProvider);
 	}
 }

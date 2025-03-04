@@ -14,7 +14,7 @@ import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
-public class TokenAuthenticationProvider {
+public class JwtAuthenticationProvider {
 
 	private final JwtUtil jwtUtil;
 	private final AuthService authService;
