@@ -16,6 +16,7 @@ public enum ErrorCode {
     NOT_VALID(HttpStatus.BAD_REQUEST, "유효하지 않은 값입니다."),
     CONSTRAINT_VIOLATION(HttpStatus.BAD_REQUEST, "제약조건 위반"),
 
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN, "접근 권한이 없습니다.");
 
     private final HttpStatus httpStatus;
