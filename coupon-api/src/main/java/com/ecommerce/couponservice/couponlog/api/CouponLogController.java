@@ -1,5 +1,9 @@
 package com.ecommerce.couponservice.couponlog.api;
 
+import com.ecommerce.couponservice.auth.entity.UserPrincipal;
+import com.ecommerce.couponservice.auth.jwt.JwtUtil;
+import com.ecommerce.couponservice.common.exception.CustomException;
+import com.ecommerce.couponservice.common.exception.ErrorCode;
 import com.ecommerce.couponservice.couponlog.dto.CouponLogResponseDto;
 import com.ecommerce.couponservice.couponlog.service.CouponLogService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,12 +12,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -24,14 +26,22 @@ import java.util.List;
 public class CouponLogController {
 
 	private final CouponLogService couponLogService;
+	private final JwtUtil jwtUtil;
 
-	@Operation(summary = "쿠폰 목록 조회", description = "HTTP 헤더에 X-User-Id 추가해주세요")
+	@Operation(summary = "쿠폰 목록 조회")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "쿠푼 목록 조회 성공", content = @Content(schema = @Schema(implementation = List.class))),
+		@ApiResponse(responseCode = "403", description = "접근 권한 없음", content = @Content(schema = @Schema(implementation = CustomException.class)))
 	})
 	@GetMapping
-	public ResponseEntity<?> findAllCouponLogs(HttpServletRequest httpServletRequest) {
-		Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
+	public ResponseEntity<?> findAllCouponLogs(@RequestHeader("Authorization") String authorization,
+											   @AuthenticationPrincipal UserPrincipal userPrincipal) {
+
+		Long userId = jwtUtil.getUserIdFromRequestHeader(authorization);
+		if (!userId.equals(userPrincipal.getId())) {
+			throw new CustomException(ErrorCode.FORBIDDEN);
+		}
+
 		List<CouponLogResponseDto> response = couponLogService.findAllCouponLogs(userId);
 		return ResponseEntity.ok(response);
 	}
