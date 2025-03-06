@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service //@Primary
 @Slf4j
 @RequiredArgsConstructor
-public class OrderCreationByKafkaStreamsJoinServiceImpl implements OrderCreationService {
+public class OrderCreationStreamsServiceImpl implements OrderCreationService {
 
     public final OrderRepository orderRepository;
     private final OrderRedisRepository orderRedisRepository;

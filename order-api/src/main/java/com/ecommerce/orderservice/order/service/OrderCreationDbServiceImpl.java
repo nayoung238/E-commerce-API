@@ -29,7 +29,7 @@ import java.util.*;
 @Service @Primary
 @Slf4j
 @RequiredArgsConstructor
-public class OrderCreationByDBServiceImpl implements OrderCreationService {
+public class OrderCreationDbServiceImpl implements OrderCreationService {
 
     public final OrderRepository orderRepository;
     private final OrderRedisRepository orderRedisRepository;

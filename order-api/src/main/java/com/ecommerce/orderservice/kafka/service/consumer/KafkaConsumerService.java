@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.kafka.service.consumer;
 
-import com.ecommerce.orderservice.order.service.OrderCreationByDBServiceImpl;
-import com.ecommerce.orderservice.order.service.OrderCreationByKafkaStreamsJoinServiceImpl;
+import com.ecommerce.orderservice.order.service.OrderCreationDbServiceImpl;
+import com.ecommerce.orderservice.order.service.OrderCreationStreamsServiceImpl;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KafkaConsumerService {
 
-    private final OrderCreationByDBServiceImpl orderCreationByDBService;
-    private final OrderCreationByKafkaStreamsJoinServiceImpl orderCreationByKafkaStreamsJoinService;
+    private final OrderCreationDbServiceImpl orderCreationByDBService;
+    private final OrderCreationStreamsServiceImpl orderCreationByKafkaStreamsJoinService;
 
     @KafkaListener(topics = TopicConfig.ORDER_PROCESSING_RESULT_TOPIC)
     private void listenOrderProcessingResultTopic(ConsumerRecord<String, OrderKafkaEvent> record) {
@@ -48,10 +48,12 @@ public class KafkaConsumerService {
                     record.topic(),
                     record.key());
 
-            if(record.topic().equals(TopicConfig.REQUESTED_ORDER_TOPIC))
+            if (record.topic().equals(TopicConfig.REQUESTED_ORDER_TOPIC)) {
                 orderCreationByDBService.checkFinalStatusOfOrder(record.value(), record.timestamp());
-            else if(record.key() != null)
+            }
+            else if (record.key() != null) {
                 orderCreationByKafkaStreamsJoinService.checkFinalStatusOfOrder(record.value(), record.timestamp());
+            }
         }
     }
 
@@ -64,9 +66,11 @@ public class KafkaConsumerService {
                 record.topic(),
                 record.value().getOrderEventId());
 
-        if(record.topic().equals(TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC))
+        if (record.topic().equals(TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC)) {
             orderCreationByDBService.requestOrderProcessingResult(record.value());
-        else
+        }
+        else {
             orderCreationByKafkaStreamsJoinService.requestOrderProcessingResult(record.value());
+        }
     }
 }
