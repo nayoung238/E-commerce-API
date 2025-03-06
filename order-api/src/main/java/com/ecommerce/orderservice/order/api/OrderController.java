@@ -1,8 +1,6 @@
 package com.ecommerce.orderservice.order.api;
 
 import com.ecommerce.orderservice.auth.entity.UserPrincipal;
-import com.ecommerce.orderservice.common.exception.CustomException;
-import com.ecommerce.orderservice.common.exception.ErrorCode;
 import com.ecommerce.orderservice.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.order.dto.OrderSimpleDto;
 import com.ecommerce.orderservice.order.service.OrderCreationService;
@@ -43,7 +41,7 @@ public class OrderController {
             @ApiResponse(responseCode = "400", description = "조건을 위반한 데이터 입력시 주문 실패", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
             @ApiResponse(responseCode = "500", description = "서버 오류 발생", content = @Content(schema = @Schema(implementation = Exception.class)))
     })
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<?> create(@RequestBody @Valid OrderRequestDto orderRequestDto) {
         OrderDto response = orderCreationService.create(orderRequestDto);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
@@ -55,35 +53,24 @@ public class OrderController {
             @ApiResponse(responseCode = "400", description = "조건을 위반한 데이터 입력시 주문 실패", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
             @ApiResponse(responseCode = "500", description = "서버 오류 발생", content = @Content(schema = @Schema(implementation = Exception.class)))
     })
-    @GetMapping(value = {"/{userId}/{cursorOrderId}", "/{userId}"})
-    public ResponseEntity<?> getOrderList(@PathVariable @Valid @Positive(message = "사용자 아이디는 1 이상이어야 합니다.") Long userId,
-                                          @PathVariable(required = false) @Valid @Positive(message = "주문 커서 아이디는 1 이상이어야 합니다.") Long cursorOrderId,
-                                          @AuthenticationPrincipal UserPrincipal userPrincipal) {
-
-        if (!userPrincipal.getId().equals(userId)) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
-        }
-
-        List<OrderSimpleDto> response = orderInquiryService.findOrderByUserIdAndOrderId(userId, cursorOrderId);
+    @GetMapping(value = {"/", "/cursor/{cursorOrderId}", })
+    public ResponseEntity<?> getOrders(@PathVariable(required = false) @Valid @Positive(message = "주문 커서 아이디는 1 이상이어야 합니다.") Long cursorOrderId,
+                                       @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        List<OrderSimpleDto> response = orderInquiryService.findOrdersByUserIdAndOrderId(userPrincipal.getId(), cursorOrderId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @Operation(summary = "최신 주문 조회", description = "생성 시간 기준(Id(PK)가 가장 큰)으로 가장 최근 주문 리턴")
+    @Operation(summary = "주문 단건 조회", description = "Order Id 주문 정보 리턴")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "최신 주문 데이터 조회 완료", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
             @ApiResponse(responseCode = "400", description = "조건을 위반한 데이터 입력시 주문 실패", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
             @ApiResponse(responseCode = "404", description = "주문이 존재하지 않는 경우", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
             @ApiResponse(responseCode = "500", description = "서버 오류 발생", content = @Content(schema = @Schema(implementation = Exception.class)))
     })
-    @GetMapping("/latest/{userId}")
-    public ResponseEntity<?> getLatestOrder(@PathVariable @Valid @Positive(message = "사용자 아이디는 1 이상이어야 합니다.") Long userId,
-                                            @AuthenticationPrincipal UserPrincipal userPrincipal) {
-
-        if (!userPrincipal.getId().equals(userId)) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
-        }
-
-        OrderDto response = orderInquiryService.findLatestOrderByUserId(userId);
+    @GetMapping("/{orderId}")
+    public ResponseEntity<?> getOrderById(@PathVariable @Valid @Positive(message = "Order Id는 1 이상이어야 합니다.") Long orderId,
+                                          @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        OrderDto response = orderInquiryService.findOrderById(orderId, userPrincipal.getId());
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
