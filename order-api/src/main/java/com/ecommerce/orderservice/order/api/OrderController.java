@@ -4,7 +4,7 @@ import com.ecommerce.orderservice.auth.entity.UserPrincipal;
 import com.ecommerce.orderservice.order.dto.OrderRequestDto;
 import com.ecommerce.orderservice.order.dto.OrderSimpleDto;
 import com.ecommerce.orderservice.order.service.OrderCreationService;
-import com.ecommerce.orderservice.order.service.OrderInquiryService;
+import com.ecommerce.orderservice.order.service.OrderQueryService;
 import com.ecommerce.orderservice.order.dto.OrderDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,7 +33,7 @@ import java.util.List;
 public class OrderController {
 
     private final OrderCreationService orderCreationService;
-    private final OrderInquiryService orderInquiryService;
+    private final OrderQueryService orderQueryService;
 
     @Operation(summary = "주문 생성", description = "주문 생성 시 주문 상태는 대기 (최종 상태가 확정되면 별도 알림)")
     @ApiResponses({
@@ -56,7 +56,7 @@ public class OrderController {
     @GetMapping(value = {"/", "/cursor/{cursorOrderId}", })
     public ResponseEntity<?> getOrders(@PathVariable(required = false) @Valid @Positive(message = "주문 커서 아이디는 1 이상이어야 합니다.") Long cursorOrderId,
                                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        List<OrderSimpleDto> response = orderInquiryService.findOrdersByUserIdAndOrderId(userPrincipal.getId(), cursorOrderId);
+        List<OrderSimpleDto> response = orderQueryService.findOrdersByUserIdAndOrderId(userPrincipal.getId(), cursorOrderId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -70,7 +70,7 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<?> getOrderById(@PathVariable @Valid @Positive(message = "Order Id는 1 이상이어야 합니다.") Long orderId,
                                           @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        OrderDto response = orderInquiryService.findOrderById(orderId, userPrincipal.getId());
+        OrderDto response = orderQueryService.findOrderById(orderId, userPrincipal.getId());
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

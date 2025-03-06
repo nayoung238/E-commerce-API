@@ -16,7 +16,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class OrderInquiryService {
+public class OrderQueryService {
 
     public final OrderRepository orderRepository;
     public static final int PAGE_SIZE = 5;
