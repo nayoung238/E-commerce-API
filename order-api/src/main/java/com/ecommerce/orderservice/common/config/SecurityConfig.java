@@ -31,7 +31,7 @@ public class SecurityConfig {
 			.formLogin(AbstractHttpConfigurer::disable)
 			.logout(AbstractHttpConfigurer::disable)
 			.authorizeHttpRequests(auth -> auth
-				.requestMatchers(HttpMethod.POST, "/orders/create").permitAll()
+				.requestMatchers(HttpMethod.POST, "/orders").permitAll()
 				.requestMatchers(HttpMethod.GET, "/orders/health-check").permitAll()
 				.anyRequest().authenticated()
 			)

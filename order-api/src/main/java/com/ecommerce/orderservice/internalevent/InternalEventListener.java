@@ -4,7 +4,7 @@ import com.ecommerce.orderservice.internalevent.entity.OrderInternalEvent;
 import com.ecommerce.orderservice.kafka.dto.updatedEvent.OrderUpdatedEvent;
 import com.ecommerce.orderservice.order.dto.OrderDto;
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
-import com.ecommerce.orderservice.order.service.OrderInquiryService;
+import com.ecommerce.orderservice.order.service.OrderQueryService;
 import com.ecommerce.orderservice.internalevent.service.InternalEventService;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
@@ -23,7 +23,7 @@ public class InternalEventListener {
 
     private final InternalEventService internalEventService;
     private final KafkaProducerService kafkaProducerService;
-    private final OrderInquiryService orderInquiryService;
+    private final OrderQueryService orderQueryService;
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void insertOrderCreationInternalEvent(OrderInternalEvent event) {
@@ -34,7 +34,7 @@ public class InternalEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void createKafkaEvent(OrderInternalEvent orderInternalEvent) {
         if (orderInternalEvent.getOrderProcessingStatus().equals(OrderProcessingStatus.CREATION)) {
-            OrderDto orderDto = orderInquiryService.findOrderByOrderEventId(orderInternalEvent.getOrderEventId());
+            OrderDto orderDto = orderQueryService.findOrderByOrderEventId(orderInternalEvent.getOrderEventId());
             kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, orderDto.getOrderEventId(), OrderKafkaEvent.of(orderDto));
         }
 
