@@ -32,13 +32,6 @@ public class OrderQueryService {
         return OrderDto.of(order);
     }
 
-    public OrderDto findLatestOrderByUserId(Long userId) {
-        Order order = orderRepository.findLatestOrderByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER.getMessage()));
-
-        return OrderDto.of(order);
-    }
-
     public OrderDto findOrderByOrderEventId(String orderEventId) {
         Order order = orderRepository.findByOrderEventId(orderEventId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER.getMessage()));
