@@ -1,5 +1,6 @@
 package com.ecommerce.apicomposer.common.service;
 
+import com.ecommerce.apicomposer.auth.jwt.JwtUtil;
 import com.ecommerce.apicomposer.mypage.dto.response.CouponLogResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,5 +12,5 @@ import java.util.List;
 public interface CouponServiceClient {
 
 	@GetMapping("/coupons/log")
-	List<CouponLogResponse> findCoupons(@RequestHeader("X-User-Id") Long userId);
+	List<CouponLogResponse> findCoupons(@RequestHeader(JwtUtil.HEADER_AUTHORIZATION) String authorization);
 }

@@ -23,9 +23,7 @@ public class MyPageCqrsService {
     private final MyPageCompositionService myPageCompositionService;
     private final MongoTemplate mongoTemplate;
 
-    public MyPageResponse getMyPage(HttpServletRequest httpServletRequest) {
-        Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
-
+    public MyPageResponse getMyPage(Long userId, HttpServletRequest httpServletRequest) {
         MyPageResponse myPageResponse = findMyPage(userId);
         if (myPageResponse != null) {
             return myPageResponse;

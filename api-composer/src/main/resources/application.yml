@@ -22,3 +22,7 @@ eureka:
       enabled: true
     service-url:
       defaultZone: http://localhost:${eureka.client.eureka-server-port}/eureka
+
+jwt:
+  issuer: auth-service
+  secret_key: cPlFdV3BdHxqABIwNpgvyOkZgskfj23jeJNxjujgQoE=

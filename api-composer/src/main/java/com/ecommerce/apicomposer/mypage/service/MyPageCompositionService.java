@@ -1,5 +1,6 @@
 package com.ecommerce.apicomposer.mypage.service;
 
+import com.ecommerce.apicomposer.auth.jwt.JwtUtil;
 import com.ecommerce.apicomposer.common.exception.CustomException;
 import com.ecommerce.apicomposer.common.exception.ErrorCode;
 import com.ecommerce.apicomposer.common.service.AuthServiceClient;
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class MyPageCompositionService {
 
+    private final JwtUtil jwtUtil;
     private final AuthServiceClient authServiceClient;
     private final OrderServiceClient orderServiceClient;
     private final CouponServiceClient couponServiceClient;
@@ -43,10 +45,11 @@ public class MyPageCompositionService {
     }
 
     private CompletableFuture<UserResponse> findUserAsync(HttpServletRequest httpServletRequest) {
-        Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
+        String accessToken = jwtUtil.getAccessToken(httpServletRequest);
+        Long userId = jwtUtil.getUserIdFromToken(accessToken);
 
         return CompletableFuture
-            .supplyAsync(() -> authServiceClient.findUser(userId))
+            .supplyAsync(() -> authServiceClient.findUser(userId, httpServletRequest.getHeader(JwtUtil.HEADER_AUTHORIZATION)))
             .orTimeout(TIMEOUT, TimeUnit.SECONDS)
             .exceptionally(ex -> {
                 log.error("Error fetching user: {}", ex.getMessage());
@@ -55,10 +58,8 @@ public class MyPageCompositionService {
     }
 
     private CompletableFuture<List<OrderSummaryResponse>> findOrdersAsync(HttpServletRequest httpServletRequest) {
-        Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
-
         return CompletableFuture
-            .supplyAsync(() -> orderServiceClient.findOrderList(userId))
+            .supplyAsync(() -> orderServiceClient.findOrders(httpServletRequest.getHeader(JwtUtil.HEADER_AUTHORIZATION)))
             .orTimeout(TIMEOUT, TimeUnit.SECONDS)
             .exceptionally(ex -> {
                 log.error("Error fetching order list: {}", ex.getMessage());
@@ -67,10 +68,8 @@ public class MyPageCompositionService {
     }
 
     private CompletableFuture<List<CouponLogResponse>> findCouponsAsync(HttpServletRequest httpServletRequest) {
-        Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
-
         return CompletableFuture
-            .supplyAsync(() -> couponServiceClient.findCouponList(userId))
+            .supplyAsync(() -> couponServiceClient.findCoupons(httpServletRequest.getHeader(JwtUtil.HEADER_AUTHORIZATION)))
             .orTimeout(TIMEOUT, TimeUnit.SECONDS)
             .exceptionally(ex -> {
                 log.error("Error fetching coupon list: {}", ex.getMessage());
