@@ -7,19 +7,14 @@ import com.ecommerce.orderservice.order.dto.OrderItemRequestDto;
 import lombok.*;
 
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class OrderItemKafkaEvent {
 
     private Long itemId;
     private Long quantity;
     private OrderProcessingStatus orderProcessingStatus;
-
-    @Builder(access = AccessLevel.PRIVATE)
-    private OrderItemKafkaEvent(long itemId, long quantity, OrderProcessingStatus orderProcessingStatus) {
-        this.itemId = itemId;
-        this.quantity = quantity;;
-        this.orderProcessingStatus = orderProcessingStatus;
-    }
 
     public static OrderItemKafkaEvent of(OrderItem orderItem) {
         return OrderItemKafkaEvent.builder()

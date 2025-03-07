@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class OrderKafkaEvent {
 
@@ -20,17 +22,6 @@ public class OrderKafkaEvent {
     private OrderProcessingStatus orderProcessingStatus;
     private List<OrderItemKafkaEvent> orderItemKafkaEvents;
     private LocalDateTime requestedAt;
-
-    @Builder(access = AccessLevel.PRIVATE)
-    private OrderKafkaEvent(String orderEventId, long userId,
-                            OrderProcessingStatus orderProcessingStatus, List<OrderItemKafkaEvent> orderItemKafkaEvents,
-                            LocalDateTime requestedAt) {
-        this.orderEventId = orderEventId;
-        this.userId = userId;
-        this.orderProcessingStatus = orderProcessingStatus;
-        this.orderItemKafkaEvents = orderItemKafkaEvents;
-        this.requestedAt = requestedAt;
-    }
 
     public static OrderKafkaEvent of(Order order) {
         List<OrderItemKafkaEvent> orderItemKafkaEvents = order
