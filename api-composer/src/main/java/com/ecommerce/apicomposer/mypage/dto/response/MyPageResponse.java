@@ -1,4 +1,4 @@
-package com.ecommerce.apicomposer.mypage.dto;
+package com.ecommerce.apicomposer.mypage.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
@@ -6,7 +6,7 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record MyPageResponseDto (
+public record MyPageResponse (
 
     @JsonProperty("userId")
     Long userId,
@@ -18,14 +18,14 @@ public record MyPageResponseDto (
     String name,
 
     @JsonProperty("orders")
-    List<OrderSimpleDto> orders,
+    List<OrderSummaryResponse> orders,
 
     @JsonProperty("coupons")
-    List<CouponResponseDto> coupons
+    List<CouponLogResponse> coupons
 ) {
 
-    public static MyPageResponseDto of(UserResponseDto user, List<OrderSimpleDto> orders, List<CouponResponseDto> coupons) {
-        return MyPageResponseDto.builder()
+    public static MyPageResponse of(UserResponse user, List<OrderSummaryResponse> orders, List<CouponLogResponse> coupons) {
+        return MyPageResponse.builder()
                 .userId(user.userId())
                 .loginId(user.loginId())
                 .name(user.name())

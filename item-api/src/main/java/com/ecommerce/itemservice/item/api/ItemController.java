@@ -1,7 +1,7 @@
 package com.ecommerce.itemservice.item.api;
 
-import com.ecommerce.itemservice.item.dto.ItemRegisterRequest;
-import com.ecommerce.itemservice.item.dto.ItemDto;
+import com.ecommerce.itemservice.item.dto.request.ItemRegisterRequest;
+import com.ecommerce.itemservice.item.dto.response.ItemResponse;
 import com.ecommerce.itemservice.item.service.ItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,7 +33,7 @@ public class ItemController {
     })
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody @Valid ItemRegisterRequest request) {
-        ItemDto response = itemService.create(request);
+        ItemResponse response = itemService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

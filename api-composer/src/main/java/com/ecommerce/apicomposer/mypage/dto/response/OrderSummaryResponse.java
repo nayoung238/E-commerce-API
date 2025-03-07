@@ -1,6 +1,6 @@
-package com.ecommerce.apicomposer.mypage.dto;
+package com.ecommerce.apicomposer.mypage.dto.response;
 
-public record OrderSimpleDto (
+public record OrderSummaryResponse (
 
     Long orderId,
     String orderEventId,

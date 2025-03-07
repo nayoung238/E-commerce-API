@@ -1,8 +1,8 @@
 package com.ecommerce.auth.user.service;
 
 import com.ecommerce.auth.auth.enums.BaseRole;
-import com.ecommerce.auth.user.dto.UserResponseDto;
-import com.ecommerce.auth.user.dto.SignUpRequestDto;
+import com.ecommerce.auth.user.dto.response.UserResponse;
+import com.ecommerce.auth.user.dto.request.SignUpRequest;
 import com.ecommerce.auth.user.entity.User;
 import com.ecommerce.auth.user.repository.UserRepository;
 import com.ecommerce.auth.common.exception.CustomException;
@@ -19,7 +19,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public UserResponseDto createUser(SignUpRequestDto request) {
+    public UserResponse createUser(SignUpRequest request) {
         if(userRepository.existsByLoginId(request.loginId())) {
             throw new CustomException(ErrorCode.DUPLICATE_LOGIN_ID);
         }
@@ -27,17 +27,17 @@ public class UserService {
         try {
             User user = User.of(request);
             userRepository.save(user);
-            return UserResponseDto.of(user);
+            return UserResponse.of(user);
         } catch (DataIntegrityViolationException e) {
             throw new CustomException(ErrorCode.DUPLICATE_LOGIN_ID);
         }
     }
 
-    public UserResponseDto findUser(Long userId) {
+    public UserResponse findUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
-        return UserResponseDto.of(user);
+        return UserResponse.of(user);
     }
 
     public User findUserEntity(Long userId) {

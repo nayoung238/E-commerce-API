@@ -1,6 +1,6 @@
 package com.ecommerce.auth.user.api;
 
-import com.ecommerce.auth.user.dto.SignUpRequestDto;
+import com.ecommerce.auth.user.dto.request.SignUpRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class UserControllerTest {
 	@DisplayName("[회원 가입 성공 테스트] 회원 가입 성공 시 회원 정보 반환")
 	void sign_up_succeed_test () throws Exception {
 		// given
-		SignUpRequestDto request = SignUpRequestDto.builder()
+		SignUpRequest request = SignUpRequest.builder()
 			.loginId("test-login-id")
 			.password("test-password")
 			.name("test-name")
@@ -53,7 +53,7 @@ class UserControllerTest {
 	@DisplayName("[회원 가입 실패 테스트] 요청 DTO 유효성 위반")
 	void sign_up_failure_test () throws Exception {
 		// given
-		SignUpRequestDto request = SignUpRequestDto.builder()
+		SignUpRequest request = SignUpRequest.builder()
 			.loginId(" ")
 			.password("test-password")
 			.name("test-name")

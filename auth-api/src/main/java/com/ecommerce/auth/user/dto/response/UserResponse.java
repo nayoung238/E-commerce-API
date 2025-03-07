@@ -1,18 +1,18 @@
-package com.ecommerce.auth.user.dto;
+package com.ecommerce.auth.user.dto.response;
 
 import com.ecommerce.auth.user.entity.User;
 import lombok.Builder;
 
 @Builder
-public record UserResponseDto(
+public record UserResponse(
 
     long userId,
     String loginId,
     String name
 ) {
 
-    public static UserResponseDto of(User user) {
-        return UserResponseDto.builder()
+    public static UserResponse of(User user) {
+        return UserResponse.builder()
                 .userId(user.getId())
                 .loginId(user.getLoginId())
                 .name(user.getName())

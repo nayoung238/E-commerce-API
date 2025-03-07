@@ -1,10 +1,10 @@
-package com.ecommerce.auth.user.dto;
+package com.ecommerce.auth.user.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
 @Builder
-public record SignUpRequestDto (
+public record SignUpRequest(
 
 	@NotBlank(message = "로그인 아이디는 필수입니다.")
     String loginId,

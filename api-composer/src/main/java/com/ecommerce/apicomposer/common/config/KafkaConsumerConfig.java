@@ -1,9 +1,9 @@
 package com.ecommerce.apicomposer.common.config;
 
-import com.ecommerce.apicomposer.mypage.dto.CouponUpdatedEvent;
-import com.ecommerce.apicomposer.mypage.dto.CouponUpdatedEventDeserializer;
-import com.ecommerce.apicomposer.mypage.dto.OrderUpdatedEvent;
-import com.ecommerce.apicomposer.mypage.dto.OrderUpdatedEventDeserializer;
+import com.ecommerce.apicomposer.mypage.dto.kafka.CouponUpdatedEvent;
+import com.ecommerce.apicomposer.mypage.dto.kafka.CouponUpdatedEventDeserializer;
+import com.ecommerce.apicomposer.mypage.dto.kafka.OrderUpdatedEvent;
+import com.ecommerce.apicomposer.mypage.dto.kafka.OrderUpdatedEventDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;

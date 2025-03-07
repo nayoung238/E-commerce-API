@@ -1,6 +1,6 @@
 package com.ecommerce.apicomposer.mypage.api;
 
-import com.ecommerce.apicomposer.mypage.dto.MyPageResponseDto;
+import com.ecommerce.apicomposer.mypage.dto.response.MyPageResponse;
 import com.ecommerce.apicomposer.mypage.service.MyPageCqrsService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class MyPageController {
 
 	@GetMapping
 	public ResponseEntity<?> findMyPage(HttpServletRequest httpServletRequest) {
-		MyPageResponseDto response = myPageCqrsService.getMyPage(httpServletRequest);
+		MyPageResponse response = myPageCqrsService.getMyPage(httpServletRequest);
 		return ResponseEntity.ok(response);
 	}
 }

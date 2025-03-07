@@ -3,7 +3,7 @@ package com.ecommerce.auth.auth.api;
 import com.ecommerce.auth.auth.dto.request.LoginRequest;
 import com.ecommerce.auth.auth.service.AuthService;
 import com.ecommerce.auth.common.config.SecurityConfig;
-import com.ecommerce.auth.user.dto.SignUpRequestDto;
+import com.ecommerce.auth.user.dto.request.SignUpRequest;
 import com.ecommerce.auth.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
@@ -46,7 +46,7 @@ class AuthControllerTest {
 		final String loginId = "test-login-id";
 		final String password = "test-password";
 
-		SignUpRequestDto signUpRequest = SignUpRequestDto.builder()
+		SignUpRequest signUpRequest = SignUpRequest.builder()
 			.loginId(loginId)
 			.name("test-name")
 			.password(password)

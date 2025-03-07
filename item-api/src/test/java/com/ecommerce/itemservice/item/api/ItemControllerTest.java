@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.item.api;
 
-import com.ecommerce.itemservice.item.dto.ItemRegisterRequest;
+import com.ecommerce.itemservice.item.dto.request.ItemRegisterRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

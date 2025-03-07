@@ -1,4 +1,4 @@
-package com.ecommerce.apicomposer.mypage.dto;
+package com.ecommerce.apicomposer.mypage.dto.kafka;
 
 import com.ecommerce.apicomposer.mypage.enums.CouponStatus;
 

@@ -6,14 +6,14 @@ import lombok.Builder;
 import java.math.BigDecimal;
 
 @Builder
-public record CouponLogResponseDto (
+public record CouponLogResponse(
 
 	String couponName,
 	BigDecimal discountRate
 ) {
 
-	public static CouponLogResponseDto of(CouponLog couponLog) {
-		return CouponLogResponseDto.builder()
+	public static CouponLogResponse of(CouponLog couponLog) {
+		return CouponLogResponse.builder()
 			.couponName(couponLog.getCoupon().getName())
 			.discountRate(couponLog.getCoupon().getDiscountRate())
 			.build();

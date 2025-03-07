@@ -5,7 +5,10 @@ import com.ecommerce.apicomposer.common.exception.ErrorCode;
 import com.ecommerce.apicomposer.common.service.AuthServiceClient;
 import com.ecommerce.apicomposer.common.service.CouponServiceClient;
 import com.ecommerce.apicomposer.common.service.OrderServiceClient;
-import com.ecommerce.apicomposer.mypage.dto.*;
+import com.ecommerce.apicomposer.mypage.dto.response.CouponLogResponse;
+import com.ecommerce.apicomposer.mypage.dto.response.MyPageResponse;
+import com.ecommerce.apicomposer.mypage.dto.response.OrderSummaryResponse;
+import com.ecommerce.apicomposer.mypage.dto.response.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,18 +31,18 @@ public class MyPageCompositionService {
 
     private static final long TIMEOUT = 5L;
 
-    public MyPageResponseDto getMyPageDetails(HttpServletRequest httpServletRequest) {
+    public MyPageResponse getMyPageDetails(HttpServletRequest httpServletRequest) {
         try {
-            UserResponseDto user = findUserAsync(httpServletRequest).get();
-            List<OrderSimpleDto> orderList = findOrderListAsync(httpServletRequest).get();
-            List<CouponResponseDto> couponList = findCouponListAsync(httpServletRequest).get();
-            return MyPageResponseDto.of(user, orderList, couponList);
+            UserResponse user = findUserAsync(httpServletRequest).get();
+            List<OrderSummaryResponse> orderList = findOrdersAsync(httpServletRequest).get();
+            List<CouponLogResponse> couponList = findCouponsAsync(httpServletRequest).get();
+            return MyPageResponse.of(user, orderList, couponList);
         } catch (ExecutionException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
     }
 
-    private CompletableFuture<UserResponseDto> findUserAsync(HttpServletRequest httpServletRequest) {
+    private CompletableFuture<UserResponse> findUserAsync(HttpServletRequest httpServletRequest) {
         Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
 
         return CompletableFuture
@@ -51,7 +54,7 @@ public class MyPageCompositionService {
             });
     }
 
-    private CompletableFuture<List<OrderSimpleDto>> findOrderListAsync(HttpServletRequest httpServletRequest) {
+    private CompletableFuture<List<OrderSummaryResponse>> findOrdersAsync(HttpServletRequest httpServletRequest) {
         Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
 
         return CompletableFuture
@@ -63,7 +66,7 @@ public class MyPageCompositionService {
             });
     }
 
-    private CompletableFuture<List<CouponResponseDto>> findCouponListAsync(HttpServletRequest httpServletRequest) {
+    private CompletableFuture<List<CouponLogResponse>> findCouponsAsync(HttpServletRequest httpServletRequest) {
         Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
 
         return CompletableFuture
