@@ -22,7 +22,7 @@ import java.util.UUID;
 @ActiveProfiles("test")
 public class IntegrationTestSupport {
 
-    protected OrderRequestDto getOrderRequestDto(long userId, List<Long> orderItemIds) {
+    protected OrderRequestDto getOrderRequestDto(Long userId, List<Long> orderItemIds) {
         List<OrderItemRequestDto> orderItemRequestDtos = orderItemIds.stream()
                 .map(i -> OrderItemRequestDto.builder()
                     .itemId(i)
@@ -33,12 +33,12 @@ public class IntegrationTestSupport {
         return OrderRequestDto.of(userId, orderItemRequestDtos);
     }
 
-    protected Order getOrder(long userId, List<Long> orderItemIds) {
+    protected Order getOrder(Long userId, List<Long> orderItemIds, OrderProcessingStatus orderProcessingStatus) {
         List<OrderItem> orderItems = orderItemIds.stream()
             .map(id -> OrderItem.builder()
                 .itemId(id)
                 .quantity(3L)
-                .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
+                .orderProcessingStatus(orderProcessingStatus)
                 .build())
             .toList();
 
@@ -46,15 +46,18 @@ public class IntegrationTestSupport {
             .userId(userId)
             .orderEventId(getOrderEventId(userId))
             .orderItems(orderItems)
-            .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
+            .orderProcessingStatus(orderProcessingStatus)
             .build();
 
         orderItems.forEach(i -> i.initializeOrder(order));
         return order;
     }
 
-    private String getOrderEventId(long userId) {
+    private String getOrderEventId(Long userId) {
         String[] uuid = UUID.randomUUID().toString().split("-");
+        if (userId == null) {
+            return uuid[0];
+        }
         return userId + "-" + uuid[0];
     }
 
