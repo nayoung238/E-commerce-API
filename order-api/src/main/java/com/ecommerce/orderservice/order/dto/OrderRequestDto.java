@@ -17,13 +17,14 @@ public record OrderRequestDto (
     @Schema(description = "사용자 아이디", nullable = false)
     Long userId,
 
+    @NotNull(message = "주문 아이템은 필수입니다.")
     @Valid
     @Size(min = 1, message = "주문 아이템은 필수입니다")
     @Schema(description = "주문 아이템 목록", nullable = false)
     List<OrderItemRequestDto> orderItemRequestDtos
 ) {
 
-    public static OrderRequestDto of(long userId, List<OrderItemRequestDto> orderItemRequestDtos) {
+    public static OrderRequestDto of(Long userId, List<OrderItemRequestDto> orderItemRequestDtos) {
         return OrderRequestDto.builder()
                 .userId(userId)
                 .orderItemRequestDtos(orderItemRequestDtos)
