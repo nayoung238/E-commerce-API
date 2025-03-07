@@ -4,7 +4,7 @@ import com.ecommerce.couponservice.auth.entity.UserPrincipal;
 import com.ecommerce.couponservice.auth.jwt.JwtUtil;
 import com.ecommerce.couponservice.common.exception.CustomException;
 import com.ecommerce.couponservice.common.exception.ErrorCode;
-import com.ecommerce.couponservice.couponlog.dto.CouponLogResponseDto;
+import com.ecommerce.couponservice.couponlog.dto.CouponLogResponse;
 import com.ecommerce.couponservice.couponlog.service.CouponLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -42,7 +42,7 @@ public class CouponLogController {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 
-		List<CouponLogResponseDto> response = couponLogService.findAllCouponLogs(userId);
+		List<CouponLogResponse> response = couponLogService.findAllCouponLogs(userId);
 		return ResponseEntity.ok(response);
 	}
 }

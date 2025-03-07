@@ -1,6 +1,6 @@
 package com.ecommerce.itemservice.item.entity;
 
-import com.ecommerce.itemservice.item.dto.ItemRegisterRequest;
+import com.ecommerce.itemservice.item.dto.request.ItemRegisterRequest;
 import com.ecommerce.itemservice.common.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;

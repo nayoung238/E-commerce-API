@@ -3,7 +3,7 @@ package com.ecommerce.auth.user.entity;
 import com.ecommerce.auth.auth.enums.BaseRole;
 import com.ecommerce.auth.common.exception.CustomException;
 import com.ecommerce.auth.common.exception.ErrorCode;
-import com.ecommerce.auth.user.dto.SignUpRequestDto;
+import com.ecommerce.auth.user.dto.request.SignUpRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,7 +32,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private BaseRole role;
 
-    public static User of(SignUpRequestDto signUpRequest) {
+    public static User of(SignUpRequest signUpRequest) {
         return User.builder()
                 .loginId(signUpRequest.loginId())
                 .password(signUpRequest.password())

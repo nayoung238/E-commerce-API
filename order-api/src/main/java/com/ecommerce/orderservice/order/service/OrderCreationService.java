@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.order.service;
 
-import com.ecommerce.orderservice.order.dto.OrderRequestDto;
-import com.ecommerce.orderservice.order.dto.OrderDto;
+import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
+import com.ecommerce.orderservice.order.dto.response.OrderDetailResponse;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public interface OrderCreationService {
 
-    OrderDto create(OrderRequestDto orderRequestDto);
+    OrderDetailResponse create(OrderCreationRequest orderCreationRequest);
     void checkFinalStatusOfOrder(OrderKafkaEvent orderKafkaEvent, long recordTimestamp);
     void requestOrderProcessingResult(OrderKafkaEvent orderKafkaEvent);
     void resendKafkaMessage(OrderKafkaEvent orderKafkaEvent);
