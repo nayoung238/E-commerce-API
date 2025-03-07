@@ -4,7 +4,7 @@ import com.ecommerce.couponservice.common.exception.CustomException;
 import com.ecommerce.couponservice.common.exception.ErrorCode;
 import com.ecommerce.couponservice.coupon.entity.Coupon;
 import com.ecommerce.couponservice.coupon.repository.CouponRepository;
-import com.ecommerce.couponservice.couponlog.dto.CouponLogResponseDto;
+import com.ecommerce.couponservice.couponlog.dto.CouponLogResponse;
 import com.ecommerce.couponservice.couponlog.entity.CouponLog;
 import com.ecommerce.couponservice.couponlog.repository.CouponLogRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,10 +34,10 @@ public class CouponLogService {
 		couponRepository.save(coupon);
 	}
 
-	public List<CouponLogResponseDto> findAllCouponLogs(Long userId) {
+	public List<CouponLogResponse> findAllCouponLogs(Long userId) {
 		return couponLogRepository.findAllByUserId(userId)
 			.stream()
-			.map(CouponLogResponseDto::of)
+			.map(CouponLogResponse::of)
 			.toList();
 	}
 }

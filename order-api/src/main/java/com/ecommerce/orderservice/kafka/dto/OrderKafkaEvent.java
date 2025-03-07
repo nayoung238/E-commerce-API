@@ -2,8 +2,8 @@ package com.ecommerce.orderservice.kafka.dto;
 
 import com.ecommerce.orderservice.order.entity.Order;
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
-import com.ecommerce.orderservice.order.dto.OrderDto;
-import com.ecommerce.orderservice.order.dto.OrderRequestDto;
+import com.ecommerce.orderservice.order.dto.response.OrderDetailResponse;
+import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class OrderKafkaEvent {
 
@@ -20,17 +22,6 @@ public class OrderKafkaEvent {
     private OrderProcessingStatus orderProcessingStatus;
     private List<OrderItemKafkaEvent> orderItemKafkaEvents;
     private LocalDateTime requestedAt;
-
-    @Builder(access = AccessLevel.PRIVATE)
-    private OrderKafkaEvent(String orderEventId, long userId,
-                            OrderProcessingStatus orderProcessingStatus, List<OrderItemKafkaEvent> orderItemKafkaEvents,
-                            LocalDateTime requestedAt) {
-        this.orderEventId = orderEventId;
-        this.userId = userId;
-        this.orderProcessingStatus = orderProcessingStatus;
-        this.orderItemKafkaEvents = orderItemKafkaEvents;
-        this.requestedAt = requestedAt;
-    }
 
     public static OrderKafkaEvent of(Order order) {
         List<OrderItemKafkaEvent> orderItemKafkaEvents = order
@@ -47,31 +38,31 @@ public class OrderKafkaEvent {
                 .build();
     }
 
-    public static OrderKafkaEvent of(OrderDto orderDto) {
-        List<OrderItemKafkaEvent> orderItemKafkaEvents = orderDto
-                .getOrderItemDtos()
+    public static OrderKafkaEvent of(OrderDetailResponse orderDetailResponse) {
+        List<OrderItemKafkaEvent> orderItemKafkaEvents = orderDetailResponse
+                .getOrderItems()
                 .stream().map(OrderItemKafkaEvent::of)
                 .collect(Collectors.toList());
 
         return OrderKafkaEvent.builder()
-                .orderEventId(orderDto.getOrderEventId())
-                .userId(orderDto.getUserId())
-                .orderProcessingStatus(orderDto.getOrderProcessingStatus() != null ? orderDto.getOrderProcessingStatus() : null)
+                .orderEventId(orderDetailResponse.getOrderEventId())
+                .userId(orderDetailResponse.getUserId())
+                .orderProcessingStatus(orderDetailResponse.getOrderProcessingStatus() != null ? orderDetailResponse.getOrderProcessingStatus() : null)
                 .orderItemKafkaEvents(orderItemKafkaEvents)
                 .requestedAt(LocalDateTime.now())
                 .build();
     }
 
-    public static OrderKafkaEvent of(OrderRequestDto orderRequestDto, String orderEventId) {
-        List<OrderItemKafkaEvent> orderItemKafkaEvents = orderRequestDto
-                .orderItemRequestDtos()
+    public static OrderKafkaEvent of(OrderCreationRequest orderCreationRequest, String orderEventId) {
+        List<OrderItemKafkaEvent> orderItemKafkaEvents = orderCreationRequest
+                .orderItems()
                 .stream()
                 .map(OrderItemKafkaEvent::of)
                 .toList();
 
         return OrderKafkaEvent.builder()
                 .orderEventId(orderEventId)
-                .userId(orderRequestDto.userId())
+                .userId(orderCreationRequest.userId())
                 .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .orderItemKafkaEvents(orderItemKafkaEvents)
                 .requestedAt(LocalDateTime.now())

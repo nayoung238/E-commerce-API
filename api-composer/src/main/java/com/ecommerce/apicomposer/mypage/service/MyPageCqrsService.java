@@ -1,9 +1,9 @@
 package com.ecommerce.apicomposer.mypage.service;
 
 import com.ecommerce.apicomposer.common.config.KafkaTopicConfig;
-import com.ecommerce.apicomposer.mypage.dto.CouponUpdatedEvent;
-import com.ecommerce.apicomposer.mypage.dto.MyPageResponseDto;
-import com.ecommerce.apicomposer.mypage.dto.OrderUpdatedEvent;
+import com.ecommerce.apicomposer.mypage.dto.kafka.CouponUpdatedEvent;
+import com.ecommerce.apicomposer.mypage.dto.response.MyPageResponse;
+import com.ecommerce.apicomposer.mypage.dto.kafka.OrderUpdatedEvent;
 import com.mongodb.client.result.DeleteResult;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +23,8 @@ public class MyPageCqrsService {
     private final MyPageCompositionService myPageCompositionService;
     private final MongoTemplate mongoTemplate;
 
-    public MyPageResponseDto getMyPage(HttpServletRequest httpServletRequest) {
-        Long userId = Long.valueOf(httpServletRequest.getHeader("X-User-Id"));
-
-        MyPageResponseDto myPageResponse = findMyPage(userId);
+    public MyPageResponse getMyPage(Long userId, HttpServletRequest httpServletRequest) {
+        MyPageResponse myPageResponse = findMyPage(userId);
         if (myPageResponse != null) {
             return myPageResponse;
         }
@@ -35,13 +33,13 @@ public class MyPageCqrsService {
         return saveMyPage(myPageResponse);
     }
 
-    private MyPageResponseDto findMyPage(Long userId) {
+    private MyPageResponse findMyPage(Long userId) {
         Query query = new Query(Criteria.where("userId").is(userId));
-        return mongoTemplate.findOne(query, MyPageResponseDto.class);
+        return mongoTemplate.findOne(query, MyPageResponse.class);
     }
 
-    private MyPageResponseDto saveMyPage(MyPageResponseDto myPageResponseDto) {
-        return mongoTemplate.save(myPageResponseDto);
+    private MyPageResponse saveMyPage(MyPageResponse myPageResponse) {
+        return mongoTemplate.save(myPageResponse);
     }
 
     @KafkaListener(topics = KafkaTopicConfig.ORDER_UPDATED_TOPIC)
@@ -66,6 +64,6 @@ public class MyPageCqrsService {
 
     private DeleteResult deleteMyPage(Long userId) {
         Query query = new Query(Criteria.where("userId").is(userId));
-        return mongoTemplate.remove(query, MyPageResponseDto.class);
+        return mongoTemplate.remove(query, MyPageResponse.class);
     }
 }

@@ -1,11 +1,11 @@
 package com.ecommerce.itemservice.item.service;
 
-import com.ecommerce.itemservice.item.dto.ItemRegisterRequest;
+import com.ecommerce.itemservice.item.dto.request.ItemRegisterRequest;
 import com.ecommerce.itemservice.item.enums.ItemProcessingStatus;
 import com.ecommerce.itemservice.common.exception.ErrorCode;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
-import com.ecommerce.itemservice.item.dto.ItemDto;
+import com.ecommerce.itemservice.item.dto.response.ItemResponse;
 import com.ecommerce.itemservice.item.entity.Item;
 import com.ecommerce.itemservice.item.repository.ItemRedisRepository;
 import com.ecommerce.itemservice.item.repository.ItemRepository;
@@ -28,11 +28,11 @@ public class ItemService {
     private final OrderRedisRepository orderRedisRepository;
 
     @Transactional
-    public ItemDto create(ItemRegisterRequest request) {
+    public ItemResponse create(ItemRegisterRequest request) {
         Item item = Item.of(request);
         item = itemRepository.save(item);
         itemRedisRepository.initializeItemStock(item.getId(), item.getStock());
-        return ItemDto.of(item);
+        return ItemResponse.of(item);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

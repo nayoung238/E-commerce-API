@@ -1,6 +1,6 @@
 package com.ecommerce.auth.user.service;
 
-import com.ecommerce.auth.user.dto.SignUpRequestDto;
+import com.ecommerce.auth.user.dto.request.SignUpRequest;
 import com.ecommerce.auth.user.repository.UserRepository;
 import com.ecommerce.auth.common.exception.CustomException;
 import com.ecommerce.auth.common.exception.ErrorCode;
@@ -34,7 +34,7 @@ public class UserServiceIntegrationTest {
     @DisplayName("[회원 가입 실패 테스트] loginId는 unique 제약 조건 설정")
     void duplicate_login_id_test () {
         // given
-        SignUpRequestDto request = SignUpRequestDto.builder()
+        SignUpRequest request = SignUpRequest.builder()
             .loginId("test-login-id")
             .password("test-password")
             .name("test-name")

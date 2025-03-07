@@ -4,8 +4,8 @@ import com.ecommerce.auth.auth.entity.UserPrincipal;
 import com.ecommerce.auth.common.exception.CustomException;
 import com.ecommerce.auth.common.exception.ErrorCode;
 import com.ecommerce.auth.user.service.UserService;
-import com.ecommerce.auth.user.dto.UserResponseDto;
-import com.ecommerce.auth.user.dto.SignUpRequestDto;
+import com.ecommerce.auth.user.dto.response.UserResponse;
+import com.ecommerce.auth.user.dto.request.SignUpRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -31,18 +31,18 @@ public class UserController {
 
     @Operation(summary = "회원 가입", description = "바디에 {loginId, password, name}을 json 형식으로 보내주세요.")
     @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "사용자 생성 성공", content = @Content(schema = @Schema(implementation = UserResponseDto.class))),
+        @ApiResponse(responseCode = "201", description = "사용자 생성 성공", content = @Content(schema = @Schema(implementation = UserResponse.class))),
         @ApiResponse(responseCode = "400", description = "제약 조건 위반", content = @Content(schema = @Schema(implementation = String.class)))
     })
     @PostMapping("/sign-up")
-    public ResponseEntity<?> signup(@RequestBody @Valid SignUpRequestDto request) {
-        UserResponseDto response = userService.createUser(request);
+    public ResponseEntity<?> signup(@RequestBody @Valid SignUpRequest request) {
+        UserResponse response = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "사용자 조회")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "사용자 조회 성공", content = @Content(schema = @Schema(implementation = UserResponseDto.class))),
+        @ApiResponse(responseCode = "200", description = "사용자 조회 성공", content = @Content(schema = @Schema(implementation = UserResponse.class))),
         @ApiResponse(responseCode = "400", description = "존재하지 않는 계정", content = @Content(schema = @Schema(implementation = String.class)))
     })
     @GetMapping("/{userId}")
@@ -52,7 +52,7 @@ public class UserController {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        UserResponseDto response = userService.findUser(userId);
+        UserResponse response = userService.findUser(userId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

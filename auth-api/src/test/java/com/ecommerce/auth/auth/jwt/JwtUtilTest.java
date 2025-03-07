@@ -5,7 +5,7 @@ import com.ecommerce.auth.auth.enums.BaseRole;
 import com.ecommerce.auth.auth.repository.RefreshTokenRepository;
 import com.ecommerce.auth.common.exception.CustomException;
 import com.ecommerce.auth.common.exception.ErrorCode;
-import com.ecommerce.auth.user.dto.SignUpRequestDto;
+import com.ecommerce.auth.user.dto.request.SignUpRequest;
 import com.ecommerce.auth.user.service.UserService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -141,7 +141,7 @@ class JwtUtilTest {
 	@DisplayName("[액세스 토큰 재발급 성공 테스트] 리프래시 토큰이 유효하면 액세스 토큰 재발급 가능")
 	void refresh_access_token_success_test () {
 		// given
-		SignUpRequestDto signUpRequest = SignUpRequestDto.builder()
+		SignUpRequest signUpRequest = SignUpRequest.builder()
 			.loginId("test_login_id_token_test_1")
 			.password("test_password")
 			.name("test_name_token_test_1")
@@ -164,7 +164,7 @@ class JwtUtilTest {
 	@DisplayName("[액세스 토큰 재발급 실패 테스트] 리프래시 토큰이 유효하지 않으면 액세스 토큰 재발급 불가능")
 	void refresh_access_token_failed_test () {
 		// given
-		SignUpRequestDto signUpRequest = SignUpRequestDto.builder()
+		SignUpRequest signUpRequest = SignUpRequest.builder()
 			.loginId("test_login_id_token_test_2")
 			.password("test_password")
 			.name("test_name_token_test_2")
