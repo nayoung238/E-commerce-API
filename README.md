@@ -5,18 +5,20 @@
 ![](_img/e_commerce_241129.png)
 
 기술
-- Spring Boot, Spring Data JPA
+- Spring Boot, Spring Data JPA, Security
 - Spring Cloud Gateway, Eureka
 - Kafka, Kafka Streams
-- MySQL
+- MySQL, MongoDB
 - Redis, Redisson, Redis stream
 - OpenFeign
 - Resilience4J CircuitBreaker + Retry
 <br>
 
 기능
+- [x] 회원 관련 API
 - [x] 주문 관련 API
-- [X] 상품 관리 API
+- [x] 상품 관련 API
+- [x] 쿠폰 관련 API
 
 <br>
 
@@ -40,7 +42,7 @@
 
 <br>
 
-### API Gateway: API Composition
+### API Composition
 
 ![](/_img/api-composition.png)
 
@@ -58,7 +60,7 @@
 
 <br>
 
-### API Gateway: CQRS Pattern
+### CQRS Pattern
 
 ![](/_img/cqrs-pattern.png)
 - 이슈 발생
