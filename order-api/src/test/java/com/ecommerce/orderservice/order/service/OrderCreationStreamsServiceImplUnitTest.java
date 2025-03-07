@@ -1,10 +1,10 @@
 package com.ecommerce.orderservice.order.service;
 
 import com.ecommerce.orderservice.kafka.dto.OrderItemKafkaEvent;
-import com.ecommerce.orderservice.order.dto.OrderItemRequestDto;
+import com.ecommerce.orderservice.order.dto.request.OrderItemRequest;
 import com.ecommerce.orderservice.order.entity.Order;
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
-import com.ecommerce.orderservice.order.dto.OrderRequestDto;
+import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
 import com.ecommerce.orderservice.order.repository.OrderRepository;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.kafka.service.producer.KafkaProducerService;
@@ -34,15 +34,15 @@ class OrderCreationStreamsServiceImplUnitTest {
     @Test
     void publish_kafka_event_when_creating_order() {
         // given
-        OrderRequestDto orderRequestDto = OrderRequestDto.builder()
+        OrderCreationRequest orderCreationRequest = OrderCreationRequest.builder()
             .userId(200L)
-            .orderItemRequestDtos(List.of(OrderItemRequestDto.builder().itemId(3L).quantity(21L).build()))
+            .orderItems(List.of(OrderItemRequest.builder().itemId(3L).quantity(21L).build()))
             .build();
 
         doNothing().when(kafkaProducerService).send(anyString(), anyString(), any(OrderKafkaEvent.class));
 
         // when
-        orderCreationStreamsService.create(orderRequestDto);
+        orderCreationStreamsService.create(orderCreationRequest);
 
         // then
         verify(orderRepository, times(0)).save(any(Order.class));

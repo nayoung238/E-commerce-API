@@ -1,11 +1,11 @@
 package com.ecommerce.orderservice.order.api;
 
 import com.ecommerce.orderservice.auth.entity.UserPrincipal;
-import com.ecommerce.orderservice.order.dto.OrderRequestDto;
-import com.ecommerce.orderservice.order.dto.OrderSimpleDto;
+import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
+import com.ecommerce.orderservice.order.dto.response.OrderSummaryResponse;
 import com.ecommerce.orderservice.order.service.OrderCreationService;
 import com.ecommerce.orderservice.order.service.OrderQueryService;
-import com.ecommerce.orderservice.order.dto.OrderDto;
+import com.ecommerce.orderservice.order.dto.response.OrderDetailResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -42,8 +42,8 @@ public class OrderController {
             @ApiResponse(responseCode = "500", description = "서버 오류 발생", content = @Content(schema = @Schema(implementation = Exception.class)))
     })
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody @Valid OrderRequestDto orderRequestDto) {
-        OrderDto response = orderCreationService.create(orderRequestDto);
+    public ResponseEntity<?> create(@RequestBody @Valid OrderCreationRequest orderCreationRequest) {
+        OrderDetailResponse response = orderCreationService.create(orderCreationRequest);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
@@ -56,7 +56,7 @@ public class OrderController {
     @GetMapping(value = {"/", "/cursor/{cursorOrderId}", })
     public ResponseEntity<?> getOrders(@PathVariable(required = false) @Valid @Positive(message = "주문 커서 아이디는 1 이상이어야 합니다.") Long cursorOrderId,
                                        @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        List<OrderSimpleDto> response = orderQueryService.findOrdersByUserIdAndOrderId(userPrincipal.getId(), cursorOrderId);
+        List<OrderSummaryResponse> response = orderQueryService.findOrdersByUserIdAndOrderId(userPrincipal.getId(), cursorOrderId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -70,7 +70,7 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<?> getOrderById(@PathVariable @Valid @Positive(message = "Order Id는 1 이상이어야 합니다.") Long orderId,
                                           @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        OrderDto response = orderQueryService.findOrderById(orderId, userPrincipal.getId());
+        OrderDetailResponse response = orderQueryService.findOrderById(orderId, userPrincipal.getId());
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

@@ -2,13 +2,13 @@ package com.ecommerce.orderservice.order.service;
 
 import com.ecommerce.orderservice.order.entity.Order;
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
-import com.ecommerce.orderservice.order.dto.OrderRequestDto;
+import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
 import com.ecommerce.orderservice.order.repository.OrderRepository;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.kafka.service.producer.KafkaProducerService;
 //import com.ecommerce.orderservice.openfeign.ItemServiceClient;
-import com.ecommerce.orderservice.order.dto.OrderDto;
+import com.ecommerce.orderservice.order.dto.response.OrderDetailResponse;
 import com.ecommerce.orderservice.order.repository.OrderRedisRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,12 +31,12 @@ public class OrderCreationStreamsServiceImpl implements OrderCreationService {
 
     @Override
     @Transactional
-    public OrderDto create(OrderRequestDto orderRequestDto) {
+    public OrderDetailResponse create(OrderCreationRequest orderCreationRequest) {
         // DB 영속화하지 않고 Kafka 이벤트 발행하므로 Kafka 이벤트 Key 생성 (스트림 조인에서 사용)
-        String orderEventId = getOrderEventId(orderRequestDto.userId());
-        OrderKafkaEvent orderKafkaEvent = OrderKafkaEvent.of(orderRequestDto, orderEventId);
+        String orderEventId = getOrderEventId(orderCreationRequest.userId());
+        OrderKafkaEvent orderKafkaEvent = OrderKafkaEvent.of(orderCreationRequest, orderEventId);
         kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
-        return OrderDto.of(orderKafkaEvent);
+        return OrderDetailResponse.of(orderKafkaEvent);
     }
 
     @Transactional

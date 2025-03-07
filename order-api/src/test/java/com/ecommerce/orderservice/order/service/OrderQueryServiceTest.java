@@ -3,7 +3,9 @@ package com.ecommerce.orderservice.order.service;
 import com.ecommerce.orderservice.IntegrationTestSupport;
 import com.ecommerce.orderservice.common.exception.CustomException;
 import com.ecommerce.orderservice.common.exception.ErrorCode;
-import com.ecommerce.orderservice.order.dto.*;
+import com.ecommerce.orderservice.order.dto.response.OrderItemResponse;
+import com.ecommerce.orderservice.order.dto.response.OrderDetailResponse;
+import com.ecommerce.orderservice.order.dto.response.OrderSummaryResponse;
 import com.ecommerce.orderservice.order.entity.Order;
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
 import com.ecommerce.orderservice.order.repository.OrderRepository;
@@ -46,15 +48,15 @@ class OrderQueryServiceTest extends IntegrationTestSupport {
         requestedOrder = orderRepository.save(requestedOrder);
 
         // when
-        OrderDto retrievedOrder = orderQueryService.findOrderById(requestedOrder.getId(), userId);
+        OrderDetailResponse retrievedOrder = orderQueryService.findOrderById(requestedOrder.getId(), userId);
 
         // then
         assertThat(retrievedOrder).isNotNull();
         assertThat(retrievedOrder.getId()).isEqualTo(requestedOrder.getId());
         assertThat(retrievedOrder.getUserId()).isEqualTo(requestedOrder.getUserId());
-        assertThat(retrievedOrder.getOrderItemDtos())
+        assertThat(retrievedOrder.getOrderItems())
             .hasSize(orderItemIds.size())
-            .extracting(OrderItemDto::getItemId)
+            .extracting(OrderItemResponse::getItemId)
             .containsExactlyInAnyOrderElementsOf(orderItemIds);
     }
 
@@ -91,7 +93,7 @@ class OrderQueryServiceTest extends IntegrationTestSupport {
 
         // when
         final Long orderCursorId = null;
-        List<OrderSimpleDto> orders = orderQueryService.findOrdersByUserIdAndOrderId(userId, orderCursorId);
+        List<OrderSummaryResponse> orders = orderQueryService.findOrdersByUserIdAndOrderId(userId, orderCursorId);
 
         // then
         assertThat(orders).isNotNull();
@@ -111,7 +113,7 @@ class OrderQueryServiceTest extends IntegrationTestSupport {
 
         // when
         final Long orderCursorId = null;
-        List<OrderSimpleDto> orders = orderQueryService.findOrdersByUserIdAndOrderId(userId, orderCursorId);
+        List<OrderSummaryResponse> orders = orderQueryService.findOrdersByUserIdAndOrderId(userId, orderCursorId);
 
         // then
         assertThat(orders).isNotNull();
@@ -134,7 +136,7 @@ class OrderQueryServiceTest extends IntegrationTestSupport {
         // when
         final int index = 4;
         final Long orderCursorId = requestedOrder.get(index).getId();
-        List<OrderSimpleDto> orders = orderQueryService.findOrdersByUserIdAndOrderId(userId, orderCursorId);
+        List<OrderSummaryResponse> orders = orderQueryService.findOrdersByUserIdAndOrderId(userId, orderCursorId);
 
         // then
         assertThat(orders).isNotNull();

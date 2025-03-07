@@ -2,9 +2,9 @@ package com.ecommerce.orderservice.order.service;
 
 import com.ecommerce.orderservice.internalevent.entity.OrderInternalEvent;
 import com.ecommerce.orderservice.internalevent.service.InternalEventService;
-import com.ecommerce.orderservice.order.dto.OrderItemRequestDto;
+import com.ecommerce.orderservice.order.dto.request.OrderItemRequest;
 import com.ecommerce.orderservice.order.entity.Order;
-import com.ecommerce.orderservice.order.dto.OrderRequestDto;
+import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
 import com.ecommerce.orderservice.order.repository.OrderRepository;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,25 +34,25 @@ class OrderCreationDbServiceImplUnitTest {
         // given
         final long userId = 4L;
         final List<Long> orderItemIds = List.of(2L, 3L);
-        List<OrderItemRequestDto> orderItemRequestDtos = orderItemIds.stream()
-            .map(id -> OrderItemRequestDto.builder()
+        List<OrderItemRequest> orderItemRequests = orderItemIds.stream()
+            .map(id -> OrderItemRequest.builder()
                 .itemId(id)
                 .quantity(3L)
                 .build())
             .toList();
 
-        OrderRequestDto orderRequestDto = OrderRequestDto.builder()
+        OrderCreationRequest orderCreationRequest = OrderCreationRequest.builder()
             .userId(userId)
-            .orderItemRequestDtos(orderItemRequestDtos)
+            .orderItems(orderItemRequests)
             .build();
 
-        Order mockOrder = Order.of(orderRequestDto);
+        Order mockOrder = Order.of(orderCreationRequest);
         mockOrder.initializeOrderEventId("s7dlf234sjr2");
 
         when(orderRepository.save(any(Order.class))).thenReturn(mockOrder);
 
         // when
-        orderCreationDbServiceImpl.create(orderRequestDto);
+        orderCreationDbServiceImpl.create(orderCreationRequest);
 
         // verify
         verify(orderRepository, times(1))

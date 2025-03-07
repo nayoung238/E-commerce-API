@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.order.dto;
+package com.ecommerce.orderservice.order.dto.response;
 
 import com.ecommerce.orderservice.order.entity.Order;
 import com.ecommerce.orderservice.order.entity.OrderItem;
@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
-public record OrderSimpleDto (
+public record OrderSummaryResponse(
 
-    long orderId,
+    Long orderId,
     String orderEventId,
     String orderName,
     OrderProcessingStatus orderStatus,
@@ -21,8 +21,8 @@ public record OrderSimpleDto (
     LocalDateTime requestedAt
 ) {
 
-    public static OrderSimpleDto of(Order order) {
-        return OrderSimpleDto.builder()
+    public static OrderSummaryResponse of(Order order) {
+        return OrderSummaryResponse.builder()
                 .orderId(order.getId())
                 .orderEventId(order.getOrderEventId())
                 .orderName(getOrderName(order.getOrderItems()))

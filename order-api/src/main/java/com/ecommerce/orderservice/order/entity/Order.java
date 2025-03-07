@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.order.entity;
 
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
-import com.ecommerce.orderservice.order.dto.OrderRequestDto;
+import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
 import com.ecommerce.orderservice.internalevent.entity.OrderInternalEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import jakarta.persistence.*;
@@ -46,13 +46,13 @@ public class Order {
     @Column(updatable = false)
     private LocalDateTime requestedAt;
 
-    public static Order of(OrderRequestDto orderRequestDto) {
-        List<OrderItem> orderItems = orderRequestDto.orderItemRequestDtos().stream()
+    public static Order of(OrderCreationRequest orderCreationRequest) {
+        List<OrderItem> orderItems = orderCreationRequest.orderItems().stream()
                 .map(OrderItem::of)
                 .collect(Collectors.toList());
 
         Order order = Order.builder()
-                .userId(orderRequestDto.userId())
+                .userId(orderCreationRequest.userId())
                 .orderItems(orderItems)
                 .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .requestedAt(LocalDateTime.now())

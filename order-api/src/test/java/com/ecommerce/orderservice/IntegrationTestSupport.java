@@ -3,9 +3,9 @@ package com.ecommerce.orderservice;
 import com.ecommerce.orderservice.order.entity.Order;
 import com.ecommerce.orderservice.order.entity.OrderItem;
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
-import com.ecommerce.orderservice.order.dto.OrderDto;
-import com.ecommerce.orderservice.order.dto.OrderItemRequestDto;
-import com.ecommerce.orderservice.order.dto.OrderRequestDto;
+import com.ecommerce.orderservice.order.dto.response.OrderDetailResponse;
+import com.ecommerce.orderservice.order.dto.request.OrderItemRequest;
+import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
@@ -22,15 +22,15 @@ import java.util.UUID;
 @ActiveProfiles("test")
 public class IntegrationTestSupport {
 
-    protected OrderRequestDto getOrderRequestDto(Long userId, List<Long> orderItemIds) {
-        List<OrderItemRequestDto> orderItemRequestDtos = orderItemIds.stream()
-                .map(i -> OrderItemRequestDto.builder()
+    protected OrderCreationRequest getOrderRequestDto(Long userId, List<Long> orderItemIds) {
+        List<OrderItemRequest> orderItemRequests = orderItemIds.stream()
+                .map(i -> OrderItemRequest.builder()
                     .itemId(i)
                     .quantity(3L)
                     .build())
                 .toList();
 
-        return OrderRequestDto.of(userId, orderItemRequestDtos);
+        return OrderCreationRequest.of(userId, orderItemRequests);
     }
 
     protected Order getOrder(Long userId, List<Long> orderItemIds, OrderProcessingStatus orderProcessingStatus) {
@@ -61,10 +61,10 @@ public class IntegrationTestSupport {
         return userId + "-" + uuid[0];
     }
 
-    protected OrderKafkaEvent getOrderKafkaEvent(OrderDto orderDto, OrderProcessingStatus finalOrderProcessingStatus) {
-        orderDto.updateOrderStatus(finalOrderProcessingStatus);
-        orderDto.getOrderItemDtos()
+    protected OrderKafkaEvent getOrderKafkaEvent(OrderDetailResponse orderDetailResponse, OrderProcessingStatus finalOrderProcessingStatus) {
+        orderDetailResponse.updateOrderStatus(finalOrderProcessingStatus);
+        orderDetailResponse.getOrderItems()
                 .forEach(o -> o.updateStatus(finalOrderProcessingStatus));
-        return OrderKafkaEvent.of(orderDto);
+        return OrderKafkaEvent.of(orderDetailResponse);
     }
 }

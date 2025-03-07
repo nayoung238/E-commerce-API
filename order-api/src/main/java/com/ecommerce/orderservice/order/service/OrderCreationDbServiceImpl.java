@@ -1,13 +1,13 @@
 package com.ecommerce.orderservice.order.service;
 
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
-import com.ecommerce.orderservice.order.dto.OrderRequestDto;
+import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
 import com.ecommerce.orderservice.common.exception.ErrorCode;
 import com.ecommerce.orderservice.internalevent.service.InternalEventService;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 //import com.ecommerce.orderservice.openfeign.ItemServiceClient;
-import com.ecommerce.orderservice.order.dto.OrderDto;
+import com.ecommerce.orderservice.order.dto.response.OrderDetailResponse;
 import com.ecommerce.orderservice.order.entity.Order;
 import com.ecommerce.orderservice.order.repository.OrderRedisRepository;
 import com.ecommerce.orderservice.order.repository.OrderRepository;
@@ -39,14 +39,14 @@ public class OrderCreationDbServiceImpl implements OrderCreationService {
 
     @Override
     @Transactional
-    public OrderDto create(OrderRequestDto orderRequestDto) {
-        Order order = Order.of(orderRequestDto);
+    public OrderDetailResponse create(OrderCreationRequest orderCreationRequest) {
+        Order order = Order.of(orderCreationRequest);
         order.initializeOrderEventId(getOrderEventId(order.getUserId()));
         orderRepository.save(order);
 
         // Kafka 이벤트 발행을 위한 내부 이벤트 생성 (Transactional Outbox Pattern)
         internalEventService.publishInternalEvent(order.getOrderInternalEvent());
-        return OrderDto.of(order);
+        return OrderDetailResponse.of(order);
     }
 
     @Transactional

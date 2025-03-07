@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.order.dto;
+package com.ecommerce.orderservice.order.dto.response;
 
 import com.ecommerce.orderservice.order.entity.OrderItem;
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class OrderItemDto {
+public class OrderItemResponse {
 
     private final Long id;
     private final Long itemId;
@@ -16,15 +16,15 @@ public class OrderItemDto {
     private OrderProcessingStatus orderProcessingStatus;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderItemDto(Long id, Long itemId, Long quantity, OrderProcessingStatus orderProcessingStatus) {
+    private OrderItemResponse(Long id, Long itemId, Long quantity, OrderProcessingStatus orderProcessingStatus) {
         this.id = id;
         this.itemId = itemId;
         this.quantity = quantity;
         this.orderProcessingStatus = orderProcessingStatus;
     }
 
-    public static OrderItemDto of(OrderItem orderItem) {
-        return OrderItemDto.builder()
+    public static OrderItemResponse of(OrderItem orderItem) {
+        return OrderItemResponse.builder()
                 .id(orderItem.getId())
                 .itemId(orderItem.getItemId())
                 .quantity(orderItem.getQuantity())
@@ -39,8 +39,8 @@ public class OrderItemDto {
      * @param orderItemKafkaEvent DB insert 전이라 id 설정 안됨 (OrderItemDto.id null로 설정)
      * @return
      */
-    public static OrderItemDto of(OrderItemKafkaEvent orderItemKafkaEvent) {
-        return OrderItemDto.builder()
+    public static OrderItemResponse of(OrderItemKafkaEvent orderItemKafkaEvent) {
+        return OrderItemResponse.builder()
                 .id(null)
                 .itemId(orderItemKafkaEvent.getItemId())
                 .quantity(orderItemKafkaEvent.getQuantity())

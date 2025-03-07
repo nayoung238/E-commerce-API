@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.order.entity;
 
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
-import com.ecommerce.orderservice.order.dto.OrderItemRequestDto;
+import com.ecommerce.orderservice.order.dto.request.OrderItemRequest;
 import com.ecommerce.orderservice.kafka.dto.OrderItemKafkaEvent;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -33,10 +33,10 @@ public class OrderItem {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    public static OrderItem of(OrderItemRequestDto orderItemRequestDto) {
+    public static OrderItem of(OrderItemRequest orderItemRequest) {
         return OrderItem.builder()
-                .itemId(orderItemRequestDto.itemId())
-                .quantity(orderItemRequestDto.quantity())
+                .itemId(orderItemRequest.itemId())
+                .quantity(orderItemRequest.quantity())
                 .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .build();
     }

@@ -2,8 +2,8 @@ package com.ecommerce.orderservice.kafka.dto;
 
 import com.ecommerce.orderservice.order.entity.OrderItem;
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
-import com.ecommerce.orderservice.order.dto.OrderItemDto;
-import com.ecommerce.orderservice.order.dto.OrderItemRequestDto;
+import com.ecommerce.orderservice.order.dto.response.OrderItemResponse;
+import com.ecommerce.orderservice.order.dto.request.OrderItemRequest;
 import lombok.*;
 
 @Getter
@@ -24,18 +24,18 @@ public class OrderItemKafkaEvent {
                 .build();
     }
 
-    public static OrderItemKafkaEvent of(OrderItemDto orderItemDto) {
+    public static OrderItemKafkaEvent of(OrderItemResponse orderItemResponse) {
         return OrderItemKafkaEvent.builder()
-                .itemId(orderItemDto.getItemId())
-                .quantity(orderItemDto.getQuantity())
-                .orderProcessingStatus(orderItemDto.getOrderProcessingStatus() != null ? orderItemDto.getOrderProcessingStatus() : null)
+                .itemId(orderItemResponse.getItemId())
+                .quantity(orderItemResponse.getQuantity())
+                .orderProcessingStatus(orderItemResponse.getOrderProcessingStatus() != null ? orderItemResponse.getOrderProcessingStatus() : null)
                 .build();
     }
 
-    public static OrderItemKafkaEvent of(OrderItemRequestDto orderItemRequestDto) {
+    public static OrderItemKafkaEvent of(OrderItemRequest orderItemRequest) {
         return OrderItemKafkaEvent.builder()
-                .itemId(orderItemRequestDto.itemId())
-                .quantity(orderItemRequestDto.quantity())
+                .itemId(orderItemRequest.itemId())
+                .quantity(orderItemRequest.quantity())
                 .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
                 .build();
     }

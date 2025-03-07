@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.order.dto;
+package com.ecommerce.orderservice.order.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
@@ -10,7 +10,7 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record OrderRequestDto (
+public record OrderCreationRequest(
 
     @NotNull(message = "사용자 아이디는 필수입니다.")
     @Min(value = 1, message = "사용자 아이디는 1 이상이어야 합니다.")
@@ -21,13 +21,13 @@ public record OrderRequestDto (
     @Valid
     @Size(min = 1, message = "주문 아이템은 필수입니다")
     @Schema(description = "주문 아이템 목록", nullable = false)
-    List<OrderItemRequestDto> orderItemRequestDtos
+    List<OrderItemRequest> orderItems
 ) {
 
-    public static OrderRequestDto of(Long userId, List<OrderItemRequestDto> orderItemRequestDtos) {
-        return OrderRequestDto.builder()
+    public static OrderCreationRequest of(Long userId, List<OrderItemRequest> orderItems) {
+        return OrderCreationRequest.builder()
                 .userId(userId)
-                .orderItemRequestDtos(orderItemRequestDtos)
+                .orderItems(orderItems)
                 .build();
     }
 }

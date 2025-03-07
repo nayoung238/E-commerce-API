@@ -1,4 +1,4 @@
-package com.ecommerce.orderservice.order.dto;
+package com.ecommerce.orderservice.order.dto.response;
 
 import com.ecommerce.orderservice.order.entity.Order;
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
@@ -10,56 +10,56 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-public class OrderDto {
+public class OrderDetailResponse {
 
     private final Long id;
     private final String orderEventId;
     private final Long userId;
     private OrderProcessingStatus orderProcessingStatus;
-    private final List<OrderItemDto> orderItemDtos;
+    private final List<OrderItemResponse> orderItems;
     private final LocalDateTime requestedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderDto(Long id, String orderEventId, Long userId,
-                     OrderProcessingStatus orderProcessingStatus, List<OrderItemDto> orderItemDtos,
-                     LocalDateTime requestedAt) {
+    private OrderDetailResponse(Long id, String orderEventId, Long userId,
+                                OrderProcessingStatus orderProcessingStatus, List<OrderItemResponse> orderItemResponses,
+                                LocalDateTime requestedAt) {
         this.id = id;
         this.orderEventId = orderEventId;
         this.userId = userId;
         this.orderProcessingStatus = orderProcessingStatus;
-        this.orderItemDtos = orderItemDtos;
+        this.orderItems = orderItemResponses;
         this.requestedAt = requestedAt;
     }
 
-    public static OrderDto of(Order order) {
-        List<OrderItemDto> orderItemDtos = order.getOrderItems()
+    public static OrderDetailResponse of(Order order) {
+        List<OrderItemResponse> orderItems = order.getOrderItems()
                 .parallelStream()
-                .map(OrderItemDto::of)
+                .map(OrderItemResponse::of)
                 .collect(Collectors.toList());
 
-        return OrderDto.builder()
+        return OrderDetailResponse.builder()
                 .id(order.getId())
                 .orderEventId(order.getOrderEventId())
                 .userId(order.getUserId())
                 .orderProcessingStatus((order.getOrderProcessingStatus() == null) ? OrderProcessingStatus.PROCESSING : order.getOrderProcessingStatus())
-                .orderItemDtos(orderItemDtos)
+                .orderItemResponses(orderItems)
                 .requestedAt(order.getRequestedAt())
                 .build();
     }
 
-    public static OrderDto of(OrderKafkaEvent orderKafkaEvent) {
-        List<OrderItemDto> orderItemDtos = orderKafkaEvent
+    public static OrderDetailResponse of(OrderKafkaEvent orderKafkaEvent) {
+        List<OrderItemResponse> orderItems = orderKafkaEvent
                 .getOrderItemKafkaEvents()
                 .parallelStream()
-                .map(OrderItemDto::of)
+                .map(OrderItemResponse::of)
                 .toList();
 
-        return OrderDto.builder()
+        return OrderDetailResponse.builder()
                 .id(null)
                 .orderEventId(orderKafkaEvent.getOrderEventId())
                 .userId(orderKafkaEvent.getUserId())
                 .orderProcessingStatus(orderKafkaEvent.getOrderProcessingStatus())
-                .orderItemDtos(orderItemDtos)
+                .orderItemResponses(orderItems)
                 .requestedAt(orderKafkaEvent.getRequestedAt())
                 .build();
     }
