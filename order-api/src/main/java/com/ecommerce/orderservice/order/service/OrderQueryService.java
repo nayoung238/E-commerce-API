@@ -40,13 +40,7 @@ public class OrderQueryService {
 
     public List<OrderSummaryResponse> findOrdersByUserIdAndOrderId(Long userId, Long orderId) {
         PageRequest pageRequest = PageRequest.of(0, PAGE_SIZE);
-        List<Order> orders;
-        if(orderId != null) {
-            orders = orderRepository.findByUserIdAndOrderIdLessThanOrderByOrderIdDesc(userId, orderId, pageRequest);
-        }
-        else {
-            orders = orderRepository.findByUserIdOrderByOrderIdDesc(userId, pageRequest);
-        }
+        List<Order> orders = orderRepository.findOrdersWithCursor(userId, orderId, pageRequest);
 
         return orders.stream()
             .sorted(Comparator.comparing(Order::getId).reversed())

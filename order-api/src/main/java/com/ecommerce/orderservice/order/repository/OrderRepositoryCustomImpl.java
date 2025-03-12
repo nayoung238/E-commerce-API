@@ -3,7 +3,7 @@ package com.ecommerce.orderservice.order.repository;
 import com.ecommerce.orderservice.order.entity.Order;
 import com.ecommerce.orderservice.order.entity.QOrder;
 import com.ecommerce.orderservice.order.entity.QOrderItem;
-import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -16,22 +16,16 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<Order> findByUserIdOrderByOrderIdDesc(Long userId, PageRequest pageRequest) {
-        return queryFactory.selectFrom(QOrder.order)
-                .where(QOrder.order.userId.eq(userId))
-                .join(QOrder.order.orderItems, QOrderItem.orderItem).fetchJoin()
-                .orderBy(new OrderSpecifier<>(com.querydsl.core.types.Order.DESC, QOrder.order.id))
-                .limit(pageRequest.getPageSize())
-                .fetch();
-    }
+    public List<Order> findOrdersWithCursor(Long userId, Long orderId, PageRequest pageRequest) {
+        BooleanBuilder where = new BooleanBuilder();
+        where.and(QOrder.order.userId.eq(userId));
 
-    @Override
-    public List<Order> findByUserIdAndOrderIdLessThanOrderByOrderIdDesc(Long userId, Long orderId, PageRequest pageRequest) {
+        if (orderId != null) {
+            where.and(QOrder.order.id.lt(orderId));
+        }
+
         return queryFactory.selectFrom(QOrder.order)
-                .where(
-                        QOrder.order.userId.eq(userId),
-                        QOrder.order.id.lt(orderId)
-                )
+                .where(where)
                 .join(QOrder.order.orderItems, QOrderItem.orderItem).fetchJoin()
                 .orderBy(QOrder.order.id.desc())
                 .limit(pageRequest.getPageSize())
