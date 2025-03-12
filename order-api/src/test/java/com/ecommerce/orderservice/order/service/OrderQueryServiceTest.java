@@ -120,11 +120,33 @@ class OrderQueryServiceTest extends IntegrationTestSupport {
         assertThat(orders).hasSizeLessThanOrEqualTo(OrderQueryService.PAGE_SIZE);
     }
 
+    @DisplayName("[주문 목록 조회 성공 테스트] 주문 커서 ID가 null이면 최신 주문 조회")
+    @Test
+    void order_cursor_id_null_test() {
+        // given
+        final long userId = 5L;
+        final List<Long> orderItemIds = List.of(1L, 2L, 3L);
+        final List<Order> requestedOrder = new ArrayList<>();
+        for (int i = 0; i < OrderQueryService.PAGE_SIZE; i++) {
+            Order order = getOrder(userId, orderItemIds, OrderProcessingStatus.SUCCESSFUL);
+            orderRepository.save(order);
+            requestedOrder.add(order);
+        }
+
+        // when
+        final Long orderCursorId = null;
+        List<OrderSummaryResponse> orders = orderQueryService.findOrdersByUserIdAndOrderId(userId, orderCursorId);
+
+        // then
+        assertThat(orders).isNotNull();
+        assertThat(orders.get(0).orderId()).isEqualTo(requestedOrder.get(requestedOrder.size() - 1).getId());
+    }
+
     @DisplayName("[주문 목록 조회 성공 테스트] 커서 값에 맞춰 주문 목록을 역순으로 조회")
     @Test
     void shouldReturnOrdersInReverseOrder_WhenCursorIsProvided() {
         // given
-        final long userId = 5L;
+        final long userId = 6L;
         final List<Long> orderItemIds = List.of(1L, 2L);
         final List<Order> requestedOrder = new ArrayList<>();
         for (int i = 0; i < OrderQueryService.PAGE_SIZE + 4; i++) {
@@ -141,6 +163,6 @@ class OrderQueryServiceTest extends IntegrationTestSupport {
         // then
         assertThat(orders).isNotNull();
         assertThat(orders).hasSize(index);
-        assertThat(orders.get(0).orderId()).isEqualTo( requestedOrder.get(index - 1).getId());
+        assertThat(orders.get(0).orderId()).isEqualTo(requestedOrder.get(index - 1).getId());
     }
 }
