@@ -1,7 +1,6 @@
 package com.ecommerce.couponservice.coupon.service;
 
 import com.ecommerce.couponservice.coupon.dto.WaitQueuePositionResponseDto;
-import com.ecommerce.couponservice.coupon.service.CouponQueueService;
 import com.ecommerce.couponservice.redis.manager.CouponQueueRedisManager;
 import com.ecommerce.couponservice.redis.manager.CouponStockRedisManager;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +30,7 @@ class CouponQueueServiceUnitTest {
     @Mock
     private CouponStockRedisManager couponStockRedisManager;
 
-    @DisplayName("쿠폰 발급 요청 시 대기열에 진입해야 한다.")
+    @DisplayName("[대기열 진입 성공 테스트] 쿠폰 발급 요청 시 대기열 진입")
     @Test
     void shouldEnterWaitQueueWhenRequestingCouponIssuance () {
         // setup(data)
@@ -47,14 +46,11 @@ class CouponQueueServiceUnitTest {
         couponQueueService.addToCouponWaitQueue(couponId, userId);
 
         // verify
-        verify(couponQueueRedisManager, times(1))
-                .addCouponWaitQueue(anyLong(), anyLong());
-
-        verify(couponQueueRedisManager, times(1))
-                .getWaitQueueRank(anyLong(), anyLong());
+        verify(couponQueueRedisManager, times(1)).addCouponWaitQueue(anyLong(), anyLong());
+        verify(couponQueueRedisManager, times(1)).getWaitQueueRank(anyLong(), anyLong());
     }
 
-    @DisplayName("존재하는 쿠폰이면 대기열에 진입하고 정상 응답해야 한다.")
+    @DisplayName("[대기열 진입 성공 테스트] 존재하는 쿠폰이면 대기열 진입 및 정상 응답")
     @Test
     void shouldReturnCorrectResponseWhenEnteringExistingCouponWaitQueue () {
         // setup(data)
@@ -78,9 +74,11 @@ class CouponQueueServiceUnitTest {
 
         String expectedMessage = String.format("User %d is in position %d for coupon %d", userId, expectedPosition, couponId);
         assertEquals(expectedMessage, response.getMessage());
+
+        verify(couponQueueRedisManager, times(1)).addCouponWaitQueue(anyLong(), anyLong());
     }
 
-    @DisplayName("존재하지 않는 쿠폰에 대해 대기열 진입 시 적절한 응답을 반환해야 한다.")
+    @DisplayName("[대기열 진입 실패 테스트] 존재하지 않는 쿠폰에 대해 대기열 진입하지 않음")
     @Test
     void shouldReturnAppropriateResponseForNonExistentCoupon() {
         // setup(data)
@@ -100,9 +98,11 @@ class CouponQueueServiceUnitTest {
 
         String expectedMessage = String.format("The wait queue for coupon %d does not exist", couponId);
         assertEquals(expectedMessage, response.getMessage());
+
+        verify(couponQueueRedisManager, never()).addCouponWaitQueue(anyLong(), anyLong());
     }
 
-    @DisplayName("존재하는 쿠폰이지만, 대기열에 없는 사용자에 대해 적절한 응답을 반환해야 한다.")
+    @DisplayName("[대기열 상태 테스트] 존재하는 쿠폰이지만, 대기열에 없는 사용자에 대해 적절한 응답을 반환")
     @Test
     void shouldReturnAppropriateResponseForExistingCouponButUserNotInQueue() {
         // setup(data)
@@ -111,12 +111,10 @@ class CouponQueueServiceUnitTest {
         final Long rank = null;
 
         // setup(expectations)
-        when(couponStockRedisManager.getStock(couponId)).thenReturn(Optional.of(2L));
-        doNothing().when(couponQueueRedisManager).addCouponWaitQueue(anyLong(), anyLong());
         when(couponQueueRedisManager.getWaitQueueRank(anyLong(), anyLong())).thenReturn(rank);
 
         // exercise
-        WaitQueuePositionResponseDto response = couponQueueService.addToCouponWaitQueue(couponId, userId);
+        WaitQueuePositionResponseDto response = couponQueueService.getPositionInWaitQueue(couponId, userId);
 
         // verify
         assertThat(response).isNotNull();
