@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -16,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@ActiveProfiles("test")
 class CouponQueueRedisManagerIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
@@ -30,7 +32,7 @@ class CouponQueueRedisManagerIntegrationTest extends IntegrationTestSupport {
         couponQueueRedisManager.getEnterQueueKeys().forEach(key -> redisTemplate.delete(key));
     }
 
-    @DisplayName("Batch 사이즈보다 적은 사용자가 단일 쿠폰 발급 요청 시 모든 사용자를 한 번에 Enter Queue에 추가해야 한다.")
+    @DisplayName("[배치 사이즈 테스트] 배치 사이즈보다 적은 사용자가 단일 쿠폰 발급 요청 시 모든 사용자를 한 번에 Enter Queue에 추가")
     @Test
     void shouldAddAllUsersToEnterQueueAtOnceWhenRequestIsBelowBatchSize() {
         // given
@@ -49,7 +51,7 @@ class CouponQueueRedisManagerIntegrationTest extends IntegrationTestSupport {
         assertThat(redisTemplate.opsForZSet().size(getEnterQueueKey(couponId))).isEqualTo(userIds.size());
     }
 
-    @DisplayName("Batch 사이즈보다 많은 사용자가 단일 쿠폰 발급 요청 시 Batch 단위로 Enter Queue에 추가해야 한다.")
+    @DisplayName("[배치 사이즈 테스트] Batch 사이즈보다 많은 사용자가 단일 쿠폰 발급 요청 시 Batch 단위로 Enter Queue에 추가")
     @Test
     void shouldAddUsersToEnterQueueInBatchesWhenRequestExceedsBatchSize() {
         // given
@@ -73,7 +75,7 @@ class CouponQueueRedisManagerIntegrationTest extends IntegrationTestSupport {
         assertThat(redisTemplate.opsForZSet().size(getEnterQueueKey(couponId))).isEqualTo(userIds.size());
     }
 
-    @DisplayName("다수 쿠폰에 대한 Wait Queue에 있는 사용자를 Enter Queue로 이동시켜야 한다.")
+    @DisplayName("[큐 이동 테스트] 여러 쿠폰에 대한 Wait Queue에 있는 사용자를 Enter Queue로 이동")
     @Test
     void shouldMoveUsersFromWaitToEnterQueueForMultipleCoupons() {
         // given
