@@ -27,7 +27,7 @@ Spring Cloud Gateway를 사용하면 Gateway의 포트 번호로 등록된 모�
 
 ## Route 등록
 
-Spring Cloud Gateway + Eureka 관련 설정은 https://medium.com/@im_zero/spring-cloud-gateway-eureka-25567532cfcd 에서 자세히 확인할 수 있다.
+Spring Cloud Gateway + Eureka 관련 설정은 https://medium.com/@nayoung238/spring-cloud-gateway-eureka-25567532cfcd 에서 자세히 확인할 수 있다.
 
 ```yml
 # application.yml
@@ -55,7 +55,7 @@ API Gateway는 8089번 포트 번호로 설정했고, 모든 Microservice는 Ran
 
 ## Circuit Breaker 설정
 
-Spring Cloud Gateway + Circuit Breaker 관련 설정은 https://medium.com/@im_zero/spring-cloud-gateway-circuit-breaker-time-limiter-5e3c26a62b4c 에서 자세히 확인할 수 있다.
+Spring Cloud Gateway + Circuit Breaker 관련 설정은 https://medium.com/@nayoung238/spring-cloud-gateway-circuit-breaker-time-limiter-5e3c26a62b4c 에서 자세히 확인할 수 있다.
 
 ![png](/_img/api-gateway-circuit-breaker.png)
 

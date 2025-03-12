@@ -65,7 +65,7 @@
   - API 조합 시 여러 서비스 호출로 네트워크 비용 증가
 - 해결
   - ~~API Gateway~~ API composer에서 [생성한 파생 데이터 → MongoDB에 캐싱](https://github.com/nayoung238/E-commerce-API/blob/main/api-composer/src/main/java/com/ecommerce/apicomposer/mypage/service/MyPageCqrsService.java#L26)
-  - 원천 데이터 변경 시 기능에 따라 파생 데이터 수정 or 제거
+  - [원천 데이터 변경 시 기능에 따라 파생 데이터 수정 or 제거](https://github.com/nayoung238/E-commerce-API/blob/main/api-composer/src/main/java/com/ecommerce/apicomposer/mypage/service/MyPageCqrsService.java#L45)
 - 성과
   - 요청마다 인메모리 조인 발생하지 않음
   - 캐싱된 데이터 사용 → 네트워크 비용 절감
