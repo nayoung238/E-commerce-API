@@ -7,7 +7,5 @@ import java.util.List;
 
 public interface OrderRepositoryCustom {
 
-    List<Order> findByUserIdOrderByOrderIdDesc(Long userId, PageRequest pageRequest);
-
-    List<Order> findByUserIdAndOrderIdLessThanOrderByOrderIdDesc(Long userId, Long orderId, PageRequest pageRequest);
+    List<Order> findOrdersWithCursor(Long userId, Long orderId, PageRequest pageRequest);
 }
