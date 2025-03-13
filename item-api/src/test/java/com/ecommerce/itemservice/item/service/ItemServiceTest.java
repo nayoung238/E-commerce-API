@@ -8,20 +8,11 @@ import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.*;
 
-@EmbeddedKafka(
-    partitions = 2,
-    brokerProperties = {
-        "listeners=PLAINTEXT://localhost:9092"
-    },
-    ports = {9092}
-)
 @SpringBootTest
 @ActiveProfiles("test")
 class ItemServiceTest {
