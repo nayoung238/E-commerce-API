@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.1'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
 }
 
 repositories {
@@ -10,6 +11,10 @@ repositories {
 
 ext {
     set('springCloudVersion', "2024.0.0")
+}
+
+jacoco {
+    toolVersion = '0.8.12'
 }
 
 subprojects {
@@ -23,5 +28,32 @@ subprojects {
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+jacocoTestReport {
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+        csv.required.set(false)
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(
+                files(classDirectories.files.collect {
+                    fileTree(dir: it, include: [
+                            '**/application/**',
+                            '**/api/**',
+                            '**/service/**',
+                            '**/entity/**',
+                            '**/repository/**'
+                    ], exclude: [
+                            '**/dto/**',
+                            '**/common/**',
+                            '**/security/**',
+                            '**/validation/**'
+                    ])
+                })
+        )
     }
 }
