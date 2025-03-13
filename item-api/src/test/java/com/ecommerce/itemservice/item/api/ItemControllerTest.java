@@ -5,25 +5,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.hamcrest.Matchers.comparesEqualTo;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@AutoConfigureRestDocs
-@ActiveProfiles("local")
+@ActiveProfiles("test")
 class ItemControllerTest {
 
     @Autowired
@@ -33,31 +29,43 @@ class ItemControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("상품 생성 테스트")
-    void 상품_생성_테스트() throws Exception {
+    @DisplayName("[상품 생성 성공 테스트] 상품 생성 시 상품 상세 반환")
+    void item_creation_success_test () throws Exception {
         ItemRegisterRequest request = ItemRegisterRequest.builder()
                 .name("apple")
                 .stock(10L)
+                .price(1000L)
                 .build();
 
-        ResultActions result = mockMvc.perform(RestDocumentationRequestBuilders
-                .post("/items/create")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(request))
-        );
+        mockMvc.perform(
+                post("/items")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").isNumber())
+            .andExpect(jsonPath("$.name").value(request.name()))
+            .andExpect(jsonPath("$.stock").value(comparesEqualTo(request.stock().intValue())))
+            .andExpect(jsonPath("$.price").value(request.price()))
+            .andDo(print());
+    }
 
-        result.andExpect(status().isCreated())
-                .andDo(print())
-                .andDo(document("item-register",
-                        requestFields(
-                                fieldWithPath("name").description("상품 이름"),
-                                fieldWithPath("stock").description("상품 재고")
-                        ),
-                        responseFields(
-                                fieldWithPath("id").description("상품 ID"),
-                                fieldWithPath("name").description("상품 이름"),
-                                fieldWithPath("stock").description("상품 재고")
-                        ))
-                );
+    @Test
+    @DisplayName("[상품 생성 실패 테스트] 상품 생성 시 아이템명 입력 필수")
+    void item_creation_failed_test_when_name_null () throws Exception {
+        ItemRegisterRequest request = ItemRegisterRequest.builder()
+            .name(null)
+            .stock(10L)
+            .price(1000L)
+            .build();
+
+        mockMvc.perform(
+                post("/items")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("아이템명은 필수입니다."))
+            .andDo(print());
     }
 }
