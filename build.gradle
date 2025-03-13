@@ -13,15 +13,20 @@ ext {
     set('springCloudVersion', "2024.0.0")
 }
 
-jacoco {
-    toolVersion = '0.8.12'
-}
-
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'jacoco'
 
     dependencies {
         implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
+    }
+
+    jacoco {
+        toolVersion = "0.8.8"
+    }
+
+    tasks.withType(Test).configureEach {
+        finalizedBy jacocoTestReport
     }
 }
 
