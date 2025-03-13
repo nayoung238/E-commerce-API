@@ -49,8 +49,29 @@ jobs:
       - name: Grant execute permission to gradlew
         run: chmod +x ./gradlew
 
-      - name: Test with Gradle
-        run: ./gradlew clean test
+      - name: Build & Test auth-api
+        run: |
+          cd auth-api
+          chmod +x ./gradlew
+          ./gradlew clean test
+
+      - name: Build & Test item-api
+        run: |
+          cd item-api
+          chmod +x ./gradlew
+          ./gradlew clean test
+
+      - name: Build & Test item-api
+        run: |
+          cd item-api
+          chmod +x ./gradlew
+          ./gradlew clean test
+
+      - name: Build & Test order-api
+        run: |
+          cd order-api
+          chmod +x ./gradlew
+          ./gradlew clean test
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
