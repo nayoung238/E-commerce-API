@@ -20,10 +20,10 @@ spring:
 
   kafka:
     bootstrap-servers: localhost:9092
-
     consumer:
       auto-offset-reset: earliest
       enable-auto-commit: false
-
+    streams:
+      auto-startup: false
     listener:
       ack-mode: manual
