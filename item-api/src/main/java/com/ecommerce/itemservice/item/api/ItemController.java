@@ -31,7 +31,7 @@ public class ItemController {
             @ApiResponse(responseCode = "400", description = "조건을 위반한 데이터 입력 시 주문 실패", content = @Content(schema = @Schema(implementation = ResponseEntity.class))),
             @ApiResponse(responseCode = "500", description = "서버 오류 발생", content = @Content(schema = @Schema(implementation = Exception.class)))
     })
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<?> create(@RequestBody @Valid ItemRegisterRequest request) {
         ItemResponse response = itemService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
