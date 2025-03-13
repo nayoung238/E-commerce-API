@@ -7,6 +7,8 @@ import lombok.*;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Item {
 
@@ -26,14 +28,6 @@ public class Item {
 
     @Column(nullable = false)
     private Long price;
-
-    @Builder(access = AccessLevel.PRIVATE)
-    private Item(Long id, String name, Long stock, Long price) {
-        this.id = id;
-        this.name = name;
-        this.stock = stock;
-        this.price = price;
-    }
 
     public static Item of(ItemRegisterRequest request) {
         return Item.builder()
