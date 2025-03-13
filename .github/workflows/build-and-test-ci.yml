@@ -55,9 +55,9 @@ jobs:
           chmod +x ./gradlew
           ./gradlew clean test
 
-      - name: Build & Test item-api
+      - name: Build & Test coupon-api
         run: |
-          cd item-api
+          cd coupon-api
           chmod +x ./gradlew
           ./gradlew clean test
 

@@ -22,11 +22,15 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     List<Item> findAllByName(String name);
 
-    List<Item> findAllByNameContaining(String name);
+    @Query("SELECT i FROM Item i WHERE i.name LIKE CONCAT('%', :name, '%')")
+    List<Item> findAllByNameContaining(@Param("name") String name);
 
     List<Item> findAllByNameIn(List<String> name);
 
     List<Item> findAllByPriceBetween(long lowestPrice, long highestPrice);
 
-    List<Item> findALLByNameContainingAndPriceBetween(String name, long lowestPrice, long highestPrice);
+    @Query("SELECT i FROM Item i WHERE i.name LIKE CONCAT('%', :name, '%') AND i.price BETWEEN :lowestPrice AND :highestPrice")
+    List<Item> findAllByNameContainingAndPriceBetween(@Param("name") String name,
+                                                      @Param("lowestPrice") long lowestPrice,
+                                                      @Param("highestPrice") long highestPrice);
 }

@@ -12,7 +12,6 @@ import com.ecommerce.itemservice.item.repository.ItemRepository;
 import com.ecommerce.itemservice.item.repository.OrderRedisRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +20,6 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class ItemStockService {
 
     private final ItemRepository itemRepository;
@@ -31,7 +29,7 @@ public class ItemStockService {
 
     @Transactional
     public void updateStock(OrderKafkaEvent orderKafkaEvent, boolean isStreamsOnly) {
-        if (isFirstEvent(orderKafkaEvent)) {  // 최초 요청만 재고 변경 진행
+        if (isInitialEvent(orderKafkaEvent)) {  // 최초 요청만 재고 변경 진행
             if(orderKafkaEvent.getOrderProcessingStatus() == OrderProcessingStatus.PROCESSING) {
                 processFirstEvent(orderKafkaEvent, ItemProcessingStatus.STOCK_CONSUMPTION);
             }
@@ -47,7 +45,7 @@ public class ItemStockService {
         kafkaProducerService.sendMessage(topic, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
     }
 
-    private boolean isFirstEvent(OrderKafkaEvent orderKafkaEvent) {
+    private boolean isInitialEvent(OrderKafkaEvent orderKafkaEvent) {
         String redisKey = getRedisKey(orderKafkaEvent);
         return orderRedisRepository.addEventId(redisKey, orderKafkaEvent.getOrderEventId()) == 1;
     }
