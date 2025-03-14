@@ -62,3 +62,8 @@ jacocoTestReport {
         )
     }
 }
+
+tasks.named('test') {
+    useJUnitPlatform()
+    finalizedBy 'jacocoTestReport'
+}
