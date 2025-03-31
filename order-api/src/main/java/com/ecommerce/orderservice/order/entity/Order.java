@@ -1,5 +1,6 @@
 package com.ecommerce.orderservice.order.entity;
 
+import com.ecommerce.orderservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
 import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
 import com.ecommerce.orderservice.internalevent.entity.OrderInternalEvent;
@@ -10,8 +11,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Entity
@@ -108,12 +109,13 @@ public class Order {
     public void updateOrderStatus(OrderKafkaEvent orderKafkaEvent) {
         this.orderProcessingStatus = orderKafkaEvent.getOrderProcessingStatus();
 
-        HashMap<Long, OrderProcessingStatus> orderStatusHashMap = new HashMap<>();
-        orderKafkaEvent.getOrderItemKafkaEvents()
-                .forEach(o -> orderStatusHashMap.put(o.getItemId(), o.getOrderProcessingStatus()));
+        Map<Long, OrderProcessingStatus> orderStatusMap = orderKafkaEvent.getOrderItemKafkaEvents()
+            .stream()
+            .collect(Collectors.toMap(OrderItemKafkaEvent::getItemId, OrderItemKafkaEvent::getOrderProcessingStatus));
 
-        this.orderItems
-                .forEach(o -> o.updateOrderStatus(orderStatusHashMap.get(o.getItemId())));
+        this.orderItems.forEach(oi ->
+            oi.updateOrderStatus(orderStatusMap.getOrDefault(oi.getItemId(), this.orderProcessingStatus))
+        );
     }
 
     public OrderInternalEvent getOrderInternalEvent() {
