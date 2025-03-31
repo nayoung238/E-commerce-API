@@ -13,8 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import static com.ecommerce.orderservice.common.config.Resilience4jCircuitBreakerConfig.ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER;
-import static com.ecommerce.orderservice.common.config.Resilience4jRetryConfig.ORDER_PROCESSING_RESULT_RETRY;
+import static com.ecommerce.orderservice.common.config.Resilience4jCircuitBreakerConfig.ORDER_PROCESSED_RESULT_CIRCUIT_BREAKER;
+import static com.ecommerce.orderservice.common.config.Resilience4jRetryConfig.ORDER_PROCESSED_RESULT_RETRY;
 
 @FeignClient(name = "item-service",
         url = "http://${spring.cloud.discovery.client.simple.local.host}"
@@ -25,10 +25,10 @@ public interface ItemServiceClient {
     Logger log = LoggerFactory.getLogger(ItemServiceClient.class);
 
     // Retry 우선순위를 CircuitBreaker 보다 높게 설정
-    @Retry(name = ORDER_PROCESSING_RESULT_RETRY)
-    @CircuitBreaker(name = ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER, fallbackMethod = "fallback")
-    @GetMapping(value = "/order-processing-result/{orderEventKey}", produces = MediaType.APPLICATION_JSON_VALUE)
-	OrderStatus findOrderProcessingResult(@PathVariable String orderEventKey);
+    @Retry(name = ORDER_PROCESSED_RESULT_RETRY)
+    @CircuitBreaker(name = ORDER_PROCESSED_RESULT_CIRCUIT_BREAKER, fallbackMethod = "fallback")
+    @GetMapping(value = "/order-processed-result/{orderEventKey}", produces = MediaType.APPLICATION_JSON_VALUE)
+	OrderStatus findOrderProcessedResult(@PathVariable String orderEventKey);
 
     default OrderStatus fallback(RetryableException e) {
         log.error("RetryableException: " + e.getMessage());

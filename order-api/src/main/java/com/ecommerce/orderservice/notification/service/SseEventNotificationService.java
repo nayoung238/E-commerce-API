@@ -68,7 +68,7 @@ public class SseEventNotificationService {
             try {
                 sseEmitter.send(SseEmitter.event()
                                             .id(orderEventId)
-                                            .name("Order Processing Status")
+                                            .name("Order Status")
                                             .data(objectMapper.writeValueAsString(new EmitterData(orderEventId, orderStatus)), MediaType.APPLICATION_JSON));
 
                 sseEmitter.complete();
@@ -93,7 +93,7 @@ public class SseEventNotificationService {
         @JsonProperty("Order-Event-Id")
         String orderEventId;
 
-        @JsonProperty("Order-Processing-Status")
+        @JsonProperty("Order-Status")
 		OrderStatus orderStatus;
     }
 }

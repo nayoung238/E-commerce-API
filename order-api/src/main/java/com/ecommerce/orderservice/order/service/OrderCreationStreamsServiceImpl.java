@@ -56,11 +56,11 @@ public class OrderCreationStreamsServiceImpl implements OrderCreationService {
         delayFromTimestamp(recordTimestamp);
 
         if(!isExistOrderByOrderEventId(orderKafkaEvent.getOrderEventId()))
-            kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_STREAMS_ONLY_TOPIC, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
+            kafkaProducerService.send(TopicConfig.ORDER_PROCESSED_RESULT_REQUEST_STREAMS_ONLY_TOPIC, orderKafkaEvent.getOrderEventId(), orderKafkaEvent);
     }
 
     @Override
-    public void requestOrderProcessingResult(OrderKafkaEvent orderKafkaEvent) {
+    public void requestOrderProcessedResult(OrderKafkaEvent orderKafkaEvent) {
 //        assert orderKafkaEvent.getOrderEventId() != null;
 //
 //        OrderProcessingStatus orderStatus = itemServiceClient.findOrderProcessingResult(orderKafkaEvent.getOrderEventId());
@@ -95,7 +95,7 @@ public class OrderCreationStreamsServiceImpl implements OrderCreationService {
     public void handleOrderFailure(String orderEventId) {
         if(!isExistOrderByOrderEventId(orderEventId)) {
             OrderKafkaEvent orderEvent = OrderKafkaEvent.of(orderEventId, OrderStatus.CANCELED);
-            kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, orderEventId, orderEvent);
+            kafkaProducerService.send(TopicConfig.ORDER_PROCESSED_RESULT_STREAMS_ONLY_TOPIC, orderEventId, orderEvent);
         }
     }
 

@@ -74,19 +74,19 @@ public class KStreamKTableJoinConfig {
     }
 
     @Bean
-    public KStream<String, OrderKafkaEvent> orderProcessingResults(AdminClient kafkaStreamsAdminClient, StreamsBuilder streamsBuilder) {
-        createTopic(kafkaStreamsAdminClient, TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
-        return streamsBuilder.stream(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC);
+    public KStream<String, OrderKafkaEvent> processedOrders(AdminClient kafkaStreamsAdminClient, StreamsBuilder streamsBuilder) {
+        createTopic(kafkaStreamsAdminClient, TopicConfig.ORDER_PROCESSED_RESULT_STREAMS_ONLY_TOPIC);
+        return streamsBuilder.stream(TopicConfig.ORDER_PROCESSED_RESULT_STREAMS_ONLY_TOPIC);
     }
 
     @Bean
     public KStream<String, OrderKafkaEvent> createFinalOrders(KTable<String, OrderKafkaEvent> pendingOrders,
-                                                                KStream<String, OrderKafkaEvent> orderProcessingResults) {
-        KStream<String, OrderKafkaEvent> finalOrders = orderProcessingResults
-                .filter((key, value) -> isValidProcessingStatus(key, value.getOrderStatus()))
+                                                              KStream<String, OrderKafkaEvent> processedOrders) {
+        KStream<String, OrderKafkaEvent> finalOrders = processedOrders
+                .filter((key, value) -> isValidProcessedResult(key, value.getOrderStatus()))
                 .join(pendingOrders, (result, pendingOrder) -> setOrderStatus(pendingOrder, result))
                 .peek((key, finalOrder) ->
-                        log.info("Successfully joined order processing result with pending order: orderEventId={}, finalStatus={}",
+                        log.info("Successfully joined order processed result with pending order: orderEventId={}, finalStatus={}",
                                 key,
                                 finalOrder.getOrderStatus())
                 );
@@ -121,15 +121,15 @@ public class KStreamKTableJoinConfig {
         }
     }
 
-    private boolean isValidProcessingStatus(String orderEventId, OrderStatus orderStatus) {
-        boolean isValidStatus = orderStatus.equals(OrderStatus.SUCCESSFUL)
+    private boolean isValidProcessedResult(String orderEventId, OrderStatus orderStatus) {
+        boolean isFinalStatusValid = orderStatus.equals(OrderStatus.SUCCESSFUL)
                 || orderStatus.equals(OrderStatus.FAILED);
 
-        if(!isValidStatus) {
-            log.warn("Invalid order processing status: OrderEventId={}, ProcessingStatus={}", orderEventId, orderStatus);
+        if(!isFinalStatusValid) {
+            log.warn("Invalid order status: OrderEventId={}, OrderStatus={}", orderEventId, orderStatus);
             kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderEventId);
         }
-        return isValidStatus;
+        return isFinalStatusValid;
     }
 
     private OrderKafkaEvent setOrderStatus(OrderKafkaEvent orderEvent, OrderKafkaEvent result) {

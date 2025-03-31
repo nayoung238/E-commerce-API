@@ -18,8 +18,8 @@ public class KafkaConsumerService {
     private final OrderCreationDbServiceImpl orderCreationByDBService;
     private final OrderCreationStreamsServiceImpl orderCreationByKafkaStreamsJoinService;
 
-    @KafkaListener(topics = TopicConfig.ORDER_PROCESSING_RESULT_TOPIC)
-    private void listenOrderProcessingResultTopic(ConsumerRecord<String, OrderKafkaEvent> record) {
+    @KafkaListener(topics = TopicConfig.ORDER_PROCESSED_RESULT_TOPIC)
+    private void listenOrderProcessedResultTopic(ConsumerRecord<String, OrderKafkaEvent> record) {
         log.info("Event consumed successfully -> Topic: {}, OrderEventId: {}, OrderStatus: {}",
                 record.topic(),
                 record.value().getOrderEventId(),
@@ -58,19 +58,19 @@ public class KafkaConsumerService {
     }
 
     @KafkaListener(topics = {
-            TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC,
-            TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_STREAMS_ONLY_TOPIC
+            TopicConfig.ORDER_PROCESSED_RESULT_REQUEST_TOPIC,
+            TopicConfig.ORDER_PROCESSED_RESULT_REQUEST_STREAMS_ONLY_TOPIC
     })
-    public void listenOrderProcessingResultRequestTopic(ConsumerRecord<String, OrderKafkaEvent> record) {
+    public void listenOrderProcessedResultRequestTopic(ConsumerRecord<String, OrderKafkaEvent> record) {
         log.info("Event consumed successfully -> Topic: {}, OrderEventId(Key of KStream-KTable Join): {}",
                 record.topic(),
                 record.value().getOrderEventId());
 
-        if (record.topic().equals(TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC)) {
-            orderCreationByDBService.requestOrderProcessingResult(record.value());
+        if (record.topic().equals(TopicConfig.ORDER_PROCESSED_RESULT_REQUEST_TOPIC)) {
+            orderCreationByDBService.requestOrderProcessedResult(record.value());
         }
         else {
-            orderCreationByKafkaStreamsJoinService.requestOrderProcessingResult(record.value());
+            orderCreationByKafkaStreamsJoinService.requestOrderProcessedResult(record.value());
         }
     }
 }

@@ -71,7 +71,7 @@ public class OrderCreationDbServiceImpl implements OrderCreationService {
         if(order.isPresent()) {
             // 주문 요청은 영속화, but 처리 지연 발생
             if(Objects.equals(OrderStatus.PROCESSING, order.get().getOrderStatus())) {
-                kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC, null, orderKafkaEvent);
+                kafkaProducerService.send(TopicConfig.ORDER_PROCESSED_RESULT_REQUEST_TOPIC, null, orderKafkaEvent);
             }
         }
         // DB 영속화 실패했는데, Kafka 이벤트만 발행된 경우
@@ -82,7 +82,7 @@ public class OrderCreationDbServiceImpl implements OrderCreationService {
 
     @Override
     @Transactional
-    public void requestOrderProcessingResult(OrderKafkaEvent orderKafkaEvent) {
+    public void requestOrderProcessedResult(OrderKafkaEvent orderKafkaEvent) {
 //        OrderProcessingStatus status = itemServiceClient.findOrderProcessingResult(orderKafkaEvent.getOrderEventId());
 //        if(status.equals(OrderProcessingStatus.SUCCESSFUL)) {
 //            handleOrderSuccess(orderKafkaEvent.getOrderEventId());

@@ -15,7 +15,7 @@ public interface OrderCreationService {
 
     OrderDetailResponse create(OrderCreationRequest orderCreationRequest);
     void checkFinalStatusOfOrder(OrderKafkaEvent orderKafkaEvent, long recordTimestamp);
-    void requestOrderProcessingResult(OrderKafkaEvent orderKafkaEvent);
+    void requestOrderProcessedResult(OrderKafkaEvent orderKafkaEvent);
     void resendKafkaMessage(OrderKafkaEvent orderKafkaEvent);
     boolean isFirstEvent(String redisKey, String orderEventId);
     void handleOrderFailure(String orderEventId);

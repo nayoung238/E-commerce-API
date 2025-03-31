@@ -13,9 +13,9 @@ import java.time.Duration;
 @Configuration
 public class Resilience4jRetryConfig {
 
-   public static final String ORDER_PROCESSING_RESULT_RETRY = "orderProcessingResultRetry";
+   public static final String ORDER_PROCESSED_RESULT_RETRY = "orderProcessedResultRetry";
 
-    @Bean(name = ORDER_PROCESSING_RESULT_RETRY)
+    @Bean(name = ORDER_PROCESSED_RESULT_RETRY)
     public RetryRegistry retryConfig() {
         return RetryRegistry.of(RetryConfig.custom()
                 .maxAttempts(4)

@@ -12,9 +12,9 @@ import java.time.Duration;
 @Configuration
 public class Resilience4jCircuitBreakerConfig {
 
-    public static final String ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER = "orderProcessingResultCircuitBreaker";
+    public static final String ORDER_PROCESSED_RESULT_CIRCUIT_BREAKER = "orderProcessedResultCircuitBreaker";
 
-    @Bean(name = ORDER_PROCESSING_RESULT_CIRCUIT_BREAKER)
+    @Bean(name = ORDER_PROCESSED_RESULT_CIRCUIT_BREAKER)
     public CircuitBreakerRegistry circuitBreakerConfig() {
         return CircuitBreakerRegistry.of(CircuitBreakerConfig.custom()
                 .failureRateThreshold(30)   // 실패 30% 이상 서킷 오픈
