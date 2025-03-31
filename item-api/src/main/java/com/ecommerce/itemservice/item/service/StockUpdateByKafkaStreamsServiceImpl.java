@@ -6,7 +6,7 @@ import com.ecommerce.itemservice.item.repository.ItemRepository;
 import com.ecommerce.itemservice.item.enums.ItemProcessingStatus;
 import com.ecommerce.itemservice.kafka.config.TopicConfig;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
-import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.kafka.service.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,19 +44,19 @@ public class StockUpdateByKafkaStreamsServiceImpl implements StockUpdateService 
             ItemProcessingStatus updateStatus = isStockUpdatableInRedis(item.get().getId(), orderItemKafkaEvent.getQuantity(), itemProcessingStatus);
             if(updateStatus == ItemProcessingStatus.UPDATE_SUCCESSFUL) {
                 if(itemProcessingStatus == ItemProcessingStatus.STOCK_CONSUMPTION) {
-                    orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.SUCCESSFUL);
+                    orderItemKafkaEvent.updateOrderStatus(OrderStatus.SUCCESSFUL);
                 }
                 else if(itemProcessingStatus == ItemProcessingStatus.STOCK_PRODUCTION) {
-                    orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.CANCELED);
+                    orderItemKafkaEvent.updateOrderStatus(OrderStatus.CANCELED);
                 }
                 sendMessageToKafka(orderItemKafkaEvent.getItemId(), orderItemKafkaEvent.getQuantity(), itemProcessingStatus);
             } else {
-                orderItemKafkaEvent.updateOrderProcessingStatus(updateStatus);
+                orderItemKafkaEvent.updateOrderStatus(updateStatus);
             }
             return orderItemKafkaEvent;
         }
         else {
-            orderItemKafkaEvent.updateOrderProcessingStatus(ItemProcessingStatus.ITEM_NOT_FOUND);
+            orderItemKafkaEvent.updateOrderStatus(ItemProcessingStatus.ITEM_NOT_FOUND);
             return orderItemKafkaEvent;
         }
     }

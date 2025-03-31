@@ -4,7 +4,7 @@ import com.ecommerce.itemservice.item.dto.request.ItemRegisterRequest;
 import com.ecommerce.itemservice.item.enums.ItemProcessingStatus;
 import com.ecommerce.itemservice.common.exception.ErrorCode;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
-import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.item.dto.response.ItemResponse;
 import com.ecommerce.itemservice.item.entity.Item;
 import com.ecommerce.itemservice.item.repository.ItemRedisRepository;
@@ -47,28 +47,28 @@ public class ItemService {
             else if(itemProcessingStatus == ItemProcessingStatus.STOCK_PRODUCTION) {
                 item.increaseStock(orderItemKafkaEvent.getQuantity());
             }
-            orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.SUCCESSFUL);
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.SUCCESSFUL);
             itemRepository.save(item);
         } catch (EntityNotFoundException e) {
             log.error(e.getMessage());
-            orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.ITEM_NOT_FOUND);
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.ITEM_NOT_FOUND);
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage());
-            orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.OUT_OF_STOCK);
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.OUT_OF_STOCK);
         } catch (ObjectOptimisticLockingFailureException e) {
             log.error(e.getMessage() + " -> ItemId: {}", orderItemKafkaEvent.getItemId());
-            orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.FAILED);
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
         } catch (Exception e) {
             log.error(e.getMessage());
-            orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.FAILED);
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
         }
         return orderItemKafkaEvent;
     }
 
-    public OrderProcessingStatus findOrderProcessingStatus(String orderEventKey) {
+    public OrderStatus findOrderProcessingStatus(String orderEventKey) {
         String orderProcessingStatus = orderRedisRepository.getOrderProcessingStatus(orderEventKey);
         if (orderProcessingStatus != null) {
-            return OrderProcessingStatus.getStatus(orderProcessingStatus);
+            return OrderStatus.getStatus(orderProcessingStatus);
         }
         throw new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER_DETAILS.getMessage());
     }

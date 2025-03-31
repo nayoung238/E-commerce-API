@@ -47,7 +47,7 @@ public class MyPageCqrsService {
         log.info("Event consumed successfully -> Topic: {}, userId: {}, OrderStatus: {}",
             record.topic(),
             record.value().userId(),
-            record.value().orderProcessingStatus());
+            record.value().orderStatus());
 
         deleteMyPage(record.value().userId());
     }

@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.order.service;
 
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
 import com.ecommerce.orderservice.common.exception.ErrorCode;
 import com.ecommerce.orderservice.internalevent.service.InternalEventService;
@@ -70,7 +70,7 @@ public class OrderCreationDbServiceImpl implements OrderCreationService {
         Optional<Order> order = orderRepository.findByOrderEventId(orderKafkaEvent.getOrderEventId());
         if(order.isPresent()) {
             // 주문 요청은 영속화, but 처리 지연 발생
-            if(Objects.equals(OrderProcessingStatus.PROCESSING, order.get().getOrderProcessingStatus())) {
+            if(Objects.equals(OrderStatus.PROCESSING, order.get().getOrderStatus())) {
                 kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_REQUEST_TOPIC, null, orderKafkaEvent);
             }
         }
@@ -97,7 +97,7 @@ public class OrderCreationDbServiceImpl implements OrderCreationService {
         Order order = orderRepository.findByOrderEventId(orderEventId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER.getMessage()));
 
-        order.updateOrderStatus(OrderProcessingStatus.SUCCESSFUL);
+        order.updateOrderStatus(OrderStatus.SUCCESSFUL);
     }
 
     @Override
@@ -122,7 +122,7 @@ public class OrderCreationDbServiceImpl implements OrderCreationService {
         Order order = orderRepository.findByOrderEventId(orderEventId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorCode.NOT_FOUND_ORDER.getMessage()));
 
-        order.updateOrderStatus(OrderProcessingStatus.CANCELED);
+        order.updateOrderStatus(OrderStatus.CANCELED);
         internalEventService.publishInternalEvent(order.getOrderInternalEvent());
     }
 }

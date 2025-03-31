@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.notification.service;
 
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -62,17 +62,17 @@ public class SseEventNotificationService {
         }
     }
 
-    public void sendOrderResult(String orderEventId, OrderProcessingStatus orderProcessingStatus) {
+    public void sendOrderResult(String orderEventId, OrderStatus orderStatus) {
         SseEmitter sseEmitter = sseEmitterMap.get(orderEventId);
         if(sseEmitter != null) {
             try {
                 sseEmitter.send(SseEmitter.event()
                                             .id(orderEventId)
                                             .name("Order Processing Status")
-                                            .data(objectMapper.writeValueAsString(new EmitterData(orderEventId, orderProcessingStatus)), MediaType.APPLICATION_JSON));
+                                            .data(objectMapper.writeValueAsString(new EmitterData(orderEventId, orderStatus)), MediaType.APPLICATION_JSON));
 
                 sseEmitter.complete();
-                log.info("Successfully sent SSE event and completed connection for orderEventId: {}. Status: {}", orderEventId, orderProcessingStatus);
+                log.info("Successfully sent SSE event and completed connection for orderEventId: {}. Status: {}", orderEventId, orderStatus);
 
                 sseEmitterMap.remove(orderEventId);
                 log.info("Removed SSE Emitter for orderEventId: {} from the map", orderEventId);
@@ -94,6 +94,6 @@ public class SseEventNotificationService {
         String orderEventId;
 
         @JsonProperty("Order-Processing-Status")
-        OrderProcessingStatus orderProcessingStatus;
+		OrderStatus orderStatus;
     }
 }

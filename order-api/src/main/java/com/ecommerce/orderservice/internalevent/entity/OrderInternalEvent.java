@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.internalevent.entity;
 
 import com.ecommerce.orderservice.internalevent.InternalEventStatus;
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,18 +24,18 @@ public class OrderInternalEvent {
     @Enumerated(EnumType.STRING)
     private InternalEventStatus publicationStatus;
 
-    private OrderProcessingStatus orderProcessingStatus;
+    private OrderStatus orderStatus;
 
     public void updatePublicationStatus(InternalEventStatus status) {
         this.publicationStatus = status;
     }
 
-    public static OrderInternalEvent of(Long userId, String orderEventId, OrderProcessingStatus orderProcessingStatus) {
+    public static OrderInternalEvent of(Long userId, String orderEventId, OrderStatus orderStatus) {
         return OrderInternalEvent.builder()
                 .userId(userId)
                 .orderEventId(orderEventId)
                 .publicationStatus(InternalEventStatus.init)
-                .orderProcessingStatus(orderProcessingStatus)
+                .orderStatus(orderStatus)
                 .build();
     }
 }

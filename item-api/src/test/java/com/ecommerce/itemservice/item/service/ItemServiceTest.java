@@ -4,7 +4,7 @@ import com.ecommerce.itemservice.item.entity.Item;
 import com.ecommerce.itemservice.item.repository.ItemRepository;
 import com.ecommerce.itemservice.item.enums.ItemProcessingStatus;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
-import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,13 +37,13 @@ class ItemServiceTest {
         itemRepository.save(item);
 
         final long REQUESTED_QUANTITY = INITIAL_STOCK / 2;
-        OrderItemKafkaEvent event = OrderItemKafkaEvent.of(item.getId(), REQUESTED_QUANTITY, OrderProcessingStatus.PROCESSING);
+        OrderItemKafkaEvent event = OrderItemKafkaEvent.of(item.getId(), REQUESTED_QUANTITY, OrderStatus.PROCESSING);
 
         // when
         OrderItemKafkaEvent response = itemService.updateStockByOptimisticLock(event, ItemProcessingStatus.STOCK_CONSUMPTION);
 
         // then
-        assertThat(response.getOrderProcessingStatus()).isEqualTo(OrderProcessingStatus.SUCCESSFUL);
+        assertThat(response.getOrderStatus()).isEqualTo(OrderStatus.SUCCESSFUL);
 
         Optional<Item> itemOptional = itemRepository.findById(item.getId());
         assertThat(itemOptional.isPresent()).isTrue();
@@ -59,13 +59,13 @@ class ItemServiceTest {
         itemRepository.save(item);
 
         final long REQUESTED_QUANTITY = INITIAL_STOCK + 100L;
-        OrderItemKafkaEvent request = OrderItemKafkaEvent.of(item.getId(), REQUESTED_QUANTITY, OrderProcessingStatus.PROCESSING);
+        OrderItemKafkaEvent request = OrderItemKafkaEvent.of(item.getId(), REQUESTED_QUANTITY, OrderStatus.PROCESSING);
 
         // when
         OrderItemKafkaEvent response = itemService.updateStockByOptimisticLock(request, ItemProcessingStatus.STOCK_CONSUMPTION);
 
         // then
-        assertThat(response.getOrderProcessingStatus()).isEqualTo(OrderProcessingStatus.OUT_OF_STOCK);
+        assertThat(response.getOrderStatus()).isEqualTo(OrderStatus.OUT_OF_STOCK);
 
         Optional<Item> itemOptional = itemRepository.findById(item.getId());
         assertThat(itemOptional.isPresent()).isTrue();

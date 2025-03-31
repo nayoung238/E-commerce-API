@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.kafka.dto;
 
 import com.ecommerce.orderservice.order.entity.OrderItem;
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.ecommerce.orderservice.order.dto.response.OrderItemResponse;
 import com.ecommerce.orderservice.order.dto.request.OrderItemRequest;
 import lombok.*;
@@ -14,13 +14,13 @@ public class OrderItemKafkaEvent {
 
     private Long itemId;
     private Long quantity;
-    private OrderProcessingStatus orderProcessingStatus;
+    private OrderStatus orderStatus;
 
     public static OrderItemKafkaEvent of(OrderItem orderItem) {
         return OrderItemKafkaEvent.builder()
                 .itemId(orderItem.getItemId())
                 .quantity(orderItem.getQuantity())
-                .orderProcessingStatus(orderItem.getOrderProcessingStatus() != null ? orderItem.getOrderProcessingStatus() : null)
+                .orderStatus(orderItem.getOrderStatus() != null ? orderItem.getOrderStatus() : null)
                 .build();
     }
 
@@ -28,7 +28,7 @@ public class OrderItemKafkaEvent {
         return OrderItemKafkaEvent.builder()
                 .itemId(orderItemResponse.getItemId())
                 .quantity(orderItemResponse.getQuantity())
-                .orderProcessingStatus(orderItemResponse.getOrderProcessingStatus() != null ? orderItemResponse.getOrderProcessingStatus() : null)
+                .orderStatus(orderItemResponse.getOrderStatus() != null ? orderItemResponse.getOrderStatus() : null)
                 .build();
     }
 
@@ -36,11 +36,11 @@ public class OrderItemKafkaEvent {
         return OrderItemKafkaEvent.builder()
                 .itemId(orderItemRequest.itemId())
                 .quantity(orderItemRequest.quantity())
-                .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
+                .orderStatus(OrderStatus.PROCESSING)
                 .build();
     }
 
-    public void updateOrderStatus(OrderProcessingStatus orderProcessingStatus) {
-        this.orderProcessingStatus = orderProcessingStatus;
+    public void updateOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
     }
 }

@@ -1,6 +1,6 @@
 package com.ecommerce.apicomposer.mypage.enums;
 
-public enum OrderProcessingStatus {
+public enum OrderStatus {
 
 	CREATION,
 	UPDATE;

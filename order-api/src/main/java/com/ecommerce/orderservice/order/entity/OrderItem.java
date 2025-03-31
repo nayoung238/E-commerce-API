@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.order.entity;
 
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.ecommerce.orderservice.order.dto.request.OrderItemRequest;
 import com.ecommerce.orderservice.kafka.dto.OrderItemKafkaEvent;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -26,7 +26,7 @@ public class OrderItem {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderProcessingStatus orderProcessingStatus;
+    private OrderStatus orderStatus;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
@@ -37,7 +37,7 @@ public class OrderItem {
         return OrderItem.builder()
                 .itemId(orderItemRequest.itemId())
                 .quantity(orderItemRequest.quantity())
-                .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
+                .orderStatus(OrderStatus.PROCESSING)
                 .build();
     }
 
@@ -45,16 +45,16 @@ public class OrderItem {
         return OrderItem.builder()
                 .itemId(orderItemEvent.getItemId())
                 .quantity(orderItemEvent.getQuantity())
-                .orderProcessingStatus(orderItemEvent.getOrderProcessingStatus())
+                .orderStatus(orderItemEvent.getOrderStatus())
                 .build();
     }
 
     // Test 코드에서 사용
-    public static OrderItem of(long itemId, long quantity, OrderProcessingStatus orderProcessingStatus) {
+    public static OrderItem of(long itemId, long quantity, OrderStatus orderStatus) {
         return OrderItem.builder()
                 .itemId(itemId)
                 .quantity(3L)
-                .orderProcessingStatus(orderProcessingStatus)
+                .orderStatus(orderStatus)
                 .build();
     }
 
@@ -62,7 +62,7 @@ public class OrderItem {
         this.order = order;
     }
 
-    public void updateOrderStatus(OrderProcessingStatus orderProcessingStatus) {
-        this.orderProcessingStatus = orderProcessingStatus;
+    public void updateOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
     }
 }

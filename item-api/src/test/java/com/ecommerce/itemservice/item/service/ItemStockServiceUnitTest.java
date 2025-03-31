@@ -4,7 +4,7 @@ import com.ecommerce.itemservice.UnitTestSupport;
 import com.ecommerce.itemservice.item.repository.OrderRedisRepository;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.itemservice.kafka.dto.OrderKafkaEvent;
-import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.kafka.service.KafkaProducerService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,11 +38,11 @@ class ItemStockServiceUnitTest extends UnitTestSupport {
     void initial_event_test () {
         // given
         final List<Long> itemIds = List.of(1L, 3L);
-        OrderKafkaEvent event = getOrderKafkaEvent(2L, itemIds, 12L, OrderProcessingStatus.PROCESSING);
+        OrderKafkaEvent event = getOrderKafkaEvent(2L, itemIds, 12L, OrderStatus.PROCESSING);
 
         Mockito.when(orderRedisRepository.addEventId(anyString(), anyString())).thenReturn(1L);
         Mockito.when(stockUpdateService.updateStock(any(), any()))
-                .thenReturn(getOrderItemKafkaEvent(1L, 1L, OrderProcessingStatus.SUCCESSFUL));
+                .thenReturn(getOrderItemKafkaEvent(1L, 1L, OrderStatus.SUCCESSFUL));
 
         // when
         itemStockService.updateStock(event, false);
@@ -66,7 +66,7 @@ class ItemStockServiceUnitTest extends UnitTestSupport {
     void retry_event_test () {
         // given
         final List<Long> itemIds = List.of(1L, 3L);
-        OrderKafkaEvent event = getOrderKafkaEvent(2L, itemIds, 12L, OrderProcessingStatus.PROCESSING);
+        OrderKafkaEvent event = getOrderKafkaEvent(2L, itemIds, 12L, OrderStatus.PROCESSING);
 
         Mockito.when(orderRedisRepository.addEventId(anyString(), anyString()))
                 .thenReturn(0L); // Redis 이미 캐싱됨

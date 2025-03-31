@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.order.service;
 
 import com.ecommerce.orderservice.order.entity.Order;
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
 import com.ecommerce.orderservice.order.repository.OrderRepository;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
@@ -94,7 +94,7 @@ public class OrderCreationStreamsServiceImpl implements OrderCreationService {
     @Override
     public void handleOrderFailure(String orderEventId) {
         if(!isExistOrderByOrderEventId(orderEventId)) {
-            OrderKafkaEvent orderEvent = OrderKafkaEvent.of(orderEventId, OrderProcessingStatus.CANCELED);
+            OrderKafkaEvent orderEvent = OrderKafkaEvent.of(orderEventId, OrderStatus.CANCELED);
             kafkaProducerService.send(TopicConfig.ORDER_PROCESSING_RESULT_STREAMS_ONLY_TOPIC, orderEventId, orderEvent);
         }
     }

@@ -9,29 +9,29 @@ public class OrderItemKafkaEvent {
 
     private Long itemId;
     private Long quantity;
-    private OrderProcessingStatus orderProcessingStatus;
+    private OrderStatus orderStatus;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private OrderItemKafkaEvent(long itemId, long quantity, OrderProcessingStatus orderProcessingStatus) {
+    private OrderItemKafkaEvent(long itemId, long quantity, OrderStatus orderStatus) {
         this.itemId = itemId;
         this.quantity = quantity;
-        this.orderProcessingStatus = orderProcessingStatus;
+        this.orderStatus = orderStatus;
     }
 
     // Test 코드에서 사용
-    public static OrderItemKafkaEvent of(long itemId, long quantity, OrderProcessingStatus orderProcessingStatus) {
+    public static OrderItemKafkaEvent of(long itemId, long quantity, OrderStatus orderStatus) {
         return OrderItemKafkaEvent.builder()
                 .itemId(itemId)
                 .quantity(quantity)
-                .orderProcessingStatus(orderProcessingStatus)
+                .orderStatus(orderStatus)
                 .build();
     }
 
-    public void updateOrderProcessingStatus(OrderProcessingStatus orderProcessingStatus) {
-        this.orderProcessingStatus = orderProcessingStatus;
+    public void updateOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
     }
 
-    public void updateOrderProcessingStatus(ItemProcessingStatus itemProcessingStatus) {
-        this.orderProcessingStatus = OrderProcessingStatus.getStatus(itemProcessingStatus);
+    public void updateOrderStatus(ItemProcessingStatus itemProcessingStatus) {
+        this.orderStatus = OrderStatus.getStatus(itemProcessingStatus);
     }
 }

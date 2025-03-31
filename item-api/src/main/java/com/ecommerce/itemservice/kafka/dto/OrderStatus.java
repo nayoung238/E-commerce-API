@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Locale;
 
 @Slf4j
-public enum OrderProcessingStatus {
+public enum OrderStatus {
 
     PROCESSING,
 
@@ -20,7 +20,7 @@ public enum OrderProcessingStatus {
     BAD_REQUEST,
     ITEM_NOT_FOUND;
 
-    public static OrderProcessingStatus getStatus(String status) {
+    public static OrderStatus getStatus(String status) {
         try {
             if(status != null)
                 return valueOf(status.toUpperCase(Locale.ROOT));
@@ -32,7 +32,7 @@ public enum OrderProcessingStatus {
         }
     }
 
-    public static OrderProcessingStatus getStatus(ItemProcessingStatus itemProcessingStatus) {
+    public static OrderStatus getStatus(ItemProcessingStatus itemProcessingStatus) {
         assert itemProcessingStatus != null;
         return switch (itemProcessingStatus) {
             case SUCCESSFUL_CONSUMPTION -> SUCCESSFUL;

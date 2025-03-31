@@ -2,7 +2,7 @@ package com.ecommerce.orderservice.order.api;
 
 import com.ecommerce.orderservice.IntegrationTestSupport;
 import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.ecommerce.orderservice.order.repository.OrderRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
@@ -97,11 +97,11 @@ class OrderControllerTest extends IntegrationTestSupport {
 			)
 			.andExpect(status().isAccepted())
 			.andExpect(jsonPath("$.userId").value(userId))
-			.andExpect(jsonPath("$.orderProcessingStatus").value(OrderProcessingStatus.PROCESSING.name()))
+			.andExpect(jsonPath("$.orderStatus").value(OrderStatus.PROCESSING.name()))
 			.andExpect(jsonPath("$.orderItems").isArray())
 			.andExpect(jsonPath("$.orderItems.length()").value(itemIds.size()))
-			.andExpect(jsonPath("$.orderItems[*].orderProcessingStatus")
-				.value(Matchers.everyItem(Matchers.is(OrderProcessingStatus.PROCESSING.name()))))
+			.andExpect(jsonPath("$.orderItems[*].orderStatus")
+				.value(Matchers.everyItem(Matchers.is(OrderStatus.PROCESSING.name()))))
 			.andDo(print());
 	}
 }

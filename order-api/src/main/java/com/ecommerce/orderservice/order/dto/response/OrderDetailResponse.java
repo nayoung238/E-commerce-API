@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.order.dto.response;
 
 import com.ecommerce.orderservice.order.entity.Order;
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import lombok.*;
 
@@ -15,18 +15,18 @@ public class OrderDetailResponse {
     private final Long id;
     private final String orderEventId;
     private final Long userId;
-    private OrderProcessingStatus orderProcessingStatus;
+    private OrderStatus orderStatus;
     private final List<OrderItemResponse> orderItems;
     private final LocalDateTime requestedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
     private OrderDetailResponse(Long id, String orderEventId, Long userId,
-                                OrderProcessingStatus orderProcessingStatus, List<OrderItemResponse> orderItemResponses,
-                                LocalDateTime requestedAt) {
+								OrderStatus orderStatus, List<OrderItemResponse> orderItemResponses,
+								LocalDateTime requestedAt) {
         this.id = id;
         this.orderEventId = orderEventId;
         this.userId = userId;
-        this.orderProcessingStatus = orderProcessingStatus;
+        this.orderStatus = orderStatus;
         this.orderItems = orderItemResponses;
         this.requestedAt = requestedAt;
     }
@@ -41,7 +41,7 @@ public class OrderDetailResponse {
                 .id(order.getId())
                 .orderEventId(order.getOrderEventId())
                 .userId(order.getUserId())
-                .orderProcessingStatus((order.getOrderProcessingStatus() == null) ? OrderProcessingStatus.PROCESSING : order.getOrderProcessingStatus())
+                .orderStatus((order.getOrderStatus() == null) ? OrderStatus.PROCESSING : order.getOrderStatus())
                 .orderItemResponses(orderItems)
                 .requestedAt(order.getRequestedAt())
                 .build();
@@ -58,13 +58,13 @@ public class OrderDetailResponse {
                 .id(null)
                 .orderEventId(orderKafkaEvent.getOrderEventId())
                 .userId(orderKafkaEvent.getUserId())
-                .orderProcessingStatus(orderKafkaEvent.getOrderProcessingStatus())
+                .orderStatus(orderKafkaEvent.getOrderStatus())
                 .orderItemResponses(orderItems)
                 .requestedAt(orderKafkaEvent.getRequestedAt())
                 .build();
     }
 
-    public void updateOrderStatus(OrderProcessingStatus orderProcessingStatus) {
-        this.orderProcessingStatus = orderProcessingStatus;
+    public void updateOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
     }
 }

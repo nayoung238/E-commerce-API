@@ -3,7 +3,7 @@ package com.ecommerce.orderservice.order.service;
 import com.ecommerce.orderservice.kafka.dto.OrderItemKafkaEvent;
 import com.ecommerce.orderservice.order.dto.request.OrderItemRequest;
 import com.ecommerce.orderservice.order.entity.Order;
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
 import com.ecommerce.orderservice.order.repository.OrderRepository;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
@@ -57,9 +57,9 @@ class OrderCreationStreamsServiceImplUnitTest {
         OrderKafkaEvent orderKafkaEvent = OrderKafkaEvent.builder()
             .orderEventId("dfs27s9df")
             .userId(24L)
-            .orderProcessingStatus(OrderProcessingStatus.SUCCESSFUL)
+            .orderStatus(OrderStatus.SUCCESSFUL)
             .orderItemKafkaEvents(List.of(OrderItemKafkaEvent.builder()
-                .itemId(2L).quantity(34L).orderProcessingStatus(OrderProcessingStatus.SUCCESSFUL).build()))
+                .itemId(2L).quantity(34L).orderStatus(OrderStatus.SUCCESSFUL).build()))
             .build();
 
         when(orderRepository.save(any(Order.class))).thenReturn(null);

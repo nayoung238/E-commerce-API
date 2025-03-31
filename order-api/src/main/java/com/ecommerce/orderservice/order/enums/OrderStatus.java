@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.order.enums;
 
-public enum OrderProcessingStatus {
+public enum OrderStatus {
 
     PROCESSING,
 

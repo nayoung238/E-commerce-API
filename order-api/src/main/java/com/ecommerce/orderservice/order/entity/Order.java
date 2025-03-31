@@ -1,7 +1,7 @@
 package com.ecommerce.orderservice.order.entity;
 
 import com.ecommerce.orderservice.kafka.dto.OrderItemKafkaEvent;
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
 import com.ecommerce.orderservice.internalevent.entity.OrderInternalEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
@@ -41,7 +41,7 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderProcessingStatus orderProcessingStatus;
+    private OrderStatus orderStatus;
 
     @CreatedDate
     @Column(updatable = false)
@@ -55,7 +55,7 @@ public class Order {
         Order order = Order.builder()
                 .userId(orderCreationRequest.userId())
                 .orderItems(orderItems)
-                .orderProcessingStatus(OrderProcessingStatus.PROCESSING)
+                .orderStatus(OrderStatus.PROCESSING)
                 .requestedAt(LocalDateTime.now())
                 .build();
 
@@ -73,7 +73,7 @@ public class Order {
                 .orderEventId(orderKafkaEvent.getOrderEventId())
                 .userId(orderKafkaEvent.getUserId())
                 .orderItems(orderItems)
-                .orderProcessingStatus(orderKafkaEvent.getOrderProcessingStatus())
+                .orderStatus(orderKafkaEvent.getOrderStatus())
                 .requestedAt(orderKafkaEvent.getRequestedAt())
                 .build();
 
@@ -85,13 +85,13 @@ public class Order {
     // Test 코드에서 사용
     public static Order of(String orderEventId, long userId,
                            List<OrderItem> orderItems,
-                           OrderProcessingStatus orderProcessingStatus,
+                           OrderStatus orderStatus,
                            LocalDateTime requestedAt) {
         return Order.builder()
                 .orderEventId(orderEventId)
                 .userId(userId)
                 .orderItems(orderItems)
-                .orderProcessingStatus(orderProcessingStatus)
+                .orderStatus(orderStatus)
                 .requestedAt(requestedAt)
                 .build();
     }
@@ -100,25 +100,25 @@ public class Order {
         this.orderEventId = orderEventId;
     }
 
-    public void updateOrderStatus(OrderProcessingStatus status) {
-        this.orderProcessingStatus = status;
+    public void updateOrderStatus(OrderStatus status) {
+        this.orderStatus = status;
         this.orderItems
                 .forEach(orderItem -> orderItem.updateOrderStatus(status));
     }
 
     public void updateOrderStatus(OrderKafkaEvent orderKafkaEvent) {
-        this.orderProcessingStatus = orderKafkaEvent.getOrderProcessingStatus();
+        this.orderStatus = orderKafkaEvent.getOrderStatus();
 
-        Map<Long, OrderProcessingStatus> orderStatusMap = orderKafkaEvent.getOrderItemKafkaEvents()
+        Map<Long, OrderStatus> orderStatusMap = orderKafkaEvent.getOrderItemKafkaEvents()
             .stream()
-            .collect(Collectors.toMap(OrderItemKafkaEvent::getItemId, OrderItemKafkaEvent::getOrderProcessingStatus));
+            .collect(Collectors.toMap(OrderItemKafkaEvent::getItemId, OrderItemKafkaEvent::getOrderStatus));
 
         this.orderItems.forEach(oi ->
-            oi.updateOrderStatus(orderStatusMap.getOrDefault(oi.getItemId(), this.orderProcessingStatus))
+            oi.updateOrderStatus(orderStatusMap.getOrDefault(oi.getItemId(), this.orderStatus))
         );
     }
 
     public OrderInternalEvent getOrderInternalEvent() {
-        return OrderInternalEvent.of(userId, orderEventId, OrderProcessingStatus.CREATION);
+        return OrderInternalEvent.of(userId, orderEventId, OrderStatus.CREATION);
     }
 }

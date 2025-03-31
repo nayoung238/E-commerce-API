@@ -11,30 +11,30 @@ public class OrderKafkaEvent {
 
     private String orderEventId;
     private Long userId;
-    private OrderProcessingStatus orderProcessingStatus;
+    private OrderStatus orderStatus;
     private List<OrderItemKafkaEvent> orderItemKafkaEvents;
     private LocalDateTime requestedAt;
 
     @Builder(access = AccessLevel.PRIVATE)
     private OrderKafkaEvent(String orderEventId, long userId,
-                            OrderProcessingStatus orderProcessingStatus,
+                            OrderStatus orderStatus,
                             List<OrderItemKafkaEvent> orderItemKafkaEvents,
                             LocalDateTime requestedAt) {
         this.orderEventId = orderEventId;
         this.userId = userId;
-        this.orderProcessingStatus = orderProcessingStatus;
+        this.orderStatus = orderStatus;
         this.orderItemKafkaEvents = orderItemKafkaEvents;
         this.requestedAt = requestedAt;
     }
 
     public static OrderKafkaEvent of(String orderEventId, long userId,
-                                     OrderProcessingStatus orderProcessingStatus,
+                                     OrderStatus orderStatus,
                                      List<OrderItemKafkaEvent> orderItemKafkaEvents,
                                      LocalDateTime requestedAt) {
         return OrderKafkaEvent.builder()
                 .orderEventId(orderEventId)
                 .userId(userId)
-                .orderProcessingStatus(orderProcessingStatus)
+                .orderStatus(orderStatus)
                 .orderItemKafkaEvents(orderItemKafkaEvents)
                 .requestedAt(requestedAt)
                 .build();
@@ -44,7 +44,7 @@ public class OrderKafkaEvent {
         this.orderItemKafkaEvents = orderItemKafkaEvents;
     }
 
-    public void updateOrderProcessingStatus(OrderProcessingStatus orderProcessingStatus) {
-        this.orderProcessingStatus = orderProcessingStatus;
+    public void updateOrderProcessingStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
     }
 }

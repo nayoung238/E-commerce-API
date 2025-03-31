@@ -5,7 +5,7 @@ import com.ecommerce.itemservice.item.repository.ItemRedisRepository;
 import com.ecommerce.itemservice.item.repository.ItemRepository;
 import com.ecommerce.itemservice.item.enums.ItemProcessingStatus;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
-import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import com.ecommerce.itemservice.kafka.service.KafkaProducerService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ class StockUpdateByKafkaStreamsServiceUnitTest {
         doNothing().when(kafkaProducerService).sendMessage(anyString(), anyString(), anyLong());
 
         final long REQUESTED_QUANTITY = 10L;
-        OrderItemKafkaEvent orderItemKafkaEvent = OrderItemKafkaEvent.of(1L, REQUESTED_QUANTITY, OrderProcessingStatus.PROCESSING);
+        OrderItemKafkaEvent orderItemKafkaEvent = OrderItemKafkaEvent.of(1L, REQUESTED_QUANTITY, OrderStatus.PROCESSING);
 
         // when
         stockUpdateByKafkaStreamsService.updateStock(orderItemKafkaEvent, ItemProcessingStatus.STOCK_CONSUMPTION);

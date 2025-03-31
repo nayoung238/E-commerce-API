@@ -1,6 +1,6 @@
 package com.ecommerce.orderservice.kafka.config.streams;
 
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
 import com.ecommerce.orderservice.kafka.dto.OrderKafkaEvent;
 import com.ecommerce.orderservice.kafka.dto.OrderEventSerde;
@@ -83,12 +83,12 @@ public class KStreamKTableJoinConfig {
     public KStream<String, OrderKafkaEvent> createFinalOrders(KTable<String, OrderKafkaEvent> pendingOrders,
                                                                 KStream<String, OrderKafkaEvent> orderProcessingResults) {
         KStream<String, OrderKafkaEvent> finalOrders = orderProcessingResults
-                .filter((key, value) -> isValidProcessingStatus(key, value.getOrderProcessingStatus()))
+                .filter((key, value) -> isValidProcessingStatus(key, value.getOrderStatus()))
                 .join(pendingOrders, (result, pendingOrder) -> setOrderStatus(pendingOrder, result))
                 .peek((key, finalOrder) ->
                         log.info("Successfully joined order processing result with pending order: orderEventId={}, finalStatus={}",
                                 key,
-                                finalOrder.getOrderProcessingStatus())
+                                finalOrder.getOrderStatus())
                 );
 
         finalOrders.to(TopicConfig.FINAL_ORDER_STREAMS_ONLY_TOPIC,
@@ -121,12 +121,12 @@ public class KStreamKTableJoinConfig {
         }
     }
 
-    private boolean isValidProcessingStatus(String orderEventId, OrderProcessingStatus orderProcessingStatus) {
-        boolean isValidStatus = orderProcessingStatus.equals(OrderProcessingStatus.SUCCESSFUL)
-                || orderProcessingStatus.equals(OrderProcessingStatus.FAILED);
+    private boolean isValidProcessingStatus(String orderEventId, OrderStatus orderStatus) {
+        boolean isValidStatus = orderStatus.equals(OrderStatus.SUCCESSFUL)
+                || orderStatus.equals(OrderStatus.FAILED);
 
         if(!isValidStatus) {
-            log.warn("Invalid order processing status: OrderEventId={}, ProcessingStatus={}", orderEventId, orderProcessingStatus);
+            log.warn("Invalid order processing status: OrderEventId={}, ProcessingStatus={}", orderEventId, orderStatus);
             kafkaProducerService.setTombstoneRecord(TopicConfig.REQUESTED_ORDER_STREAMS_ONLY_TOPIC, orderEventId);
         }
         return isValidStatus;

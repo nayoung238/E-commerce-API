@@ -2,7 +2,7 @@ package com.ecommerce.orderservice;
 
 import com.ecommerce.orderservice.order.entity.Order;
 import com.ecommerce.orderservice.order.entity.OrderItem;
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.ecommerce.orderservice.order.dto.response.OrderDetailResponse;
 import com.ecommerce.orderservice.order.dto.request.OrderItemRequest;
 import com.ecommerce.orderservice.order.dto.request.OrderCreationRequest;
@@ -33,12 +33,12 @@ public class IntegrationTestSupport {
         return OrderCreationRequest.of(userId, orderItemRequests);
     }
 
-    protected Order getOrder(Long userId, List<Long> orderItemIds, OrderProcessingStatus orderProcessingStatus) {
+    protected Order getOrder(Long userId, List<Long> orderItemIds, OrderStatus orderStatus) {
         List<OrderItem> orderItems = orderItemIds.stream()
             .map(id -> OrderItem.builder()
                 .itemId(id)
                 .quantity(3L)
-                .orderProcessingStatus(orderProcessingStatus)
+                .orderStatus(orderStatus)
                 .build())
             .toList();
 
@@ -46,7 +46,7 @@ public class IntegrationTestSupport {
             .userId(userId)
             .orderEventId(getOrderEventId(userId))
             .orderItems(orderItems)
-            .orderProcessingStatus(orderProcessingStatus)
+            .orderStatus(orderStatus)
             .build();
 
         orderItems.forEach(i -> i.initializeOrder(order));
@@ -61,10 +61,10 @@ public class IntegrationTestSupport {
         return userId + "-" + uuid[0];
     }
 
-    protected OrderKafkaEvent getOrderKafkaEvent(OrderDetailResponse orderDetailResponse, OrderProcessingStatus finalOrderProcessingStatus) {
-        orderDetailResponse.updateOrderStatus(finalOrderProcessingStatus);
+    protected OrderKafkaEvent getOrderKafkaEvent(OrderDetailResponse orderDetailResponse, OrderStatus finalOrderStatus) {
+        orderDetailResponse.updateOrderStatus(finalOrderStatus);
         orderDetailResponse.getOrderItems()
-                .forEach(o -> o.updateStatus(finalOrderProcessingStatus));
+                .forEach(o -> o.updateStatus(finalOrderStatus));
         return OrderKafkaEvent.of(orderDetailResponse);
     }
 }

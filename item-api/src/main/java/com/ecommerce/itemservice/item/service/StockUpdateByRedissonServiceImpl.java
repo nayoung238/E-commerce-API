@@ -2,7 +2,7 @@ package com.ecommerce.itemservice.item.service;
 
 import com.ecommerce.itemservice.item.enums.ItemProcessingStatus;
 import com.ecommerce.itemservice.kafka.dto.OrderItemKafkaEvent;
-import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -35,15 +35,15 @@ public class StockUpdateByRedissonServiceImpl implements StockUpdateService {
                 return itemService.updateStockByOptimisticLock(orderItemKafkaEvent, itemProcessingStatus);
             }
             else {
-                orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.FAILED);
+                orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
                 return orderItemKafkaEvent;
             }
         } catch (InterruptedException e) {
             log.error("Thread was interrupted while trying to acquire the Redisson lock for item ID {}: {}", orderItemKafkaEvent.getItemId(), e.getMessage());
-            orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.FAILED);
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
         } catch (CannotCreateTransactionException e) {
             log.error("Failed to create a new transaction (internal transaction) while updating stock for item ID {}: {}", orderItemKafkaEvent.getItemId(), e.getMessage());
-            orderItemKafkaEvent.updateOrderProcessingStatus(OrderProcessingStatus.FAILED);
+            orderItemKafkaEvent.updateOrderStatus(OrderStatus.FAILED);
         } finally {
             if(lock.isHeldByCurrentThread()) {
                 log.info("Unlock -> Redisson Lock: {}", lock.getName());

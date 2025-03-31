@@ -1,7 +1,7 @@
 package com.ecommerce.itemservice.order;
 
 import com.ecommerce.itemservice.item.service.ItemService;
-import com.ecommerce.itemservice.kafka.dto.OrderProcessingStatus;
+import com.ecommerce.itemservice.kafka.dto.OrderStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -35,8 +35,8 @@ public class OrderController {
     })
     @GetMapping("/processing-result/{orderEventKey}")
     public ResponseEntity<?> findOrderProcessingResult(@PathVariable String orderEventKey) {
-        OrderProcessingStatus orderProcessingStatus = itemService.findOrderProcessingStatus(orderEventKey);
-        return ResponseEntity.status(HttpStatus.OK).body(orderProcessingStatus);
+        OrderStatus orderStatus = itemService.findOrderProcessingStatus(orderEventKey);
+        return ResponseEntity.status(HttpStatus.OK).body(orderStatus);
     }
 
     @Operation(summary = "상태 검사")

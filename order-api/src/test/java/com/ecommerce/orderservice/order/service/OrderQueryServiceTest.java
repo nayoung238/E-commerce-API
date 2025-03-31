@@ -7,7 +7,7 @@ import com.ecommerce.orderservice.order.dto.response.OrderItemResponse;
 import com.ecommerce.orderservice.order.dto.response.OrderDetailResponse;
 import com.ecommerce.orderservice.order.dto.response.OrderSummaryResponse;
 import com.ecommerce.orderservice.order.entity.Order;
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.ecommerce.orderservice.order.repository.OrderRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +44,7 @@ class OrderQueryServiceTest extends IntegrationTestSupport {
         // given
         final long userId = 1L;
         final List<Long> orderItemIds = List.of(1L, 2L, 3L);
-        Order requestedOrder = getOrder(userId, orderItemIds, OrderProcessingStatus.SUCCESSFUL);
+        Order requestedOrder = getOrder(userId, orderItemIds, OrderStatus.SUCCESSFUL);
         requestedOrder = orderRepository.save(requestedOrder);
 
         // when
@@ -66,7 +66,7 @@ class OrderQueryServiceTest extends IntegrationTestSupport {
         // given
         final long userId = 2L;
         final List<Long> orderItemIds = List.of(1L, 2L, 3L);
-        Order requestedOrder = getOrder(userId, orderItemIds, OrderProcessingStatus.SUCCESSFUL);
+        Order requestedOrder = getOrder(userId, orderItemIds, OrderStatus.SUCCESSFUL);
         requestedOrder = orderRepository.save(requestedOrder);
 
         // when & then
@@ -87,7 +87,7 @@ class OrderQueryServiceTest extends IntegrationTestSupport {
         final long userId = 3L;
         final List<Long> orderItemIds = List.of(1L, 2L, 3L);
         for (int i = 0; i < OrderQueryService.PAGE_SIZE + 2; i++) {
-            Order order = getOrder(userId, orderItemIds, OrderProcessingStatus.SUCCESSFUL);
+            Order order = getOrder(userId, orderItemIds, OrderStatus.SUCCESSFUL);
             orderRepository.save(order);
         }
 
@@ -107,7 +107,7 @@ class OrderQueryServiceTest extends IntegrationTestSupport {
         final long userId = 4L;
         final List<Long> orderItemIds = List.of(2L, 3L);
         for (int i = 0; i < OrderQueryService.PAGE_SIZE - 2; i++) {
-            Order order = getOrder(userId, orderItemIds, OrderProcessingStatus.SUCCESSFUL);
+            Order order = getOrder(userId, orderItemIds, OrderStatus.SUCCESSFUL);
             orderRepository.save(order);
         }
 
@@ -128,7 +128,7 @@ class OrderQueryServiceTest extends IntegrationTestSupport {
         final List<Long> orderItemIds = List.of(1L, 2L, 3L);
         final List<Order> requestedOrder = new ArrayList<>();
         for (int i = 0; i < OrderQueryService.PAGE_SIZE; i++) {
-            Order order = getOrder(userId, orderItemIds, OrderProcessingStatus.SUCCESSFUL);
+            Order order = getOrder(userId, orderItemIds, OrderStatus.SUCCESSFUL);
             orderRepository.save(order);
             requestedOrder.add(order);
         }
@@ -150,7 +150,7 @@ class OrderQueryServiceTest extends IntegrationTestSupport {
         final List<Long> orderItemIds = List.of(1L, 2L);
         final List<Order> requestedOrder = new ArrayList<>();
         for (int i = 0; i < OrderQueryService.PAGE_SIZE + 4; i++) {
-            Order order = getOrder(userId, orderItemIds, OrderProcessingStatus.SUCCESSFUL);
+            Order order = getOrder(userId, orderItemIds, OrderStatus.SUCCESSFUL);
             orderRepository.save(order);
             requestedOrder.add(order);
         }

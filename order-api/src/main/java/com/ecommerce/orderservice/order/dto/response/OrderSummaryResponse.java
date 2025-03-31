@@ -2,7 +2,7 @@ package com.ecommerce.orderservice.order.dto.response;
 
 import com.ecommerce.orderservice.order.entity.Order;
 import com.ecommerce.orderservice.order.entity.OrderItem;
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
@@ -15,7 +15,7 @@ public record OrderSummaryResponse(
     Long orderId,
     String orderEventId,
     String orderName,
-    OrderProcessingStatus orderStatus,
+    OrderStatus orderStatus,
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     LocalDateTime requestedAt
@@ -26,7 +26,7 @@ public record OrderSummaryResponse(
                 .orderId(order.getId())
                 .orderEventId(order.getOrderEventId())
                 .orderName(getOrderName(order.getOrderItems()))
-                .orderStatus(order.getOrderProcessingStatus())
+                .orderStatus(order.getOrderStatus())
                 .requestedAt(order.getRequestedAt())
                 .build();
     }

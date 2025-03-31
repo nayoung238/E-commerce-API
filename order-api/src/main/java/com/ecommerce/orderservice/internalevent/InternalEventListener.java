@@ -3,7 +3,7 @@ package com.ecommerce.orderservice.internalevent;
 import com.ecommerce.orderservice.internalevent.entity.OrderInternalEvent;
 import com.ecommerce.orderservice.kafka.dto.updatedEvent.OrderUpdatedEvent;
 import com.ecommerce.orderservice.order.dto.response.OrderDetailResponse;
-import com.ecommerce.orderservice.order.enums.OrderProcessingStatus;
+import com.ecommerce.orderservice.order.enums.OrderStatus;
 import com.ecommerce.orderservice.order.service.OrderQueryService;
 import com.ecommerce.orderservice.internalevent.service.InternalEventService;
 import com.ecommerce.orderservice.kafka.config.TopicConfig;
@@ -33,7 +33,7 @@ public class InternalEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void createKafkaEvent(OrderInternalEvent orderInternalEvent) {
-        if (orderInternalEvent.getOrderProcessingStatus().equals(OrderProcessingStatus.CREATION)) {
+        if (orderInternalEvent.getOrderStatus().equals(OrderStatus.CREATION)) {
             OrderDetailResponse orderDetailResponse = orderQueryService.findOrderByOrderEventId(orderInternalEvent.getOrderEventId());
             kafkaProducerService.send(TopicConfig.REQUESTED_ORDER_TOPIC, orderDetailResponse.getOrderEventId(), OrderKafkaEvent.of(orderDetailResponse));
         }
